@@ -3,36 +3,51 @@
    ============================================ */
 
 :root {
-    /* Modern Professional Color Palette */
-    --primary-gradient: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-    --secondary-gradient: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
-    --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    --warning-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    --info-gradient: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
-    
-    /* Neutral Colors */
+    /* Custom Brand Color Palette - Balanced Orange & Green */
+    --nav-orange: #FF6B35;
+    --body-orange: #FF8C61;
+    --soft-orange: #FFB088;
+    --vibrant-green: #10B981;
     --white: #ffffff;
-    --gray-50: #f9fafb;
-    --gray-100: #f3f4f6;
-    --gray-200: #e5e7eb;
-    --gray-300: #d1d5db;
-    --gray-400: #9ca3af;
-    --gray-500: #6b7280;
-    --gray-600: #4b5563;
-    --gray-700: #374151;
-    --gray-800: #1f2937;
-    --gray-900: #111827;
-    --dark: #0f172a;
-    --darker: #020617;
+    --off-white: #f8f9fa;
     
-    /* Accent Colors */
-    --primary: #2563eb;
-    --secondary: #8b5cf6;
-    --success: #10b981;
-    --warning: #f59e0b;
+    /* Primary Colors - Subtle for Body, Strong for Nav */
+    --primary: #FF8C61;
+    --primary-light: #FFB088;
+    --primary-dark: #FF6B35;
+    --secondary: #10B981;
+    --secondary-light: #34D399;
+    --secondary-dark: #059669;
+    --accent: #34D399;
+    
+    /* Gradients - Softer for Body */
+    --primary-gradient: linear-gradient(135deg, #FFB088 0%, #FF8C61 100%);
+    --secondary-gradient: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+    --success-gradient: linear-gradient(135deg, #34D399 0%, #10B981 100%);
+    --warning-gradient: linear-gradient(135deg, #FFB088 0%, #FF8C61 100%);
+    --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    --info-gradient: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+    --nav-gradient: linear-gradient(135deg, #FF6B35 0%, #FF8C61 100%);
+    
+    /* Neutral Colors - White Dominant (70%) */
+    --gray-50: #ffffff;
+    --gray-100: #fafafa;
+    --gray-200: #f4f5f4;
+    --gray-300: #e8e9e8;
+    --gray-400: #d4d5d4;
+    --gray-500: #a8a9a8;
+    --gray-600: #7c7d7c;
+    --gray-700: #5a5b5a;
+    --gray-800: #3e3f3e;
+    --gray-900: #2a2b2a;
+    --dark: #1a1b1a;
+    --darker: #0f100f;
+    
+    /* Semantic Colors */
+    --success: #10B981;
+    --warning: #FFB088;
     --danger: #ef4444;
-    --info: #06b6d4;
+    --info: #34D399;
     
     /* Spacing */
     --space-xs: 0.25rem;
@@ -70,7 +85,7 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
-    background: var(--gray-50);
+    background: var(--white);
     color: var(--gray-900);
     line-height: 1.6;
 }

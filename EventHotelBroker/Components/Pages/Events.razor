@@ -1,0 +1,309 @@
+@page "/events"
+@using EventHotelBroker.Models
+@using EventHotelBroker.Services
+@inject IEventService EventService
+@inject NavigationManager Navigation
+
+<PageTitle>Event Services - EventHotelBroker</PageTitle>
+
+<link href="/css/events-module.css" rel="stylesheet" />
+
+<div class="container-fluid px-4 py-5 animate-fade-in">
+    <!-- Hero Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="text-center mb-5">
+                <h1 class="display-4 fw-bold mb-3">
+                    <i class="bi bi-calendar-event me-3" style="color: #667eea;"></i>
+                    Plan Your Perfect Event
+                </h1>
+                <p class="lead text-muted">From equipment rentals to complete event packages</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Type Selector -->
+    <div class="event-type-selector mb-5">
+        <div class="event-type-card @(selectedEventType == "Wedding" ? "active" : "")" @onclick='() => SelectEventType("Wedding")'>
+            <div class="icon">💒</div>
+            <div class="label">Wedding</div>
+        </div>
+        <div class="event-type-card @(selectedEventType == "Corporate" ? "active" : "")" @onclick='() => SelectEventType("Corporate")'>
+            <div class="icon">💼</div>
+            <div class="label">Corporate</div>
+        </div>
+        <div class="event-type-card @(selectedEventType == "Birthday" ? "active" : "")" @onclick='() => SelectEventType("Birthday")'>
+            <div class="icon">🎂</div>
+            <div class="label">Birthday</div>
+        </div>
+        <div class="event-type-card @(selectedEventType == "Conference" ? "active" : "")" @onclick='() => SelectEventType("Conference")'>
+            <div class="icon">🎤</div>
+            <div class="label">Conference</div>
+        </div>
+        <div class="event-type-card @(selectedEventType == "Party" ? "active" : "")" @onclick='() => SelectEventType("Party")'>
+            <div class="icon">🎉</div>
+            <div class="label">Party</div>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <ul class="nav nav-pills nav-fill mb-4" style="background: white; border-radius: 16px; padding: 0.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+        <li class="nav-item">
+            <a class="nav-link @(activeTab == "packages" ? "active" : "")" @onclick='() => activeTab = "packages"' style="border-radius: 12px; cursor: pointer;">
+                <i class="bi bi-gift me-2"></i>Event Packages
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(activeTab == "equipment" ? "active" : "")" @onclick='() => activeTab = "equipment"' style="border-radius: 12px; cursor: pointer;">
+                <i class="bi bi-box-seam me-2"></i>Equipment Rental
+            </a>
+        </li>
+    </ul>
+
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3 text-muted">Loading event services...</p>
+        </div>
+    }
+    else
+    {
+        @if (activeTab == "packages")
+        {
+            <!-- Event Packages -->
+            <div class="row g-4 animate-slide-up">
+                @if (filteredPackages.Any())
+                {
+                    @foreach (var package in filteredPackages)
+                    {
+                        <div class="col-lg-4 col-md-6">
+                            <div class="modern-card package-card position-relative">
+                                @if (package.IsFeatured)
+                                {
+                                    <div class="featured-badge">
+                                        <i class="bi bi-star-fill me-1"></i>Featured
+                                    </div>
+                                }
+                                @if (!string.IsNullOrEmpty(package.ImageUrl))
+                                {
+                                    <img src="@package.ImageUrl" class="card-img-top" alt="@package.Name" style="height: 250px; object-fit: cover;" />
+                                }
+                                else
+                                {
+                                    <div class="card-img-top d-flex align-items-center justify-content-center" style="height: 250px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                        <i class="bi bi-gift display-1 text-white"></i>
+                                    </div>
+                                }
+                                <div class="modern-card-body">
+                                    <span class="badge-modern badge-gradient-info mb-2">
+                                        <i class="bi bi-tag me-1"></i>@package.PackageType
+                                    </span>
+                                    <h4 class="mb-3">@package.Name</h4>
+                                    <p class="text-muted mb-3">@package.Description</p>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <div>
+                                            @if (package.DiscountedPrice.HasValue)
+                                            {
+                                                <div>
+                                                    <span class="text-decoration-line-through text-muted">$@package.TotalPrice.ToString("N2")</span>
+                                                    <h3 class="text-success mb-0">$@package.DiscountedPrice.Value.ToString("N2")</h3>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <h3 class="mb-0">$@package.TotalPrice.ToString("N2")</h3>
+                                            }
+                                        </div>
+                                        <div class="text-end">
+                                            <small class="text-muted">
+                                                <i class="bi bi-people me-1"></i>
+                                                @package.MinGuests - @package.MaxGuests guests
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    <button class="btn-modern btn-gradient-primary w-100" @onclick="() => BookPackage(package.Id)">
+                                        <i class="bi bi-calendar-check me-2"></i>Book This Package
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-12">
+                        <div class="text-center py-5">
+                            <i class="bi bi-inbox display-1 text-muted"></i>
+                            <p class="text-muted mt-3">No packages available for this event type</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <!-- Equipment Rental -->
+            <div class="category-filter">
+                <button class="category-filter-btn @(selectedCategory == "" ? "active" : "")" @onclick='() => selectedCategory = ""'>
+                    All Equipment
+                </button>
+                <button class="category-filter-btn @(selectedCategory == "Tents" ? "active" : "")" @onclick='() => selectedCategory = "Tents"'>
+                    <i class="bi bi-house me-1"></i>Tents
+                </button>
+                <button class="category-filter-btn @(selectedCategory == "Chairs" ? "active" : "")" @onclick='() => selectedCategory = "Chairs"'>
+                    <i class="bi bi-chair me-1"></i>Chairs
+                </button>
+                <button class="category-filter-btn @(selectedCategory == "Sound System" ? "active" : "")" @onclick='() => selectedCategory = "Sound System"'>
+                    <i class="bi bi-speaker me-1"></i>Sound System
+                </button>
+                <button class="category-filter-btn @(selectedCategory == "Lighting" ? "active" : "")" @onclick='() => selectedCategory = "Lighting"'>
+                    <i class="bi bi-lightbulb me-1"></i>Lighting
+                </button>
+                <button class="category-filter-btn @(selectedCategory == "Catering" ? "active" : "")" @onclick='() => selectedCategory = "Catering"'>
+                    <i class="bi bi-cup-hot me-1"></i>Catering
+                </button>
+                <button class="category-filter-btn @(selectedCategory == "Decoration" ? "active" : "")" @onclick='() => selectedCategory = "Decoration"'>
+                    <i class="bi bi-flower1 me-1"></i>Decoration
+                </button>
+            </div>
+
+            <div class="equipment-grid animate-slide-up">
+                @if (filteredEquipments.Any())
+                {
+                    @foreach (var equipment in filteredEquipments)
+                    {
+                        <div class="equipment-item">
+                            <div class="equipment-icon @equipment.Category.ToLower().Replace(" ", "")">
+                                <i class="bi @GetCategoryIcon(equipment.Category)"></i>
+                            </div>
+                            <h5 class="mb-2">@equipment.Name</h5>
+                            <p class="text-muted small mb-3">@equipment.Description.Substring(0, Math.Min(80, equipment.Description.Length))...</p>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <h4 class="mb-0 text-primary">$@equipment.PricePerUnit.ToString("N2")</h4>
+                                    <small class="text-muted">per @equipment.Unit</small>
+                                </div>
+                                <div>
+                                    <span class="badge bg-success">@equipment.AvailableQuantity available</span>
+                                </div>
+                            </div>
+
+                            <button class="btn btn-outline-primary w-100" @onclick="() => AddToCart(equipment.Id)">
+                                <i class="bi bi-cart-plus me-2"></i>Add to Cart
+                            </button>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-12">
+                        <div class="text-center py-5">
+                            <i class="bi bi-inbox display-1 text-muted"></i>
+                            <p class="text-muted mt-3">No equipment available in this category</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private string activeTab = "packages";
+    private string selectedEventType = "";
+    private string selectedCategory = "";
+    
+    private List<EventPackage> packages = new();
+    private List<EventPackage> filteredPackages = new();
+    private List<EventEquipment> equipments = new();
+    private List<EventEquipment> filteredEquipments = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        try
+        {
+            var allPackages = await EventService.GetAllPackagesAsync();
+            packages = allPackages.Where(p => p.IsApproved && p.IsActive).ToList();
+            
+            var allEquipments = await EventService.GetAllEquipmentsAsync();
+            equipments = allEquipments.Where(e => e.IsApproved && e.IsAvailable).ToList();
+            
+            FilterData();
+        }
+        catch (Exception ex)
+        {
+            // Log error
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void SelectEventType(string eventType)
+    {
+        selectedEventType = selectedEventType == eventType ? "" : eventType;
+        FilterData();
+    }
+
+    private void FilterData()
+    {
+        // Filter packages
+        if (string.IsNullOrEmpty(selectedEventType))
+        {
+            filteredPackages = packages;
+        }
+        else
+        {
+            filteredPackages = packages.Where(p => p.PackageType == selectedEventType).ToList();
+        }
+
+        // Filter equipment
+        if (string.IsNullOrEmpty(selectedCategory))
+        {
+            filteredEquipments = equipments;
+        }
+        else
+        {
+            filteredEquipments = equipments.Where(e => e.Category == selectedCategory).ToList();
+        }
+    }
+
+    private void BookPackage(int packageId)
+    {
+        Navigation.NavigateTo($"/book-event?packageId={packageId}");
+    }
+
+    private void AddToCart(int equipmentId)
+    {
+        // Implement cart functionality
+        Navigation.NavigateTo($"/book-event?equipmentId={equipmentId}");
+    }
+
+    private string GetCategoryIcon(string category)
+    {
+        return category switch
+        {
+            "Tents" => "bi-house",
+            "Chairs" => "bi-chair",
+            "Sound System" => "bi-speaker",
+            "Lighting" => "bi-lightbulb",
+            "Catering" => "bi-cup-hot",
+            "Decoration" => "bi-flower1",
+            _ => "bi-box-seam"
+        };
+    }
+}

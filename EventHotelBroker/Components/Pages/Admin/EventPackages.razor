@@ -1,0 +1,273 @@
+@page "/admin/event-packages"
+@using EventHotelBroker.Models
+@using EventHotelBroker.Services
+@inject IEventService EventService
+
+<PageTitle>Event Packages - Admin</PageTitle>
+
+<div class="container-fluid px-4 animate-fade-in">
+    <div class="page-header mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1><i class="bi bi-gift me-3"></i>Event Packages</h1>
+                <p>Manage event packages and deals</p>
+            </div>
+            <div class="d-flex gap-2">
+                <select class="form-select" @bind="selectedType" @bind:after="FilterPackages" style="width: 200px;">
+                    <option value="">All Types</option>
+                    <option value="Wedding">Wedding</option>
+                    <option value="Corporate">Corporate</option>
+                    <option value="Birthday">Birthday</option>
+                    <option value="Conference">Conference</option>
+                    <option value="Party">Party</option>
+                </select>
+                <button class="btn btn-outline-secondary" @onclick="RefreshData">
+                    <i class="bi bi-arrow-clockwise me-2"></i>Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="modern-card">
+            <div class="text-center py-5">
+                <div class="spinner-border spinner-modern text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3 text-muted">Loading packages...</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Statistics Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <p class="stats-number">@packages.Count()</p>
+                            <p class="stats-label mb-0">Total Packages</p>
+                        </div>
+                        <div class="stats-icon" style="background: var(--primary-gradient);">
+                            <i class="bi bi-gift"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <p class="stats-number">@packages.Count(p => p.IsApproved)</p>
+                            <p class="stats-label mb-0">Approved</p>
+                        </div>
+                        <div class="stats-icon" style="background: var(--success-gradient);">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <p class="stats-number">@packages.Count(p => p.IsFeatured)</p>
+                            <p class="stats-label mb-0">Featured</p>
+                        </div>
+                        <div class="stats-icon" style="background: var(--warning-gradient);">
+                            <i class="bi bi-star"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <p class="stats-number">@packages.Count(p => p.IsActive)</p>
+                            <p class="stats-label mb-0">Active</p>
+                        </div>
+                        <div class="stats-icon" style="background: var(--info-gradient);">
+                            <i class="bi bi-check2-square"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Packages Grid -->
+        <div class="row g-4">
+            @if (filteredPackages.Any())
+            {
+                @foreach (var package in filteredPackages)
+                {
+                    <div class="col-lg-4 col-md-6">
+                        <div class="modern-card package-card">
+                            @if (!string.IsNullOrEmpty(package.ImageUrl))
+                            {
+                                <img src="@package.ImageUrl" class="card-img-top" alt="@package.Name" style="height: 200px; object-fit: cover;" />
+                            }
+                            else
+                            {
+                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                    <i class="bi bi-gift display-1 text-muted"></i>
+                                </div>
+                            }
+                            <div class="modern-card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="mb-0">@package.Name</h5>
+                                    @if (package.IsFeatured)
+                                    {
+                                        <span class="badge bg-warning">
+                                            <i class="bi bi-star-fill"></i>
+                                        </span>
+                                    }
+                                </div>
+                                <span class="badge-modern badge-gradient-info mb-2">
+                                    <i class="bi bi-tag me-1"></i>@package.PackageType
+                                </span>
+                                <p class="text-muted small mb-3">@package.Description.Substring(0, Math.Min(100, package.Description.Length))...</p>
+                                
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        @if (package.DiscountedPrice.HasValue)
+                                        {
+                                            <div>
+                                                <span class="text-decoration-line-through text-muted">$@package.TotalPrice.ToString("N2")</span>
+                                                <h4 class="text-success mb-0">$@package.DiscountedPrice.Value.ToString("N2")</h4>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <h4 class="mb-0">$@package.TotalPrice.ToString("N2")</h4>
+                                        }
+                                    </div>
+                                    <div class="text-end">
+                                        <small class="text-muted">@package.MinGuests - @package.MaxGuests guests</small>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    @if (package.IsApproved)
+                                    {
+                                        <span class="badge-modern badge-gradient-success">
+                                            <i class="bi bi-check-circle me-1"></i>Approved
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge-modern badge-gradient-warning">
+                                            <i class="bi bi-clock-history me-1"></i>Pending
+                                        </span>
+                                    }
+                                    @if (package.IsActive)
+                                    {
+                                        <span class="badge bg-success ms-1">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary ms-1">Inactive</span>
+                                    }
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    @if (!package.IsApproved)
+                                    {
+                                        <button class="btn btn-sm btn-success flex-fill" @onclick="() => ApprovePackage(package.Id)">
+                                            <i class="bi bi-check-lg me-1"></i>Approve
+                                        </button>
+                                        <button class="btn btn-sm btn-danger flex-fill" @onclick="() => RejectPackage(package.Id)">
+                                            <i class="bi bi-x-lg me-1"></i>Reject
+                                        </button>
+                                    }
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DeletePackage(package.Id)">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12">
+                    <div class="modern-card">
+                        <div class="text-center py-5">
+                            <i class="bi bi-inbox display-1 text-muted"></i>
+                            <p class="text-muted mt-3">No packages found</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private List<EventPackage> packages = new();
+    private List<EventPackage> filteredPackages = new();
+    private string selectedType = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        try
+        {
+            var allPackages = await EventService.GetAllPackagesAsync();
+            packages = allPackages.ToList();
+            FilterPackages();
+        }
+        catch (Exception ex)
+        {
+            // Log error
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void FilterPackages()
+    {
+        if (string.IsNullOrEmpty(selectedType))
+        {
+            filteredPackages = packages;
+        }
+        else
+        {
+            filteredPackages = packages.Where(p => p.PackageType == selectedType).ToList();
+        }
+    }
+
+    private async Task ApprovePackage(int id)
+    {
+        await EventService.ApprovePackageAsync(id);
+        await LoadData();
+    }
+
+    private async Task RejectPackage(int id)
+    {
+        await EventService.RejectPackageAsync(id);
+        await LoadData();
+    }
+
+    private async Task DeletePackage(int id)
+    {
+        await EventService.DeletePackageAsync(id);
+        await LoadData();
+    }
+
+    private async Task RefreshData()
+    {
+        await LoadData();
+    }
+}

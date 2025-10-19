@@ -26,6 +26,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IHotelService, HotelService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
+builder.Services.AddScoped<IEventService, EventService>();
 
 // Add SignalR for real-time messaging
 builder.Services.AddSignalR();
@@ -76,6 +77,7 @@ using (var scope = app.Services.CreateScope())
         logger.LogInformation("Seeding database...");
         await DbSeeder.SeedAsync(services);
         await SampleDataSeeder.SeedSampleDataAsync(services);
+        await EventDataSeeder.SeedEventDataAsync(services);
         logger.LogInformation("Database seeding completed.");
     }
     catch (Exception ex)

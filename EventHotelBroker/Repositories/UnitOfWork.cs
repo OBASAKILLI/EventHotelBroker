@@ -19,6 +19,14 @@ public class UnitOfWork : IUnitOfWork
     public IRepository<Booking> Bookings { get; }
     public IRepository<Message> Messages { get; }
     public IRepository<AuditLog> AuditLogs { get; }
+    
+    // Event Management Repositories
+    public IRepository<EventEquipment> EventEquipments { get; }
+    public IRepository<EventEquipmentImage> EventEquipmentImages { get; }
+    public IRepository<EventPackage> EventPackages { get; }
+    public IRepository<EventPackageEquipment> EventPackageEquipments { get; }
+    public IRepository<EventBooking> EventBookings { get; }
+    public IRepository<EventBookingEquipment> EventBookingEquipments { get; }
 
     public UnitOfWork(ApplicationDbContext context)
     {
@@ -34,6 +42,14 @@ public class UnitOfWork : IUnitOfWork
         Bookings = new Repository<Booking>(_context);
         Messages = new Repository<Message>(_context);
         AuditLogs = new Repository<AuditLog>(_context);
+        
+        // Initialize Event Management Repositories
+        EventEquipments = new Repository<EventEquipment>(_context);
+        EventEquipmentImages = new Repository<EventEquipmentImage>(_context);
+        EventPackages = new Repository<EventPackage>(_context);
+        EventPackageEquipments = new Repository<EventPackageEquipment>(_context);
+        EventBookings = new Repository<EventBooking>(_context);
+        EventBookingEquipments = new Repository<EventBookingEquipment>(_context);
     }
 
     public async Task<int> SaveChangesAsync()

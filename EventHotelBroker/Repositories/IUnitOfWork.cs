@@ -15,6 +15,14 @@ public interface IUnitOfWork : IDisposable
     IRepository<Message> Messages { get; }
     IRepository<AuditLog> AuditLogs { get; }
     
+    // Event Management Repositories
+    IRepository<EventEquipment> EventEquipments { get; }
+    IRepository<EventEquipmentImage> EventEquipmentImages { get; }
+    IRepository<EventPackage> EventPackages { get; }
+    IRepository<EventPackageEquipment> EventPackageEquipments { get; }
+    IRepository<EventBooking> EventBookings { get; }
+    IRepository<EventBookingEquipment> EventBookingEquipments { get; }
+    
     Task<int> SaveChangesAsync();
     Task BeginTransactionAsync();
     Task CommitTransactionAsync();

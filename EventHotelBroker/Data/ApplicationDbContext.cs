@@ -21,6 +21,14 @@ public class ApplicationDbContext : DbContext
     public DbSet<Booking> Bookings { get; set; }
     public DbSet<Message> Messages { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
+    
+    // Event Management
+    public DbSet<EventEquipment> EventEquipments { get; set; }
+    public DbSet<EventEquipmentImage> EventEquipmentImages { get; set; }
+    public DbSet<EventPackage> EventPackages { get; set; }
+    public DbSet<EventPackageEquipment> EventPackageEquipments { get; set; }
+    public DbSet<EventBooking> EventBookings { get; set; }
+    public DbSet<EventBookingEquipment> EventBookingEquipments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -175,6 +183,113 @@ public class ApplicationDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.UserId);
             entity.HasIndex(e => e.CreatedAt);
+        });
+
+        // EventEquipment configuration
+        modelBuilder.Entity<EventEquipment>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.ProviderId);
+            entity.HasIndex(e => e.Category);
+            entity.HasIndex(e => e.IsAvailable);
+            
+            entity.Property(e => e.PricePerUnit).HasPrecision(12, 2);
+
+            entity.HasOne(e => e.Provider)
+                .WithMany()
+                .HasForeignKey(e => e.ProviderId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // EventEquipmentImage configuration
+        modelBuilder.Entity<EventEquipmentImage>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.EquipmentId);
+
+            entity.HasOne(e => e.Equipment)
+                .WithMany(eq => eq.Images)
+                .HasForeignKey(e => e.EquipmentId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // EventPackage configuration
+        modelBuilder.Entity<EventPackage>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.ProviderId);
+            entity.HasIndex(e => e.PackageType);
+            entity.HasIndex(e => e.IsActive);
+            
+            entity.Property(e => e.TotalPrice).HasPrecision(12, 2);
+            entity.Property(e => e.DiscountedPrice).HasPrecision(12, 2);
+
+            entity.HasOne(e => e.Provider)
+                .WithMany()
+                .HasForeignKey(e => e.ProviderId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // EventPackageEquipment configuration
+        modelBuilder.Entity<EventPackageEquipment>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.PackageId);
+            entity.HasIndex(e => e.EquipmentId);
+
+            entity.HasOne(e => e.Package)
+                .WithMany(p => p.PackageEquipments)
+                .HasForeignKey(e => e.PackageId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Equipment)
+                .WithMany(eq => eq.PackageEquipments)
+                .HasForeignKey(e => e.EquipmentId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // EventBooking configuration
+        modelBuilder.Entity<EventBooking>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.PackageId);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.EventDate);
+            
+            entity.Property(e => e.TotalAmount).HasPrecision(12, 2);
+            entity.Property(e => e.DepositAmount).HasPrecision(12, 2);
+
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Package)
+                .WithMany(p => p.EventBookings)
+                .HasForeignKey(e => e.PackageId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // EventBookingEquipment configuration
+        modelBuilder.Entity<EventBookingEquipment>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.BookingId);
+            entity.HasIndex(e => e.EquipmentId);
+            
+            entity.Property(e => e.UnitPrice).HasPrecision(12, 2);
+            entity.Property(e => e.TotalPrice).HasPrecision(12, 2);
+
+            entity.HasOne(e => e.Booking)
+                .WithMany(b => b.BookingEquipments)
+                .HasForeignKey(e => e.BookingId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Equipment)
+                .WithMany(eq => eq.BookingEquipments)
+                .HasForeignKey(e => e.EquipmentId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

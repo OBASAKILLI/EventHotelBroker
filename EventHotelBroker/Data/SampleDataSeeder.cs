@@ -239,6 +239,48 @@ public static class SampleDataSeeder
         context.Hotels.AddRange(hotel1, hotel2, hotel3, hotel4, hotel5, hotel6, hotel7);
         await context.SaveChangesAsync();
 
+        // Add real images to hotels
+        var hotelImages = new List<HotelImage>
+        {
+            // Hotel 1 - Grand Plaza Hotel Nairobi
+            new HotelImage { HotelId = hotel1.Id, Url = "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800", FileName = "grand-plaza-1.jpg", IsPrimary = true },
+            new HotelImage { HotelId = hotel1.Id, Url = "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800", FileName = "grand-plaza-2.jpg", IsPrimary = false },
+            new HotelImage { HotelId = hotel1.Id, Url = "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800", FileName = "grand-plaza-3.jpg", IsPrimary = false },
+
+            // Hotel 2 - Serena Beach Resort & Spa
+            new HotelImage { HotelId = hotel2.Id, Url = "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800", FileName = "serena-beach-1.jpg", IsPrimary = true },
+            new HotelImage { HotelId = hotel2.Id, Url = "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=800", FileName = "serena-beach-2.jpg", IsPrimary = false },
+            new HotelImage { HotelId = hotel2.Id, Url = "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800", FileName = "serena-beach-3.jpg", IsPrimary = false },
+
+            // Hotel 3 - Mount Kenya Safari Lodge
+            new HotelImage { HotelId = hotel3.Id, Url = "https://images.unsplash.com/photo-1596436889106-be35e843f974?w=800", FileName = "safari-lodge-1.jpg", IsPrimary = true },
+            new HotelImage { HotelId = hotel3.Id, Url = "https://images.unsplash.com/photo-1602002418082-a4443e081dd1?w=800", FileName = "safari-lodge-2.jpg", IsPrimary = false },
+            new HotelImage { HotelId = hotel3.Id, Url = "https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=800", FileName = "safari-lodge-3.jpg", IsPrimary = false },
+
+            // Hotel 4 - Westlands Conference Center
+            new HotelImage { HotelId = hotel4.Id, Url = "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=800", FileName = "conference-1.jpg", IsPrimary = true },
+            new HotelImage { HotelId = hotel4.Id, Url = "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?w=800", FileName = "conference-2.jpg", IsPrimary = false },
+            new HotelImage { HotelId = hotel4.Id, Url = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800", FileName = "conference-3.jpg", IsPrimary = false },
+
+            // Hotel 5 - Lake Nakuru View Hotel
+            new HotelImage { HotelId = hotel5.Id, Url = "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800", FileName = "nakuru-1.jpg", IsPrimary = true },
+            new HotelImage { HotelId = hotel5.Id, Url = "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=800", FileName = "nakuru-2.jpg", IsPrimary = false },
+            new HotelImage { HotelId = hotel5.Id, Url = "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=800", FileName = "nakuru-3.jpg", IsPrimary = false },
+
+            // Hotel 6 - Karen Blixen Garden Estate
+            new HotelImage { HotelId = hotel6.Id, Url = "https://images.unsplash.com/photo-1519167758481-83f29da8c2b0?w=800", FileName = "karen-1.jpg", IsPrimary = true },
+            new HotelImage { HotelId = hotel6.Id, Url = "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800", FileName = "karen-2.jpg", IsPrimary = false },
+            new HotelImage { HotelId = hotel6.Id, Url = "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800", FileName = "karen-3.jpg", IsPrimary = false },
+
+            // Hotel 7 - Diani Palms Beach Resort
+            new HotelImage { HotelId = hotel7.Id, Url = "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800", FileName = "diani-1.jpg", IsPrimary = true },
+            new HotelImage { HotelId = hotel7.Id, Url = "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=800", FileName = "diani-2.jpg", IsPrimary = false },
+            new HotelImage { HotelId = hotel7.Id, Url = "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800", FileName = "diani-3.jpg", IsPrimary = false }
+        };
+
+        context.HotelImages.AddRange(hotelImages);
+        await context.SaveChangesAsync();
+
         // Add amenities to hotels
         if (wifiAmenity != null && parkingAmenity != null && acAmenity != null)
         {

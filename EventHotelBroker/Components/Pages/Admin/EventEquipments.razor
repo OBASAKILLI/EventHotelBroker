@@ -1,0 +1,274 @@
+@page "/admin/event-equipments"
+@using EventHotelBroker.Models
+@using EventHotelBroker.Services
+@inject IEventService EventService
+@inject NavigationManager Navigation
+
+<PageTitle>Event Equipments - Admin</PageTitle>
+
+<div class="container-fluid px-4 animate-fade-in">
+    <div class="page-header mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1><i class="bi bi-box-seam me-3"></i>Event Equipments</h1>
+                <p>Manage event equipment inventory</p>
+            </div>
+            <div class="d-flex gap-2">
+                <select class="form-select" @bind="selectedCategory" @bind:after="FilterEquipments" style="width: 200px;">
+                    <option value="">All Categories</option>
+                    <option value="Tents">Tents</option>
+                    <option value="Chairs">Chairs</option>
+                    <option value="Sound System">Sound System</option>
+                    <option value="Lighting">Lighting</option>
+                    <option value="Catering">Catering</option>
+                    <option value="Decoration">Decoration</option>
+                </select>
+                <button class="btn btn-outline-secondary" @onclick="RefreshData">
+                    <i class="bi bi-arrow-clockwise me-2"></i>Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="modern-card">
+            <div class="text-center py-5">
+                <div class="spinner-border spinner-modern text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3 text-muted">Loading equipments...</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Statistics Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <p class="stats-number">@equipments.Count()</p>
+                            <p class="stats-label mb-0">Total Equipment</p>
+                        </div>
+                        <div class="stats-icon" style="background: var(--primary-gradient);">
+                            <i class="bi bi-box-seam"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <p class="stats-number">@equipments.Count(e => e.IsApproved)</p>
+                            <p class="stats-label mb-0">Approved</p>
+                        </div>
+                        <div class="stats-icon" style="background: var(--success-gradient);">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <p class="stats-number">@equipments.Count(e => !e.IsApproved)</p>
+                            <p class="stats-label mb-0">Pending Approval</p>
+                        </div>
+                        <div class="stats-icon" style="background: var(--warning-gradient);">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <p class="stats-number">@equipments.Count(e => e.IsAvailable)</p>
+                            <p class="stats-label mb-0">Available</p>
+                        </div>
+                        <div class="stats-icon" style="background: var(--info-gradient);">
+                            <i class="bi bi-check2-square"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Equipment List -->
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h5 class="mb-0">Equipment Inventory</h5>
+            </div>
+            <div class="modern-card-body p-0">
+                @if (filteredEquipments.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover modern-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Category</th>
+                                    <th>Price/Unit</th>
+                                    <th>Available Qty</th>
+                                    <th>Provider</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var equipment in filteredEquipments)
+                                {
+                                    <tr>
+                                        <td>
+                                            <strong>@equipment.Name</strong>
+                                            <br />
+                                            <small class="text-muted">@equipment.Description.Substring(0, Math.Min(50, equipment.Description.Length))...</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge-modern badge-gradient-info">
+                                                <i class="bi bi-tag me-1"></i>@equipment.Category
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <strong>$@equipment.PricePerUnit.ToString("N2")</strong>
+                                            <br />
+                                            <small class="text-muted">per @equipment.Unit</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">@equipment.AvailableQuantity @equipment.Unit</span>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">@equipment.Provider?.FullName</small>
+                                        </td>
+                                        <td>
+                                            @if (equipment.IsApproved)
+                                            {
+                                                <span class="badge-modern badge-gradient-success">
+                                                    <i class="bi bi-check-circle me-1"></i>Approved
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge-modern badge-gradient-warning">
+                                                    <i class="bi bi-clock-history me-1"></i>Pending
+                                                </span>
+                                            }
+                                            @if (!equipment.IsAvailable)
+                                            {
+                                                <br />
+                                                <span class="badge bg-danger mt-1">Unavailable</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                @if (!equipment.IsApproved)
+                                                {
+                                                    <button class="btn btn-success" @onclick="() => ApproveEquipment(equipment.Id)" title="Approve">
+                                                        <i class="bi bi-check-lg"></i>
+                                                    </button>
+                                                    <button class="btn btn-danger" @onclick="() => RejectEquipment(equipment.Id)" title="Reject">
+                                                        <i class="bi bi-x-lg"></i>
+                                                    </button>
+                                                }
+                                                <button class="btn btn-outline-danger" @onclick="() => DeleteEquipment(equipment.Id)" title="Delete">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox display-1 text-muted"></i>
+                        <p class="text-muted mt-3">No equipment found</p>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private List<EventEquipment> equipments = new();
+    private List<EventEquipment> filteredEquipments = new();
+    private string selectedCategory = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        try
+        {
+            var allEquipments = await EventService.GetAllEquipmentsAsync();
+            equipments = allEquipments.ToList();
+            FilterEquipments();
+        }
+        catch (Exception ex)
+        {
+            // Log error
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void FilterEquipments()
+    {
+        if (string.IsNullOrEmpty(selectedCategory))
+        {
+            filteredEquipments = equipments;
+        }
+        else
+        {
+            filteredEquipments = equipments.Where(e => e.Category == selectedCategory).ToList();
+        }
+    }
+
+    private async Task ApproveEquipment(int id)
+    {
+        await EventService.ApproveEquipmentAsync(id);
+        await LoadData();
+    }
+
+    private async Task RejectEquipment(int id)
+    {
+        await EventService.RejectEquipmentAsync(id);
+        await LoadData();
+    }
+
+    private async Task DeleteEquipment(int id)
+    {
+        if (confirm("Are you sure you want to delete this equipment?"))
+        {
+            await EventService.DeleteEquipmentAsync(id);
+            await LoadData();
+        }
+    }
+
+    private async Task RefreshData()
+    {
+        await LoadData();
+    }
+
+    private bool confirm(string message)
+    {
+        // In production, use a proper modal dialog
+        return true;
+    }
+}

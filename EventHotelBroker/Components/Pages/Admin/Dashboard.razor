@@ -1,10 +1,12 @@
 @page "/admin/dashboard"
 @using EventHotelBroker.Models
 @using EventHotelBroker.Repositories
+@using EventHotelBroker.Services
 @using EventHotelBroker.Data
 @using Microsoft.EntityFrameworkCore
 @inject IUnitOfWork UnitOfWork
 @inject ApplicationDbContext DbContext
+@inject IEventService EventService
 
 <PageTitle>Admin Dashboard - EventHotelBroker</PageTitle>
 
@@ -39,7 +41,7 @@
     {
         <!-- Statistics Cards -->
         <div class="row g-4 mb-4">
-            <div class="col-md-3">
+            <div class="col-lg-2 col-md-4 col-sm-6">
                 <div class="stats-card">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
@@ -53,12 +55,12 @@
                 </div>
             </div>
 
-            <div class="col-md-3">
+            <div class="col-lg-2 col-md-4 col-sm-6">
                 <div class="stats-card">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
                             <p class="stats-number">@stats.TotalHotels</p>
-                            <p class="stats-label mb-0">Total Hotels</p>
+                            <p class="stats-label mb-0">Hotels</p>
                         </div>
                         <div class="stats-icon" style="background: var(--success-gradient);">
                             <i class="bi bi-building"></i>
@@ -67,29 +69,57 @@
                 </div>
             </div>
 
-            <div class="col-md-3">
+            <div class="col-lg-2 col-md-4 col-sm-6">
                 <div class="stats-card">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
-                            <p class="stats-number">@stats.PendingApprovals</p>
-                            <p class="stats-label mb-0">Pending Approvals</p>
+                            <p class="stats-number">@stats.TotalEventEquipments</p>
+                            <p class="stats-label mb-0">Equipments</p>
                         </div>
-                        <div class="stats-icon" style="background: var(--warning-gradient);">
-                            <i class="bi bi-clock-history"></i>
+                        <div class="stats-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <i class="bi bi-box-seam"></i>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-3">
+            <div class="col-lg-2 col-md-4 col-sm-6">
                 <div class="stats-card">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
-                            <p class="stats-number">@stats.TotalBookings</p>
-                            <p class="stats-label mb-0">Total Bookings</p>
+                            <p class="stats-number">@stats.TotalEventPackages</p>
+                            <p class="stats-label mb-0">Packages</p>
+                        </div>
+                        <div class="stats-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                            <i class="bi bi-gift"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-2 col-md-4 col-sm-6">
+                <div class="stats-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <p class="stats-number">@stats.TotalEventBookings</p>
+                            <p class="stats-label mb-0">Event Bookings</p>
                         </div>
                         <div class="stats-icon" style="background: var(--info-gradient);">
-                            <i class="bi bi-calendar-check"></i>
+                            <i class="bi bi-calendar-event"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-2 col-md-4 col-sm-6">
+                <div class="stats-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <p class="stats-number">@stats.PendingApprovals</p>
+                            <p class="stats-label mb-0">Pending</p>
+                        </div>
+                        <div class="stats-icon" style="background: var(--warning-gradient);">
+                            <i class="bi bi-clock-history"></i>
                         </div>
                     </div>
                 </div>
@@ -240,8 +270,14 @@
                             <a href="/admin/hotels" class="btn-modern btn-gradient-success">
                                 <i class="bi bi-building me-2"></i>Manage Hotels
                             </a>
-                            <a href="/admin/bookings" class="btn-modern" style="background: var(--info-gradient); color: white;">
-                                <i class="bi bi-calendar-event me-2"></i>View All Bookings
+                            <a href="/admin/event-equipments" class="btn-modern" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                                <i class="bi bi-box-seam me-2"></i>Event Equipments
+                            </a>
+                            <a href="/admin/event-packages" class="btn-modern" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+                                <i class="bi bi-gift me-2"></i>Event Packages
+                            </a>
+                            <a href="/admin/event-bookings" class="btn-modern" style="background: var(--info-gradient); color: white;">
+                                <i class="bi bi-calendar-event me-2"></i>Event Bookings
                             </a>
                             <a href="/admin/audit-logs" class="btn-modern" style="background: var(--gray-700); color: white;">
                                 <i class="bi bi-file-text me-2"></i>View Audit Logs
@@ -271,6 +307,11 @@
             stats.TotalHotels = await UnitOfWork.Hotels.CountAsync();
             stats.PendingApprovals = await UnitOfWork.Hotels.CountAsync(h => !h.IsApproved && h.IsPublished);
             stats.TotalBookings = await UnitOfWork.Bookings.CountAsync();
+            
+            // Load event statistics
+            stats.TotalEventEquipments = await EventService.GetTotalEquipmentsCountAsync();
+            stats.TotalEventPackages = await EventService.GetTotalPackagesCountAsync();
+            stats.TotalEventBookings = await EventService.GetTotalBookingsCountAsync();
 
             // Load pending hotels
             pendingHotels = await UnitOfWork.Hotels.FindAsync(h => !h.IsApproved && h.IsPublished);
@@ -334,5 +375,8 @@
         public int TotalHotels { get; set; }
         public int PendingApprovals { get; set; }
         public int TotalBookings { get; set; }
+        public int TotalEventEquipments { get; set; }
+        public int TotalEventPackages { get; set; }
+        public int TotalEventBookings { get; set; }
     }
 }
