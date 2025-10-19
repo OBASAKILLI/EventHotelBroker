@@ -1,0 +1,259 @@
+@page "/owner/dashboard"
+@using EventHotelBroker.Models
+@using EventHotelBroker.Services
+@inject IHotelService HotelService
+@inject IBookingService BookingService
+
+<PageTitle>Owner Dashboard - EventHotelBroker</PageTitle>
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Hotel Owner Dashboard</h1>
+        <a href="/owner/hotels/create" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-2"></i>Add New Hotel
+        </a>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Statistics Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted mb-1">My Hotels</p>
+                                <h3 class="mb-0">@myHotels.Count()</h3>
+                            </div>
+                            <div class="bg-primary bg-opacity-10 p-3 rounded">
+                                <i class="bi bi-building text-primary" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted mb-1">Published</p>
+                                <h3 class="mb-0">@myHotels.Count(h => h.IsPublished && h.IsApproved)</h3>
+                            </div>
+                            <div class="bg-success bg-opacity-10 p-3 rounded">
+                                <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted mb-1">Pending Approval</p>
+                                <h3 class="mb-0">@myHotels.Count(h => h.IsPublished && !h.IsApproved)</h3>
+                            </div>
+                            <div class="bg-warning bg-opacity-10 p-3 rounded">
+                                <i class="bi bi-clock-history text-warning" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted mb-1">Booking Requests</p>
+                                <h3 class="mb-0">@bookingRequests.Count()</h3>
+                            </div>
+                            <div class="bg-info bg-opacity-10 p-3 rounded">
+                                <i class="bi bi-calendar-check text-info" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- My Hotels -->
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">My Hotels</h5>
+                        <a href="/owner/hotels" class="btn btn-sm btn-outline-primary">View All</a>
+                    </div>
+                    <div class="card-body">
+                        @if (myHotels.Any())
+                        {
+                            <div class="list-group list-group-flush">
+                                @foreach (var hotel in myHotels.Take(5))
+                                {
+                                    <div class="list-group-item px-0">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1">@hotel.Name</h6>
+                                                <p class="mb-1 text-muted">
+                                                    <i class="bi bi-geo-alt"></i> @hotel.City, @hotel.Country
+                                                </p>
+                                                <small class="text-muted">
+                                                    Capacity: @hotel.Capacity | Price: @hotel.Currency @hotel.PricePerNight.ToString("N0")/night
+                                                </small>
+                                            </div>
+                                            <div class="text-end">
+                                                @if (hotel.IsApproved)
+                                                {
+                                                    <span class="badge bg-success mb-2">Approved</span>
+                                                }
+                                                else if (hotel.IsPublished)
+                                                {
+                                                    <span class="badge bg-warning mb-2">Pending</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary mb-2">Draft</span>
+                                                }
+                                                <br />
+                                                <a href="/owner/hotels/@hotel.Id/edit" class="btn btn-sm btn-outline-primary">Edit</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-4">
+                                <i class="bi bi-building text-muted" style="font-size: 3rem;"></i>
+                                <p class="text-muted mt-3">You haven't added any hotels yet.</p>
+                                <a href="/owner/hotels/create" class="btn btn-primary">Add Your First Hotel</a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Booking Requests -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Booking Requests</h5>
+                        <a href="/owner/bookings" class="btn btn-sm btn-outline-primary">View All</a>
+                    </div>
+                    <div class="card-body">
+                        @if (bookingRequests.Any())
+                        {
+                            <div class="list-group list-group-flush">
+                                @foreach (var booking in bookingRequests.Take(5))
+                                {
+                                    <div class="list-group-item px-0">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <small class="text-muted">Booking #@booking.Id</small>
+                                            <span class="badge bg-@GetStatusColor(booking.Status)">@booking.Status</span>
+                                        </div>
+                                        <p class="mb-1 small">
+                                            <i class="bi bi-calendar"></i> @booking.StartDate.ToString("MMM dd") - @booking.EndDate.ToString("MMM dd")
+                                        </p>
+                                        <small class="text-muted">@booking.HeadCount guests</small>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted text-center mb-0">No booking requests yet</p>
+                        }
+                    </div>
+                </div>
+
+                <!-- Quick Tips -->
+                <div class="card border-0 shadow-sm mt-4">
+                    <div class="card-header bg-white border-bottom">
+                        <h5 class="mb-0">Quick Tips</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2">
+                                <i class="bi bi-lightbulb text-warning me-2"></i>
+                                <small>Add high-quality photos to attract more bookings</small>
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-lightbulb text-warning me-2"></i>
+                                <small>Respond to inquiries within 24 hours</small>
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-lightbulb text-warning me-2"></i>
+                                <small>Keep your availability calendar updated</small>
+                            </li>
+                            <li>
+                                <i class="bi bi-lightbulb text-warning me-2"></i>
+                                <small>Complete your profile for better visibility</small>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private List<Hotel> myHotels = new();
+    private List<Booking> bookingRequests = new();
+    private string? currentUserId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Since authentication is removed, use a default owner ID (you can change this as needed)
+        currentUserId = "1"; // Default to first owner
+
+        try
+        {
+            myHotels = (await HotelService.GetHotelsByOwnerAsync(currentUserId)).ToList();
+            
+            // Get bookings for all my hotels
+            foreach (var hotel in myHotels)
+            {
+                var hotelBookings = await BookingService.GetBookingsByHotelAsync(hotel.Id);
+                bookingRequests.AddRange(hotelBookings.Where(b => b.Status == BookingStatus.Pending));
+            }
+        }
+        catch (Exception)
+        {
+            // Handle error
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private string GetStatusColor(BookingStatus status)
+    {
+        return status switch
+        {
+            BookingStatus.Pending => "warning",
+            BookingStatus.Confirmed => "success",
+            BookingStatus.Rejected => "danger",
+            BookingStatus.Cancelled => "secondary",
+            _ => "secondary"
+        };
+    }
+}

@@ -1,0 +1,318 @@
+@page "/hotels/{HotelId:int}"
+@page "/hotel-details"
+@using EventHotelBroker.Models
+@using EventHotelBroker.Services
+@using EventHotelBroker.Repositories
+@inject IHotelService HotelService
+@inject IUnitOfWork UnitOfWork
+@inject IBookingService BookingService
+@inject NavigationManager NavigationManager
+
+<PageTitle>@(hotel?.Name ?? "Hotel Details") - EventHotelBroker</PageTitle>
+
+@if (isLoading)
+{
+    <div class="container py-5">
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    </div>
+}
+else if (hotel == null)
+{
+    <div class="container py-5">
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle me-2"></i>Hotel not found.
+        </div>
+        <a href="/search" class="btn btn-primary">Back to Search</a>
+    </div>
+}
+else
+{
+    <div class="container-fluid py-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/">Home</a></li>
+                        <li class="breadcrumb-item"><a href="/search">Search</a></li>
+                        <li class="breadcrumb-item active">@hotel.Name</li>
+                    </ol>
+                </nav>
+                <h1 class="mb-2">@hotel.Name</h1>
+                <p class="text-muted mb-0">
+                    <i class="bi bi-geo-alt"></i> @hotel.Address, @hotel.City, @hotel.Country
+                </p>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Main Content -->
+            <div class="col-lg-8">
+                <!-- Image Gallery -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body p-0">
+                        @if (hotel.Images.Any())
+                        {
+                            <div id="hotelCarousel" class="carousel slide" data-bs-ride="carousel">
+                                <div class="carousel-inner">
+                                    @for (int i = 0; i < hotel.Images.Count; i++)
+                                    {
+                                        var image = hotel.Images.ElementAt(i);
+                                        <div class="carousel-item @(i == 0 ? "active" : "")">
+                                            <img src="@image.Url" class="d-block w-100" alt="@hotel.Name" style="height: 400px; object-fit: cover;">
+                                        </div>
+                                    }
+                                </div>
+                                @if (hotel.Images.Count > 1)
+                                {
+                                    <button class="carousel-control-prev" type="button" data-bs-target="#hotelCarousel" data-bs-slide="prev">
+                                        <span class="carousel-control-prev-icon"></span>
+                                    </button>
+                                    <button class="carousel-control-next" type="button" data-bs-target="#hotelCarousel" data-bs-slide="next">
+                                        <span class="carousel-control-next-icon"></span>
+                                    </button>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="bg-secondary d-flex align-items-center justify-content-center" style="height: 400px;">
+                                <i class="bi bi-building text-white" style="font-size: 6rem;"></i>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h4 class="card-title mb-3">About This Venue</h4>
+                        <p class="card-text">@hotel.Description</p>
+                    </div>
+                </div>
+
+                <!-- Amenities -->
+                @if (hotel.HotelAmenities.Any())
+                {
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body">
+                            <h4 class="card-title mb-3">Amenities</h4>
+                            <div class="row g-3">
+                                @foreach (var hotelAmenity in hotel.HotelAmenities)
+                                {
+                                    <div class="col-md-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                            <span>@hotelAmenity.Amenity?.Name</span>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Location -->
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h4 class="card-title mb-3">Location</h4>
+                        <p class="mb-2"><strong>Address:</strong> @hotel.Address</p>
+                        <p class="mb-2"><strong>City:</strong> @hotel.City</p>
+                        <p class="mb-0"><strong>Country:</strong> @hotel.Country</p>
+                        @if (hotel.Latitude.HasValue && hotel.Longitude.HasValue)
+                        {
+                            <p class="mt-2 text-muted small">
+                                Coordinates: @hotel.Latitude.Value.ToString("F6"), @hotel.Longitude.Value.ToString("F6")
+                            </p>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Booking Sidebar -->
+            <div class="col-lg-4">
+                <div class="card shadow-sm sticky-top" style="top: 20px;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h3 class="mb-0 text-primary">@hotel.Currency @hotel.PricePerNight.ToString("N0")</h3>
+                                <small class="text-muted">per night</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <p class="mb-2">
+                                <i class="bi bi-people me-2"></i>
+                                <strong>Capacity:</strong> Up to @hotel.Capacity guests
+                            </p>
+                            <p class="mb-0">
+                                <i class="bi bi-person me-2"></i>
+                                <strong>Owner:</strong> @hotel.Owner?.FullName
+                            </p>
+                        </div>
+
+                        <hr />
+
+                        @if (!showBookingForm)
+                        {
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-primary btn-lg" @onclick="() => showBookingForm = true">
+                                    <i class="bi bi-calendar-check me-2"></i>Request Booking
+                                </button>
+                                <button class="btn btn-outline-primary" @onclick="SendMessage">
+                                    <i class="bi bi-envelope me-2"></i>Send Message
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+                            <h5 class="mb-3">Booking Request</h5>
+                            
+                            @if (!string.IsNullOrEmpty(bookingMessage))
+                            {
+                                <div class="alert alert-@(bookingSuccess ? "success" : "danger")">
+                                    @bookingMessage
+                                </div>
+                            }
+
+                            <EditForm Model="bookingRequest" OnValidSubmit="SubmitBooking" FormName="bookingForm">
+                                <DataAnnotationsValidator />
+
+                                <div class="mb-3">
+                                    <label class="form-label">Check-in Date</label>
+                                    <InputDate @bind-Value="bookingRequest.StartDate" class="form-control" />
+                                    <ValidationMessage For="@(() => bookingRequest.StartDate)" class="text-danger" />
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Check-out Date</label>
+                                    <InputDate @bind-Value="bookingRequest.EndDate" class="form-control" />
+                                    <ValidationMessage For="@(() => bookingRequest.EndDate)" class="text-danger" />
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Number of Guests</label>
+                                    <InputNumber @bind-Value="bookingRequest.HeadCount" class="form-control" />
+                                    <ValidationMessage For="@(() => bookingRequest.HeadCount)" class="text-danger" />
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Additional Notes (Optional)</label>
+                                    <InputTextArea @bind-Value="bookingRequest.Notes" class="form-control" rows="3" />
+                                </div>
+
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
+                                        @if (isSubmitting)
+                                        {
+                                            <span class="spinner-border spinner-border-sm me-2"></span>
+                                        }
+                                        Submit Request
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" @onclick="() => showBookingForm = false">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </EditForm>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int HotelId { get; set; }
+
+    [SupplyParameterFromForm]
+    private BookingRequest bookingRequest { get; set; } = new();
+
+    private Hotel? hotel;
+    private bool isLoading = true;
+    private bool showBookingForm = false;
+    private bool isSubmitting = false;
+    private string? bookingMessage;
+    private bool bookingSuccess = false;
+    private string? currentUserId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Since authentication is removed, use a default user ID (you can change this as needed)
+        currentUserId = "1"; // Default user
+
+        try
+        {
+            hotel = await HotelService.GetHotelWithDetailsAsync(HotelId);
+        }
+        catch (Exception)
+        {
+            hotel = null;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task SubmitBooking()
+    {
+        if (string.IsNullOrEmpty(currentUserId) || hotel == null) return;
+
+        isSubmitting = true;
+        bookingMessage = null;
+
+        try
+        {
+            var booking = new Booking
+            {
+                UserId = currentUserId,
+                HotelId = hotel.Id,
+                StartDate = bookingRequest.StartDate,
+                EndDate = bookingRequest.EndDate,
+                HeadCount = bookingRequest.HeadCount,
+                Notes = bookingRequest.Notes
+            };
+
+            await BookingService.CreateBookingAsync(booking);
+            
+            bookingSuccess = true;
+            bookingMessage = "Booking request submitted successfully! The hotel owner will review your request.";
+            showBookingForm = false;
+        }
+        catch (Exception ex)
+        {
+            bookingSuccess = false;
+            bookingMessage = $"Error submitting booking: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void SendMessage()
+    {
+        NavigationManager.NavigateTo($"/messages?hotelId={HotelId}");
+    }
+
+    public class BookingRequest
+    {
+        [Required]
+        public DateTime StartDate { get; set; } = DateTime.Today.AddDays(1);
+        
+        [Required]
+        public DateTime EndDate { get; set; } = DateTime.Today.AddDays(2);
+        
+        [Required]
+        [Range(1, 10000)]
+        public int HeadCount { get; set; } = 1;
+        
+        public string? Notes { get; set; }
+    }
+}

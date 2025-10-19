@@ -1,0 +1,275 @@
+@page "/admin/database-status"
+@using EventHotelBroker.Data
+@using EventHotelBroker.Repositories
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext DbContext
+@inject IUnitOfWork UnitOfWork
+
+<PageTitle>Database Status - Admin</PageTitle>
+
+<div class="container-fluid">
+    <h1 class="mb-4">Database Status & Diagnostics</h1>
+
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            <!-- Connection Status -->
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-database me-2"></i>Connection Status</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (canConnect)
+                        {
+                            <div class="alert alert-success">
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                <strong>Connected!</strong> Database is accessible.
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-danger">
+                                <i class="bi bi-x-circle-fill me-2"></i>
+                                <strong>Connection Failed!</strong> Cannot connect to database.
+                            </div>
+                        }
+                        
+                        <p><strong>Connection String:</strong></p>
+                        <code class="d-block p-2 bg-light">@connectionString</code>
+                        
+                        @if (!string.IsNullOrEmpty(connectionError))
+                        {
+                            <div class="alert alert-warning mt-3">
+                                <strong>Error:</strong> @connectionError
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Database Info -->
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Database Info</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-sm">
+                            <tbody>
+                                <tr>
+                                    <th>Database Name:</th>
+                                    <td>@databaseName</td>
+                                </tr>
+                                <tr>
+                                    <th>Pending Migrations:</th>
+                                    <td>
+                                        @if (pendingMigrations.Any())
+                                        {
+                                            <span class="badge bg-warning">@pendingMigrations.Count()</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">0 (Up to date)</span>
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Applied Migrations:</th>
+                                    <td><span class="badge bg-secondary">@appliedMigrations.Count()</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Counts -->
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="bi bi-table me-2"></i>Table Record Counts</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <div class="border rounded p-3 text-center">
+                                    <h3 class="mb-0">@hotelCount</h3>
+                                    <small class="text-muted">Hotels</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="border rounded p-3 text-center">
+                                    <h3 class="mb-0">@userCount</h3>
+                                    <small class="text-muted">Users</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="border rounded p-3 text-center">
+                                    <h3 class="mb-0">@bookingCount</h3>
+                                    <small class="text-muted">Bookings</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="border rounded p-3 text-center">
+                                    <h3 class="mb-0">@amenityCount</h3>
+                                    <small class="text-muted">Amenities</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="border rounded p-3 text-center">
+                                    <h3 class="mb-0">@categoryCount</h3>
+                                    <small class="text-muted">Categories</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="border rounded p-3 text-center">
+                                    <h3 class="mb-0">@serviceCount</h3>
+                                    <small class="text-muted">Services</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="border rounded p-3 text-center">
+                                    <h3 class="mb-0">@messageCount</h3>
+                                    <small class="text-muted">Messages</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="border rounded p-3 text-center">
+                                    <h3 class="mb-0">@auditLogCount</h3>
+                                    <small class="text-muted">Audit Logs</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0"><i class="bi bi-tools me-2"></i>Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <button class="btn btn-primary me-2" @onclick="RefreshStatus">
+                            <i class="bi bi-arrow-clockwise me-1"></i>Refresh Status
+                        </button>
+                        
+                        @if (pendingMigrations.Any())
+                        {
+                            <button class="btn btn-warning" @onclick="ApplyMigrations">
+                                <i class="bi bi-database-up me-1"></i>Apply Pending Migrations
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private bool canConnect = false;
+    private string connectionString = "";
+    private string? connectionError;
+    private string databaseName = "";
+    
+    private IEnumerable<string> pendingMigrations = new List<string>();
+    private IEnumerable<string> appliedMigrations = new List<string>();
+    
+    private int hotelCount = 0;
+    private int userCount = 0;
+    private int bookingCount = 0;
+    private int amenityCount = 0;
+    private int categoryCount = 0;
+    private int serviceCount = 0;
+    private int messageCount = 0;
+    private int auditLogCount = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDatabaseStatus();
+    }
+
+    private async Task LoadDatabaseStatus()
+    {
+        isLoading = true;
+        try
+        {
+            // Get connection string (hide password)
+            connectionString = DbContext.Database.GetConnectionString() ?? "Not configured";
+            if (connectionString.Contains("Password="))
+            {
+                var parts = connectionString.Split(';');
+                connectionString = string.Join(";", parts.Select(p => 
+                    p.Trim().StartsWith("Password=", StringComparison.OrdinalIgnoreCase) 
+                        ? "Password=****" 
+                        : p));
+            }
+
+            // Test connection
+            canConnect = await DbContext.Database.CanConnectAsync();
+            
+            if (canConnect)
+            {
+                // Get database name
+                databaseName = DbContext.Database.GetDbConnection().Database;
+                
+                // Get migrations
+                pendingMigrations = await DbContext.Database.GetPendingMigrationsAsync();
+                appliedMigrations = await DbContext.Database.GetAppliedMigrationsAsync();
+                
+                // Get record counts
+                hotelCount = await UnitOfWork.Hotels.CountAsync();
+                userCount = await DbContext.AspNetUsers.CountAsync();
+                bookingCount = await UnitOfWork.Bookings.CountAsync();
+                amenityCount = await UnitOfWork.Amenities.CountAsync();
+                categoryCount = await UnitOfWork.Categories.CountAsync();
+                serviceCount = await UnitOfWork.Services.CountAsync();
+                messageCount = await UnitOfWork.Messages.CountAsync();
+                auditLogCount = await UnitOfWork.AuditLogs.CountAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            canConnect = false;
+            connectionError = ex.Message;
+            if (ex.InnerException != null)
+            {
+                connectionError += $" | Inner: {ex.InnerException.Message}";
+            }
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task RefreshStatus()
+    {
+        await LoadDatabaseStatus();
+    }
+
+    private async Task ApplyMigrations()
+    {
+        try
+        {
+            await DbContext.Database.MigrateAsync();
+            await LoadDatabaseStatus();
+        }
+        catch (Exception ex)
+        {
+            connectionError = $"Migration failed: {ex.Message}";
+        }
+    }
+}

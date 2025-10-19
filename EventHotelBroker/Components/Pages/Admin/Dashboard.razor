@@ -1,0 +1,338 @@
+@page "/admin/dashboard"
+@using EventHotelBroker.Models
+@using EventHotelBroker.Repositories
+@using EventHotelBroker.Data
+@using Microsoft.EntityFrameworkCore
+@inject IUnitOfWork UnitOfWork
+@inject ApplicationDbContext DbContext
+
+<PageTitle>Admin Dashboard - EventHotelBroker</PageTitle>
+
+<div class="container-fluid px-4 animate-fade-in">
+    <!-- Modern Header -->
+    <div class="page-header mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1><i class="bi bi-speedometer2 me-3"></i>Admin Dashboard</h1>
+                <p>Monitor and manage your platform</p>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge-modern badge-gradient-info">
+                    <i class="bi bi-calendar3 me-2"></i>@DateTime.Now.ToString("MMMM dd, yyyy")
+                </span>
+            </div>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="modern-card">
+            <div class="text-center py-5">
+                <div class="spinner-border spinner-modern text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3 text-muted">Loading dashboard...</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Statistics Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <p class="stats-number">@stats.TotalUsers</p>
+                            <p class="stats-label mb-0">Total Users</p>
+                        </div>
+                        <div class="stats-icon" style="background: var(--primary-gradient);">
+                            <i class="bi bi-people"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <p class="stats-number">@stats.TotalHotels</p>
+                            <p class="stats-label mb-0">Total Hotels</p>
+                        </div>
+                        <div class="stats-icon" style="background: var(--success-gradient);">
+                            <i class="bi bi-building"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <p class="stats-number">@stats.PendingApprovals</p>
+                            <p class="stats-label mb-0">Pending Approvals</p>
+                        </div>
+                        <div class="stats-icon" style="background: var(--warning-gradient);">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <p class="stats-number">@stats.TotalBookings</p>
+                            <p class="stats-label mb-0">Total Bookings</p>
+                        </div>
+                        <div class="stats-icon" style="background: var(--info-gradient);">
+                            <i class="bi bi-calendar-check"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Recent Hotels Pending Approval -->
+            <div class="col-lg-6">
+                <div class="modern-card">
+                    <div class="modern-card-header">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-clock-history me-2"></i>
+                            <h5 class="mb-0">Hotels Pending Approval</h5>
+                        </div>
+                    </div>
+                    <div class="modern-card-body">
+                        @if (pendingHotels.Any())
+                        {
+                            <div class="list-group list-group-flush">
+                                @foreach (var hotel in pendingHotels.Take(5))
+                                {
+                                    <div class="list-group-item px-0">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-1">@hotel.Name</h6>
+                                                <small class="text-muted">@hotel.City, @hotel.Country</small>
+                                            </div>
+                                            <a href="/admin/hotels" class="btn-modern btn-gradient-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                                                <i class="bi bi-eye me-1"></i>Review
+                                            </a>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            @if (pendingHotels.Count() > 5)
+                            {
+                                <div class="text-center mt-3">
+                                    <a href="/admin/hotels" class="btn btn-link">View All (@pendingHotels.Count())</a>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-muted text-center mb-0">No pending approvals</p>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Bookings -->
+            <div class="col-lg-6">
+                <div class="modern-card">
+                    <div class="modern-card-header">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-calendar-check me-2"></i>
+                            <h5 class="mb-0">Recent Bookings</h5>
+                        </div>
+                    </div>
+                    <div class="modern-card-body">
+                        @if (recentBookings.Any())
+                        {
+                            <div class="list-group list-group-flush">
+                                @foreach (var booking in recentBookings.Take(5))
+                                {
+                                    <div class="list-group-item px-0">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-1">Booking #@booking.Id</h6>
+                                                <small class="text-muted">@booking.StartDate.ToString("MMM dd") - @booking.EndDate.ToString("MMM dd, yyyy")</small>
+                                            </div>
+                                            <span class="badge-modern @GetModernBadgeClass(booking.Status)">
+                                                <i class="bi @GetStatusIcon(booking.Status) me-1"></i>@booking.Status
+                                            </span>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            @if (recentBookings.Count() > 5)
+                            {
+                                <div class="text-center mt-3">
+                                    <a href="/admin/bookings" class="btn btn-link">View All (@recentBookings.Count())</a>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-muted text-center mb-0">No bookings yet</p>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Users -->
+            <div class="col-lg-6">
+                <div class="modern-card">
+                    <div class="modern-card-header">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-people me-2"></i>
+                            <h5 class="mb-0">Recent Users</h5>
+                        </div>
+                    </div>
+                    <div class="modern-card-body">
+                        @if (recentUsers.Any())
+                        {
+                            <div class="list-group list-group-flush">
+                                @foreach (var user in recentUsers.Take(5))
+                                {
+                                    <div class="list-group-item px-0">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-1">@user.FullName</h6>
+                                                <small class="text-muted">@user.Email</small>
+                                            </div>
+                                            <span class="badge-modern badge-gradient-info">
+                                                <i class="bi bi-person-badge me-1"></i>@user.Role
+                                            </span>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            <div class="text-center mt-3">
+                                <a href="/admin/users" class="btn btn-link">View All Users</a>
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted text-center mb-0">No users yet</p>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="col-lg-6">
+                <div class="modern-card">
+                    <div class="modern-card-header">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-lightning me-2"></i>
+                            <h5 class="mb-0">Quick Actions</h5>
+                        </div>
+                    </div>
+                    <div class="modern-card-body">
+                        <div class="d-grid gap-3">
+                            <a href="/admin/users" class="btn-modern btn-gradient-primary">
+                                <i class="bi bi-people me-2"></i>Manage Users
+                            </a>
+                            <a href="/admin/hotels" class="btn-modern btn-gradient-success">
+                                <i class="bi bi-building me-2"></i>Manage Hotels
+                            </a>
+                            <a href="/admin/bookings" class="btn-modern" style="background: var(--info-gradient); color: white;">
+                                <i class="bi bi-calendar-event me-2"></i>View All Bookings
+                            </a>
+                            <a href="/admin/audit-logs" class="btn-modern" style="background: var(--gray-700); color: white;">
+                                <i class="bi bi-file-text me-2"></i>View Audit Logs
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private DashboardStats stats = new();
+    private IEnumerable<Hotel> pendingHotels = new List<Hotel>();
+    private IEnumerable<Booking> recentBookings = new List<Booking>();
+    private List<ApplicationUser> recentUsers = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Load statistics
+            var allUsers = await DbContext.AspNetUsers.ToListAsync();
+            stats.TotalUsers = allUsers.Count;
+            stats.TotalHotels = await UnitOfWork.Hotels.CountAsync();
+            stats.PendingApprovals = await UnitOfWork.Hotels.CountAsync(h => !h.IsApproved && h.IsPublished);
+            stats.TotalBookings = await UnitOfWork.Bookings.CountAsync();
+
+            // Load pending hotels
+            pendingHotels = await UnitOfWork.Hotels.FindAsync(h => !h.IsApproved && h.IsPublished);
+
+            // Load recent bookings
+            var allBookings = await UnitOfWork.Bookings.GetAllAsync();
+            recentBookings = allBookings.OrderByDescending(b => b.CreatedAt).Take(10);
+
+            // Load recent users
+            recentUsers = allUsers.OrderByDescending(u => u.CreatedAt).Take(10).ToList();
+        }
+        catch (Exception ex)
+        {
+            // Log error
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private string GetStatusColor(BookingStatus status)
+    {
+        return status switch
+        {
+            BookingStatus.Pending => "warning",
+            BookingStatus.Confirmed => "success",
+            BookingStatus.Rejected => "danger",
+            BookingStatus.Cancelled => "secondary",
+            _ => "secondary"
+        };
+    }
+
+    private string GetModernBadgeClass(BookingStatus status)
+    {
+        return status switch
+        {
+            BookingStatus.Pending => "badge-gradient-warning",
+            BookingStatus.Confirmed => "badge-gradient-success",
+            BookingStatus.Rejected => "badge-gradient-danger",
+            BookingStatus.Cancelled => "badge-gradient-info",
+            _ => "badge-gradient-info"
+        };
+    }
+
+    private string GetStatusIcon(BookingStatus status)
+    {
+        return status switch
+        {
+            BookingStatus.Pending => "bi-clock-history",
+            BookingStatus.Confirmed => "bi-check-circle",
+            BookingStatus.Rejected => "bi-x-circle",
+            BookingStatus.Cancelled => "bi-dash-circle",
+            _ => "bi-circle"
+        };
+    }
+
+    private class DashboardStats
+    {
+        public int TotalUsers { get; set; }
+        public int TotalHotels { get; set; }
+        public int PendingApprovals { get; set; }
+        public int TotalBookings { get; set; }
+    }
+}

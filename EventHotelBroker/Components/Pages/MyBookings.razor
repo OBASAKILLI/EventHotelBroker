@@ -1,0 +1,101 @@
+@page "/my-bookings"
+@using EventHotelBroker.Models
+@using EventHotelBroker.Services
+@inject IBookingService BookingService
+
+<PageTitle>My Bookings - EventHotelBroker</PageTitle>
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>My Bookings</h1>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (!bookings.Any())
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>You don't have any bookings yet.
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var booking in bookings)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h5 class="card-title mb-0">Booking #@booking.Id</h5>
+                                <span class="badge bg-@GetStatusColor(booking.Status)">@booking.Status</span>
+                            </div>
+                            <p class="card-text">
+                                <i class="bi bi-building me-2"></i>
+                                <strong>Hotel:</strong> @booking.Hotel?.Name
+                            </p>
+                            <p class="card-text">
+                                <i class="bi bi-calendar me-2"></i>
+                                <strong>Check-in:</strong> @booking.StartDate.ToString("MMM dd, yyyy")
+                            </p>
+                            <p class="card-text">
+                                <i class="bi bi-calendar-check me-2"></i>
+                                <strong>Check-out:</strong> @booking.EndDate.ToString("MMM dd, yyyy")
+                            </p>
+                            <p class="card-text">
+                                <i class="bi bi-people me-2"></i>
+                                <strong>Guests:</strong> @booking.HeadCount
+                            </p>
+                            @if (!string.IsNullOrEmpty(booking.Notes))
+                            {
+                                <p class="card-text text-muted small">
+                                    <strong>Notes:</strong> @booking.Notes
+                                </p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private List<Booking> bookings = new();
+    private string currentUserId = "1"; // Default user ID
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            bookings = (await BookingService.GetBookingsByUserAsync(currentUserId)).ToList();
+        }
+        catch (Exception)
+        {
+            // Handle error
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private string GetStatusColor(BookingStatus status)
+    {
+        return status switch
+        {
+            BookingStatus.Pending => "warning",
+            BookingStatus.Confirmed => "success",
+            BookingStatus.Rejected => "danger",
+            BookingStatus.Cancelled => "secondary",
+            _ => "secondary"
+        };
+    }
+}

@@ -1,0 +1,275 @@
+@page "/"
+@using EventHotelBroker.Services
+@using EventHotelBroker.Models
+@inject IHotelService HotelService
+
+<PageTitle>Home - EventHotelBroker</PageTitle>
+
+<!-- Modern Hero Section -->
+<div class="modern-hero">
+    <div class="hero-background"></div>
+    <div class="hero-content">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 animate-fade-in">
+                    <div class="hero-badge">
+                        <i class="bi bi-star-fill"></i>
+                        <span>Trusted by 10,000+ Event Planners</span>
+                    </div>
+                    <h1 class="hero-title">
+                        Find Your Perfect
+                        <span class="gradient-text">Event Venue</span>
+                    </h1>
+                    <p class="hero-subtitle">
+                        Connect with premium hotels, venues, and service providers for your next event.
+                        From weddings to conferences, we've got you covered.
+                    </p>
+                    <div class="hero-search">
+                        <div class="search-box">
+                            <i class="bi bi-search"></i>
+                            <input type="text" placeholder="Search venues, hotels, locations..." />
+                            <button class="btn-modern btn-gradient-primary">Search</button>
+                        </div>
+                    </div>
+                    <div class="hero-stats">
+                        <div class="stat-item">
+                            <div class="stat-number">500+</div>
+                            <div class="stat-label">Venues</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">50+</div>
+                            <div class="stat-label">Cities</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">10K+</div>
+                            <div class="stat-label">Happy Clients</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 d-none d-lg-block">
+                    <div class="hero-image">
+                        <div class="floating-card card-1">
+                            <i class="bi bi-building"></i>
+                            <div>
+                                <div class="card-title">Premium Hotels</div>
+                                <div class="card-subtitle">200+ Venues</div>
+                            </div>
+                        </div>
+                        <div class="floating-card card-2">
+                            <i class="bi bi-calendar-check"></i>
+                            <div>
+                                <div class="card-title">Easy Booking</div>
+                                <div class="card-subtitle">Instant Confirmation</div>
+                            </div>
+                        </div>
+                        <div class="floating-card card-3">
+                            <i class="bi bi-star-fill"></i>
+                            <div>
+                                <div class="card-title">Top Rated</div>
+                                <div class="card-subtitle">4.9/5 Average</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<div class="how-it-works-section">
+    <div class="container">
+        <div class="section-header text-center">
+            <span class="section-badge">Simple Process</span>
+            <h2 class="section-title">How It Works</h2>
+            <p class="section-subtitle">Book your perfect venue in three easy steps</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-number">01</div>
+                    <div class="feature-icon">
+                        <i class="bi bi-search"></i>
+                    </div>
+                    <h5 class="feature-title">Search & Discover</h5>
+                    <p class="feature-text">Browse through hundreds of verified venues and service providers in your area.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-number">02</div>
+                    <div class="feature-icon">
+                        <i class="bi bi-chat-dots"></i>
+                    </div>
+                    <h5 class="feature-title">Connect & Inquire</h5>
+                    <p class="feature-text">Message venue owners directly and get instant responses to your questions.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-number">03</div>
+                    <div class="feature-icon">
+                        <i class="bi bi-calendar-check"></i>
+                    </div>
+                    <h5 class="feature-title">Book with Confidence</h5>
+                    <p class="feature-text">Send booking requests and manage everything from your dashboard.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Featured Venues Section -->
+<div class="featured-section">
+    <div class="container">
+        <div class="section-header text-center">
+            <span class="section-badge">Top Picks</span>
+            <h2 class="section-title">Featured Venues</h2>
+            <p class="section-subtitle">Handpicked venues for your special events</p>
+        </div>
+        @if (featuredHotels == null)
+        {
+            <div class="text-center py-5">
+                <div class="spinner-border spinner-modern text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3 text-muted">Loading venues...</p>
+            </div>
+        }
+        else if (!featuredHotels.Any())
+        {
+            <div class="modern-card">
+                <div class="empty-state">
+                    <i class="bi bi-building empty-state-icon"></i>
+                    <h3 class="empty-state-title">No Venues Available</h3>
+                    <p class="empty-state-text">Check back soon for amazing venues!</p>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="row g-4">
+                @foreach (var hotel in featuredHotels.Take(6))
+                {
+                    <div class="col-md-6 col-lg-4">
+                        <div class="venue-card">
+                            <div class="venue-image">
+                                @if (hotel.Images?.Any() == true)
+                                {
+                                    <img src="@hotel.Images.First().Url" alt="@hotel.Name" />
+                                }
+                                else
+                                {
+                                    <div class="venue-placeholder">
+                                        <i class="bi bi-building"></i>
+                                    </div>
+                                }
+                                <div class="venue-badge">
+                                    <i class="bi bi-star-fill"></i>
+                                    <span>Featured</span>
+                                </div>
+                            </div>
+                            <div class="venue-content">
+                                <h5 class="venue-title">@hotel.Name</h5>
+                                <p class="venue-location">
+                                    <i class="bi bi-geo-alt"></i> @hotel.City, @hotel.Country
+                                </p>
+                                <div class="venue-details">
+                                    <span class="venue-capacity">
+                                        <i class="bi bi-people"></i> @hotel.Capacity guests
+                                    </span>
+                                </div>
+                                <div class="venue-footer">
+                                    <div class="venue-price">
+                                        <span class="price-amount">@hotel.Currency @hotel.PricePerNight.ToString("N0")</span>
+                                        <span class="price-period">/night</span>
+                                    </div>
+                                    <a href="/hotels/@hotel.Id" class="btn-modern btn-gradient-primary btn-sm">
+                                        View Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="text-center mt-5">
+                <a href="/search" class="btn-modern btn-gradient-primary" style="padding: 1rem 3rem;">
+                    <i class="bi bi-grid me-2"></i>View All Venues
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- CTA Section -->
+<div class="cta-section">
+    <div class="container">
+        <div class="cta-card">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <div class="cta-icon">
+                        <i class="bi bi-shop"></i>
+                    </div>
+                    <h2 class="cta-title">Are You a Venue Owner?</h2>
+                    <p class="cta-text">
+                        List your hotel, venue, or service on EventHotelBroker and reach thousands of event planners and tourists.
+                    </p>
+                    <div class="cta-features">
+                        <div class="cta-feature">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span>Free to list</span>
+                        </div>
+                        <div class="cta-feature">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span>Manage bookings easily</span>
+                        </div>
+                        <div class="cta-feature">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span>Direct communication with clients</span>
+                        </div>
+                        <div class="cta-feature">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span>Analytics and insights</span>
+                        </div>
+                    </div>
+                    <a href="/owner/create-hotel" class="btn-modern btn-gradient-success" style="padding: 1rem 2rem; font-size: 1.1rem;">
+                        <i class="bi bi-plus-circle me-2"></i>List Your Venue
+                    </a>
+                </div>
+                <div class="col-lg-6 d-none d-lg-block">
+                    <div class="cta-image">
+                        <div class="cta-stat">
+                            <div class="stat-value">500+</div>
+                            <div class="stat-label">Active Venues</div>
+                        </div>
+                        <div class="cta-stat" style="animation-delay: 0.2s;">
+                            <div class="stat-value">10K+</div>
+                            <div class="stat-label">Monthly Visitors</div>
+                        </div>
+                        <div class="cta-stat" style="animation-delay: 0.4s;">
+                            <div class="stat-value">95%</div>
+                            <div class="stat-label">Satisfaction Rate</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private IEnumerable<Hotel>? featuredHotels;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            featuredHotels = await HotelService.GetPublishedHotelsAsync();
+        }
+        catch (Exception)
+        {
+            featuredHotels = new List<Hotel>();
+        }
+    }
+}

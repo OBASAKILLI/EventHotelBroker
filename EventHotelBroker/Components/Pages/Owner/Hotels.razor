@@ -1,0 +1,120 @@
+@page "/owner/hotels"
+@using EventHotelBroker.Models
+@using EventHotelBroker.Services
+@inject IHotelService HotelService
+@inject NavigationManager NavigationManager
+
+<PageTitle>My Hotels - EventHotelBroker</PageTitle>
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>My Hotels</h1>
+        <a href="/owner/create-hotel" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-2"></i>Add New Hotel
+        </a>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (!hotels.Any())
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-building text-muted" style="font-size: 4rem;"></i>
+            <h3 class="mt-3">No Hotels Yet</h3>
+            <p class="text-muted">Start by adding your first hotel property.</p>
+            <a href="/owner/create-hotel" class="btn btn-primary">Add Your First Hotel</a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var hotel in hotels)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card shadow-sm h-100">
+                        @if (hotel.Images?.Any() == true)
+                        {
+                            <img src="@hotel.Images.First().Url" class="card-img-top" alt="@hotel.Name" style="height: 200px; object-fit: cover;">
+                        }
+                        else
+                        {
+                            <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <i class="bi bi-building" style="font-size: 3rem;"></i>
+                            </div>
+                        }
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title mb-0">@hotel.Name</h5>
+                                @if (hotel.IsApproved)
+                                {
+                                    <span class="badge bg-success">Approved</span>
+                                }
+                                else if (hotel.IsPublished)
+                                {
+                                    <span class="badge bg-warning">Pending</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Draft</span>
+                                }
+                            </div>
+                            <p class="card-text text-muted">
+                                <i class="bi bi-geo-alt"></i> @hotel.City, @hotel.Country
+                            </p>
+                            <p class="card-text">
+                                <strong>Capacity:</strong> @hotel.Capacity guests<br />
+                                <strong>Price:</strong> @hotel.Currency @hotel.PricePerNight.ToString("N0")/night
+                            </p>
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-outline-primary btn-sm" @onclick="() => ViewHotel(hotel.Id)">
+                                    <i class="bi bi-eye me-1"></i>View Details
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm" @onclick="() => EditHotel(hotel.Id)">
+                                    <i class="bi bi-pencil me-1"></i>Edit
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private List<Hotel> hotels = new();
+    private string currentUserId = "1"; // Default owner ID
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            hotels = (await HotelService.GetHotelsByOwnerAsync(currentUserId)).ToList();
+        }
+        catch (Exception)
+        {
+            // Handle error
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ViewHotel(int id)
+    {
+        NavigationManager.NavigateTo($"/hotels/{id}");
+    }
+
+    private void EditHotel(int id)
+    {
+        NavigationManager.NavigateTo($"/owner/hotels/{id}/edit");
+    }
+}

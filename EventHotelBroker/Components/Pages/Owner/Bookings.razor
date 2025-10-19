@@ -1,0 +1,195 @@
+@page "/owner/bookings"
+@using EventHotelBroker.Models
+@using EventHotelBroker.Services
+@inject IHotelService HotelService
+@inject IBookingService BookingService
+
+<PageTitle>Booking Requests - EventHotelBroker</PageTitle>
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Booking Requests</h1>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (!bookings.Any())
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>No booking requests yet.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Booking ID</th>
+                        <th>Hotel</th>
+                        <th>Guest</th>
+                        <th>Check-in</th>
+                        <th>Check-out</th>
+                        <th>Guests</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var booking in bookings)
+                    {
+                        <tr>
+                            <td>#@booking.Id</td>
+                            <td>@booking.Hotel?.Name</td>
+                            <td>@booking.User?.FullName</td>
+                            <td>@booking.StartDate.ToString("MMM dd, yyyy")</td>
+                            <td>@booking.EndDate.ToString("MMM dd, yyyy")</td>
+                            <td>@booking.HeadCount</td>
+                            <td>
+                                <span class="badge bg-@GetStatusColor(booking.Status)">@booking.Status</span>
+                            </td>
+                            <td>
+                                @if (booking.Status == BookingStatus.Pending)
+                                {
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-success" @onclick="() => ConfirmBooking(booking.Id)">
+                                            <i class="bi bi-check-lg"></i> Confirm
+                                        </button>
+                                        <button class="btn btn-danger" @onclick="() => RejectBooking(booking.Id)">
+                                            <i class="bi bi-x-lg"></i> Reject
+                                        </button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(message))
+    {
+        <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+            <div class="toast show" role="alert">
+                <div class="toast-header">
+                    <strong class="me-auto">@(messageType == "success" ? "Success" : "Error")</strong>
+                    <button type="button" class="btn-close" @onclick="() => message = null"></button>
+                </div>
+                <div class="toast-body">
+                    @message
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private List<Booking> bookings = new();
+    private string currentUserId = "1"; // Default owner ID
+    private string? message;
+    private string messageType = "success";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadBookings();
+    }
+
+    private async Task LoadBookings()
+    {
+        isLoading = true;
+        try
+        {
+            var myHotels = await HotelService.GetHotelsByOwnerAsync(currentUserId);
+            bookings = new List<Booking>();
+            
+            foreach (var hotel in myHotels)
+            {
+                var hotelBookings = await BookingService.GetBookingsByHotelAsync(hotel.Id);
+                bookings.AddRange(hotelBookings);
+            }
+            
+            bookings = bookings.OrderByDescending(b => b.CreatedAt).ToList();
+        }
+        catch (Exception)
+        {
+            // Handle error
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task ConfirmBooking(int bookingId)
+    {
+        try
+        {
+            var result = await BookingService.ConfirmBookingAsync(bookingId);
+            if (result)
+            {
+                ShowMessage("Booking confirmed successfully!", "success");
+                await LoadBookings();
+            }
+            else
+            {
+                ShowMessage("Failed to confirm booking.", "error");
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowMessage($"Error: {ex.Message}", "error");
+        }
+    }
+
+    private async Task RejectBooking(int bookingId)
+    {
+        try
+        {
+            var result = await BookingService.RejectBookingAsync(bookingId);
+            if (result)
+            {
+                ShowMessage("Booking rejected.", "success");
+                await LoadBookings();
+            }
+            else
+            {
+                ShowMessage("Failed to reject booking.", "error");
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowMessage($"Error: {ex.Message}", "error");
+        }
+    }
+
+    private void ShowMessage(string msg, string type)
+    {
+        message = msg;
+        messageType = type;
+        StateHasChanged();
+    }
+
+    private string GetStatusColor(BookingStatus status)
+    {
+        return status switch
+        {
+            BookingStatus.Pending => "warning",
+            BookingStatus.Confirmed => "success",
+            BookingStatus.Rejected => "danger",
+            BookingStatus.Cancelled => "secondary",
+            _ => "secondary"
+        };
+    }
+}

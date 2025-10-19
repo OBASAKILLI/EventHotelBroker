@@ -1,0 +1,335 @@
+@page "/owner/hotels/create"
+@page "/owner/create-hotel"
+@using EventHotelBroker.Models
+@using EventHotelBroker.Services
+@using EventHotelBroker.Repositories
+@inject IHotelService HotelService
+@inject IUnitOfWork UnitOfWork
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create Hotel - EventHotelBroker</PageTitle>
+
+<div class="container-fluid px-4 animate-fade-in">
+    <!-- Modern Header -->
+    <div class="page-header mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1><i class="bi bi-plus-circle me-3"></i>Add New Hotel</h1>
+                <p>Create a new hotel listing for your property</p>
+            </div>
+            <button class="btn-modern btn-glass" @onclick="Cancel">
+                <i class="bi bi-x-lg"></i> Cancel
+            </button>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="modern-card">
+                <div class="modern-card-body">
+                    @if (!string.IsNullOrEmpty(successMessage))
+                    {
+                        <div class="alert alert-success alert-dismissible fade show animate-fade-in" role="alert" style="border-radius: 12px; border: none; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);">
+                            <div class="d-flex align-items-center">
+                                <div style="width: 40px; height: 40px; background: rgba(255, 255, 255, 0.3); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+                                    <i class="bi bi-check-circle-fill" style="font-size: 1.25rem;"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <strong>Success!</strong> @successMessage
+                                </div>
+                                <button type="button" class="btn-close" @onclick="() => successMessage = null"></button>
+                            </div>
+                        </div>
+                    }
+                    
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show animate-fade-in" role="alert" style="border-radius: 12px; border: none; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);">
+                            <div class="d-flex align-items-center">
+                                <div style="width: 40px; height: 40px; background: rgba(255, 255, 255, 0.3); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+                                    <i class="bi bi-exclamation-triangle-fill" style="font-size: 1.25rem;"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <strong>Error!</strong> @errorMessage
+                                </div>
+                                <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+                            </div>
+                        </div>
+                    }
+
+                    <EditForm Model="hotel" OnValidSubmit="HandleSubmit" FormName="createHotelForm" class="form-modern">
+                        <DataAnnotationsValidator />
+
+                        <!-- Section: Basic Information -->
+                        <div class="mb-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="stats-icon" style="background: var(--primary-gradient); width: 40px; height: 40px; font-size: 1rem; margin-right: 12px;">
+                                    <i class="bi bi-info-circle"></i>
+                                </div>
+                                <h5 class="mb-0" style="font-weight: 600; color: var(--gray-800);">Basic Information</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Hotel Name *</label>
+                            <InputText @bind-Value="hotel.Name" class="form-control" id="name" placeholder="e.g., Grand Plaza Hotel" />
+                            <ValidationMessage For="@(() => hotel.Name)" class="text-danger" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description *</label>
+                            <InputTextArea @bind-Value="hotel.Description" class="form-control" id="description" rows="4" 
+                                placeholder="Describe your hotel, amenities, and what makes it special..." />
+                            <ValidationMessage For="@(() => hotel.Description)" class="text-danger" />
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="capacity" class="form-label">Guest Capacity *</label>
+                                <InputNumber @bind-Value="hotel.Capacity" class="form-control" id="capacity" />
+                                <ValidationMessage For="@(() => hotel.Capacity)" class="text-danger" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="price" class="form-label">Price per Night (KES) *</label>
+                                <InputNumber @bind-Value="hotel.PricePerNight" class="form-control" id="price" />
+                                <ValidationMessage For="@(() => hotel.PricePerNight)" class="text-danger" />
+                            </div>
+                        </div>
+
+                        <hr class="my-4" style="border-color: var(--gray-200);" />
+                        
+                        <!-- Section: Location -->
+                        <div class="mb-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="stats-icon" style="background: var(--success-gradient); width: 40px; height: 40px; font-size: 1rem; margin-right: 12px;">
+                                    <i class="bi bi-geo-alt"></i>
+                                </div>
+                                <h5 class="mb-0" style="font-weight: 600; color: var(--gray-800);">Location Details</h5>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Address *</label>
+                            <InputText @bind-Value="hotel.Address" class="form-control" id="address" 
+                                placeholder="Street address" />
+                            <ValidationMessage For="@(() => hotel.Address)" class="text-danger" />
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="city" class="form-label">City *</label>
+                                <InputText @bind-Value="hotel.City" class="form-control" id="city" />
+                                <ValidationMessage For="@(() => hotel.City)" class="text-danger" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="country" class="form-label">Country *</label>
+                                <InputText @bind-Value="hotel.Country" class="form-control" id="country" />
+                                <ValidationMessage For="@(() => hotel.Country)" class="text-danger" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="latitude" class="form-label">Latitude (Optional)</label>
+                                <InputNumber @bind-Value="hotel.Latitude" class="form-control" id="latitude" 
+                                    placeholder="e.g., -1.286389" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="longitude" class="form-label">Longitude (Optional)</label>
+                                <InputNumber @bind-Value="hotel.Longitude" class="form-control" id="longitude" 
+                                    placeholder="e.g., 36.817223" />
+                            </div>
+                        </div>
+
+                        <hr class="my-4" style="border-color: var(--gray-200);" />
+                        
+                        <!-- Section: Amenities -->
+                        <div class="mb-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="stats-icon" style="background: var(--warning-gradient); width: 40px; height: 40px; font-size: 1rem; margin-right: 12px;">
+                                    <i class="bi bi-star"></i>
+                                </div>
+                                <h5 class="mb-0" style="font-weight: 600; color: var(--gray-800);">Amenities & Features</h5>
+                            </div>
+                        </div>
+
+                        @if (availableAmenities.Any())
+                        {
+                            <div class="row">
+                                @foreach (var amenity in availableAmenities)
+                                {
+                                    <div class="col-md-6 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" 
+                                                id="amenity_@amenity.Id"
+                                                @onchange="@((e) => ToggleAmenity(amenity.Id, (bool)e.Value!))" />
+                                            <label class="form-check-label" for="amenity_@amenity.Id">
+                                                @amenity.Name
+                                            </label>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted">Loading amenities...</p>
+                        }
+
+                        <hr class="my-4" />
+
+                        <div class="mb-3 form-check">
+                            <InputCheckbox @bind-Value="hotel.IsPublished" class="form-check-input" id="isPublished" />
+                            <label class="form-check-label" for="isPublished">
+                                Publish immediately (will be pending admin approval)
+                            </label>
+                        </div>
+
+                        <div class="glass-card p-3 mb-4">
+                            <div class="d-flex align-items-start">
+                                <div style="width: 40px; height: 40px; background: var(--info-gradient); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 12px; flex-shrink: 0;">
+                                    <i class="bi bi-info-circle text-white"></i>
+                                </div>
+                                <div>
+                                    <strong style="color: var(--gray-800);">Review Process</strong>
+                                    <p class="mb-0 mt-1" style="color: var(--gray-600); font-size: 0.9rem;">Your hotel listing will be reviewed by our admin team before it becomes visible to users. This typically takes 24-48 hours.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between gap-3">
+                            <button type="button" class="btn-modern" style="background: var(--gray-200); color: var(--gray-700);" @onclick="Cancel">
+                                <i class="bi bi-x-lg"></i> Cancel
+                            </button>
+                            <button type="submit" class="btn-modern btn-gradient-primary" disabled="@isSubmitting" style="min-width: 200px;">
+                                @if (isSubmitting)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    <span>Creating Hotel...</span>
+                                }
+                                else
+                                {
+                                    <span><i class="bi bi-check-lg me-2"></i>Create Hotel</span>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Hotel hotel { get; set; } = new() { Currency = "KES", Country = "Kenya" };
+
+    private List<Amenity> availableAmenities = new();
+    private List<int> selectedAmenityIds = new();
+    private string? errorMessage;
+    private string? successMessage;
+    private bool isSubmitting = false;
+    private string? currentUserId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Since authentication is removed, use a default owner ID (you can change this as needed)
+        currentUserId = "1"; // Default to first owner
+
+        try
+        {
+            availableAmenities = (await UnitOfWork.Amenities.GetAllAsync()).ToList();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Failed to load amenities.";
+        }
+    }
+
+    private void ToggleAmenity(int amenityId, bool isChecked)
+    {
+        if (isChecked)
+        {
+            if (!selectedAmenityIds.Contains(amenityId))
+                selectedAmenityIds.Add(amenityId);
+        }
+        else
+        {
+            selectedAmenityIds.Remove(amenityId);
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (string.IsNullOrEmpty(currentUserId))
+        {
+            errorMessage = "User not authenticated.";
+            return;
+        }
+
+        isSubmitting = true;
+        errorMessage = null;
+        successMessage = null;
+
+        try
+        {
+            hotel.OwnerId = currentUserId;
+            hotel.IsApproved = false; // Requires admin approval
+            hotel.IsPublished = hotel.IsPublished; // Use checkbox value
+            
+            var createdHotel = await HotelService.CreateHotelAsync(hotel);
+
+            // Add selected amenities
+            if (selectedAmenityIds.Any())
+            {
+                foreach (var amenityId in selectedAmenityIds)
+                {
+                    await UnitOfWork.HotelAmenities.AddAsync(new HotelAmenity
+                    {
+                        HotelId = createdHotel.Id,
+                        AmenityId = amenityId
+                    });
+                }
+                await UnitOfWork.SaveChangesAsync();
+            }
+
+            if (hotel.IsPublished)
+            {
+                successMessage = $"Hotel '{createdHotel.Name}' created successfully and submitted for admin approval! You will be notified once it's reviewed. Redirecting...";
+            }
+            else
+            {
+                successMessage = $"Hotel '{createdHotel.Name}' saved as draft successfully! You can publish it later for admin approval. Redirecting...";
+            }
+            
+            StateHasChanged();
+            
+            // Redirect after 3 seconds to allow user to read the message
+            await Task.Delay(3000);
+            NavigationManager.NavigateTo("/owner/hotels");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error creating hotel: {ex.Message}";
+            // Log the full exception for debugging
+            Console.WriteLine($"Hotel creation error: {ex}");
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine($"Inner exception: {ex.InnerException}");
+                errorMessage += $" | Inner: {ex.InnerException.Message}";
+            }
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/owner/dashboard");
+    }
+}

@@ -1,0 +1,61 @@
+@inherits LayoutComponentBase
+
+<div class="modern-layout">
+    <!-- Modern App Bar -->
+    <header class="modern-app-bar">
+        <div class="app-bar-content">
+            <button class="sidebar-toggle" @onclick="ToggleSidebar">
+                <i class="bi bi-list"></i>
+            </button>
+            <div class="app-bar-brand">
+                <i class="bi bi-building-fill me-2"></i>
+                <span class="brand-text">EventHotelBroker</span>
+            </div>
+            <div class="app-bar-actions">
+                <button class="app-bar-btn">
+                    <i class="bi bi-bell"></i>
+                    <span class="notification-badge">3</span>
+                </button>
+                <button class="app-bar-btn">
+                    <i class="bi bi-gear"></i>
+                </button>
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        <i class="bi bi-person-circle"></i>
+                    </div>
+                    <span class="user-name">Admin User</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Modern Sidebar -->
+    <aside class="modern-sidebar @(sidebarCollapsed ? "collapsed" : "")">
+        <NavMenu />
+    </aside>
+
+    <!-- Main Content -->
+    <main class="modern-main-content">
+        <div class="content-wrapper">
+            @Body
+        </div>
+    </main>
+</div>
+
+@code {
+    private bool sidebarCollapsed = false;
+
+    private void ToggleSidebar()
+    {
+        sidebarCollapsed = !sidebarCollapsed;
+    }
+}
+
+<div id="blazor-error-ui" class="modern-error-ui">
+    <div class="error-content">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span>An unhandled error has occurred.</span>
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">×</a>
+    </div>
+</div>

@@ -1,0 +1,30 @@
+@page "/Account/Register"
+@inject NavigationManager NavigationManager
+
+<PageTitle>Register - EventHotelBroker</PageTitle>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <h2 class="text-center mb-4">Registration Disabled</h2>
+                    
+                    <div class="alert alert-info" role="alert">
+                        <h5 class="alert-heading">Registration is currently disabled</h5>
+                        <p>This application uses pre-configured test accounts. Please use one of the provided credentials to login.</p>
+                        <hr>
+                        <p class="mb-0">Contact the administrator if you need access to the system.</p>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <a href="/Account/Login" class="btn btn-primary">Go to Login</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+}
