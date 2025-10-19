@@ -6,132 +6,127 @@
 
 <PageTitle>Owner Dashboard - EventHotelBroker</PageTitle>
 
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Hotel Owner Dashboard</h1>
-        <a href="/owner/hotels/create" class="btn btn-primary">
-            <i class="bi bi-plus-lg me-2"></i>Add New Hotel
-        </a>
+<div class="owner-dashboard">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <div class="header-info">
+                <h1 class="dashboard-title">
+                    <i class="bi bi-speedometer2 me-3"></i>Owner Dashboard
+                </h1>
+                <p class="dashboard-subtitle">Manage your properties and bookings</p>
+            </div>
+            <a href="/owner/create-hotel" class="btn-modern btn-gradient-primary">
+                <i class="bi bi-plus-circle me-2"></i>Add New Hotel
+            </a>
+        </div>
     </div>
 
     @if (isLoading)
     {
-        <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
+        <div class="loading-state">
+            <div class="spinner-modern"></div>
+            <p class="loading-text">Loading dashboard...</p>
         </div>
     }
     else
     {
         <!-- Statistics Cards -->
-        <div class="row g-4 mb-4">
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <p class="text-muted mb-1">My Hotels</p>
-                                <h3 class="mb-0">@myHotels.Count()</h3>
-                            </div>
-                            <div class="bg-primary bg-opacity-10 p-3 rounded">
-                                <i class="bi bi-building text-primary" style="font-size: 2rem;"></i>
-                            </div>
-                        </div>
-                    </div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-primary">
+                    <i class="bi bi-building"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">My Hotels</div>
+                    <div class="stat-value">@myHotels.Count()</div>
                 </div>
             </div>
 
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <p class="text-muted mb-1">Published</p>
-                                <h3 class="mb-0">@myHotels.Count(h => h.IsPublished && h.IsApproved)</h3>
-                            </div>
-                            <div class="bg-success bg-opacity-10 p-3 rounded">
-                                <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
-                            </div>
-                        </div>
-                    </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-success">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Published</div>
+                    <div class="stat-value">@myHotels.Count(h => h.IsPublished && h.IsApproved)</div>
                 </div>
             </div>
 
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <p class="text-muted mb-1">Pending Approval</p>
-                                <h3 class="mb-0">@myHotels.Count(h => h.IsPublished && !h.IsApproved)</h3>
-                            </div>
-                            <div class="bg-warning bg-opacity-10 p-3 rounded">
-                                <i class="bi bi-clock-history text-warning" style="font-size: 2rem;"></i>
-                            </div>
-                        </div>
-                    </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-warning">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Pending Approval</div>
+                    <div class="stat-value">@myHotels.Count(h => h.IsPublished && !h.IsApproved)</div>
                 </div>
             </div>
 
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <p class="text-muted mb-1">Booking Requests</p>
-                                <h3 class="mb-0">@bookingRequests.Count()</h3>
-                            </div>
-                            <div class="bg-info bg-opacity-10 p-3 rounded">
-                                <i class="bi bi-calendar-check text-info" style="font-size: 2rem;"></i>
-                            </div>
-                        </div>
-                    </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-info">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Booking Requests</div>
+                    <div class="stat-value">@bookingRequests.Count()</div>
                 </div>
             </div>
         </div>
 
-        <div class="row g-4">
+        <div class="dashboard-content">
             <!-- My Hotels -->
-            <div class="col-lg-8">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">My Hotels</h5>
-                        <a href="/owner/hotels" class="btn btn-sm btn-outline-primary">View All</a>
+            <div class="content-main">
+                <div class="modern-card">
+                    <div class="card-header-modern">
+                        <h5 class="card-title-modern">
+                            <i class="bi bi-building me-2"></i>My Hotels
+                        </h5>
+                        <a href="/owner/hotels" class="btn-modern btn-outline-primary btn-sm">View All</a>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body-modern">
                         @if (myHotels.Any())
                         {
-                            <div class="list-group list-group-flush">
+                            <div class="hotel-list">
                                 @foreach (var hotel in myHotels.Take(5))
                                 {
-                                    <div class="list-group-item px-0">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div class="flex-grow-1">
-                                                <h6 class="mb-1">@hotel.Name</h6>
-                                                <p class="mb-1 text-muted">
-                                                    <i class="bi bi-geo-alt"></i> @hotel.City, @hotel.Country
-                                                </p>
-                                                <small class="text-muted">
-                                                    Capacity: @hotel.Capacity | Price: @hotel.Currency @hotel.PricePerNight.ToString("N0")/night
-                                                </small>
+                                    <div class="hotel-item">
+                                        <div class="hotel-item-content">
+                                            <h6 class="hotel-item-name">@hotel.Name</h6>
+                                            <p class="hotel-item-location">
+                                                <i class="bi bi-geo-alt"></i> @hotel.City, @hotel.Country
+                                            </p>
+                                            <div class="hotel-item-meta">
+                                                <span class="meta-item">
+                                                    <i class="bi bi-people"></i> @hotel.Capacity guests
+                                                </span>
+                                                <span class="meta-item">
+                                                    <i class="bi bi-currency-dollar"></i> @hotel.Currency @hotel.PricePerNight.ToString("N0")/night
+                                                </span>
                                             </div>
-                                            <div class="text-end">
-                                                @if (hotel.IsApproved)
-                                                {
-                                                    <span class="badge bg-success mb-2">Approved</span>
-                                                }
-                                                else if (hotel.IsPublished)
-                                                {
-                                                    <span class="badge bg-warning mb-2">Pending</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="badge bg-secondary mb-2">Draft</span>
-                                                }
-                                                <br />
-                                                <a href="/owner/hotels/@hotel.Id/edit" class="btn btn-sm btn-outline-primary">Edit</a>
-                                            </div>
+                                        </div>
+                                        <div class="hotel-item-actions">
+                                            @if (hotel.IsApproved)
+                                            {
+                                                <span class="status-badge status-success">
+                                                    <i class="bi bi-check-circle"></i> Approved
+                                                </span>
+                                            }
+                                            else if (hotel.IsPublished)
+                                            {
+                                                <span class="status-badge status-warning">
+                                                    <i class="bi bi-clock"></i> Pending
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="status-badge status-secondary">
+                                                    <i class="bi bi-file-earmark"></i> Draft
+                                                </span>
+                                            }
+                                            <a href="/owner/hotels/@hotel.Id/edit" class="btn-modern btn-outline-primary btn-sm">
+                                                <i class="bi bi-pencil"></i> Edit
+                                            </a>
                                         </div>
                                     </div>
                                 }
@@ -139,10 +134,13 @@
                         }
                         else
                         {
-                            <div class="text-center py-4">
-                                <i class="bi bi-building text-muted" style="font-size: 3rem;"></i>
-                                <p class="text-muted mt-3">You haven't added any hotels yet.</p>
-                                <a href="/owner/hotels/create" class="btn btn-primary">Add Your First Hotel</a>
+                            <div class="empty-state">
+                                <i class="bi bi-building empty-state-icon"></i>
+                                <h3 class="empty-state-title">No Hotels Yet</h3>
+                                <p class="empty-state-text">Start by adding your first property</p>
+                                <a href="/owner/create-hotel" class="btn-modern btn-gradient-primary">
+                                    <i class="bi bi-plus-circle me-2"></i>Add Your First Hotel
+                                </a>
                             </div>
                         }
                     </div>
@@ -150,62 +148,72 @@
             </div>
 
             <!-- Recent Booking Requests -->
-            <div class="col-lg-4">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Booking Requests</h5>
-                        <a href="/owner/bookings" class="btn btn-sm btn-outline-primary">View All</a>
+            <div class="content-sidebar">
+                <div class="modern-card">
+                    <div class="card-header-modern">
+                        <h5 class="card-title-modern">
+                            <i class="bi bi-calendar-check me-2"></i>Booking Requests
+                        </h5>
+                        <a href="/owner/bookings" class="btn-modern btn-outline-primary btn-sm">View All</a>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body-modern">
                         @if (bookingRequests.Any())
                         {
-                            <div class="list-group list-group-flush">
+                            <div class="booking-list">
                                 @foreach (var booking in bookingRequests.Take(5))
                                 {
-                                    <div class="list-group-item px-0">
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <small class="text-muted">Booking #@booking.Id</small>
-                                            <span class="badge bg-@GetStatusColor(booking.Status)">@booking.Status</span>
+                                    <div class="booking-item">
+                                        <div class="booking-header">
+                                            <span class="booking-id">Booking #@booking.Id</span>
+                                            <span class="status-badge status-@GetStatusColor(booking.Status)">@booking.Status</span>
                                         </div>
-                                        <p class="mb-1 small">
-                                            <i class="bi bi-calendar"></i> @booking.StartDate.ToString("MMM dd") - @booking.EndDate.ToString("MMM dd")
-                                        </p>
-                                        <small class="text-muted">@booking.HeadCount guests</small>
+                                        <div class="booking-dates">
+                                            <i class="bi bi-calendar"></i>
+                                            @booking.StartDate.ToString("MMM dd") - @booking.EndDate.ToString("MMM dd")
+                                        </div>
+                                        <div class="booking-guests">
+                                            <i class="bi bi-people"></i> @booking.HeadCount guests
+                                        </div>
                                     </div>
                                 }
                             </div>
                         }
                         else
                         {
-                            <p class="text-muted text-center mb-0">No booking requests yet</p>
+                            <div class="empty-state-small">
+                                <i class="bi bi-calendar-x"></i>
+                                <p>No booking requests yet</p>
+                            </div>
                         }
                     </div>
                 </div>
 
                 <!-- Quick Tips -->
-                <div class="card border-0 shadow-sm mt-4">
-                    <div class="card-header bg-white border-bottom">
-                        <h5 class="mb-0">Quick Tips</h5>
+                <div class="modern-card tips-card">
+                    <div class="card-header-modern">
+                        <h5 class="card-title-modern">
+                            <i class="bi bi-lightbulb me-2"></i>Quick Tips
+                        </h5>
                     </div>
-                    <div class="card-body">
-                        <ul class="list-unstyled mb-0">
-                            <li class="mb-2">
-                                <i class="bi bi-lightbulb text-warning me-2"></i>
-                                <small>Add high-quality photos to attract more bookings</small>
-                            </li>
-                            <li class="mb-2">
-                                <i class="bi bi-lightbulb text-warning me-2"></i>
-                                <small>Respond to inquiries within 24 hours</small>
-                            </li>
-                            <li class="mb-2">
-                                <i class="bi bi-lightbulb text-warning me-2"></i>
-                                <small>Keep your availability calendar updated</small>
-                            </li>
-                            <li>
-                                <i class="bi bi-lightbulb text-warning me-2"></i>
-                                <small>Complete your profile for better visibility</small>
-                            </li>
-                        </ul>
+                    <div class="card-body-modern">
+                        <div class="tips-list">
+                            <div class="tip-item">
+                                <i class="bi bi-check-circle"></i>
+                                <span>Add high-quality photos to attract more bookings</span>
+                            </div>
+                            <div class="tip-item">
+                                <i class="bi bi-check-circle"></i>
+                                <span>Respond to inquiries within 24 hours</span>
+                            </div>
+                            <div class="tip-item">
+                                <i class="bi bi-check-circle"></i>
+                                <span>Keep your availability calendar updated</span>
+                            </div>
+                            <div class="tip-item">
+                                <i class="bi bi-check-circle"></i>
+                                <span>Complete your profile for better visibility</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -1,114 +1,140 @@
-<div class="modern-nav-container">
-    <nav class="modern-nav">
+<div class="advanced-nav-container">
+    <nav class="advanced-nav">
         <!-- Home -->
-        <div class="modern-nav-item">
-            <NavLink class="modern-nav-link" href="" Match="NavLinkMatch.All">
+        <NavLink class="nav-item" href="" Match="NavLinkMatch.All">
+            <div class="nav-item-icon">
                 <i class="bi bi-house-door-fill"></i>
-                <span class="nav-text">Home</span>
-            </NavLink>
-        </div>
+            </div>
+            <span class="nav-item-text">Home</span>
+        </NavLink>
 
         <!-- Client Section -->
-        <div class="modern-nav-section">
-            <button class="modern-nav-section-toggle" @onclick="ToggleClientSection">
-                <div class="section-header">
-                    <div class="section-icon">
+        <div class="nav-section">
+            <div class="nav-section-header" @onclick="ToggleClientSection">
+                <div class="nav-section-info">
+                    <div class="nav-section-icon">
                         <i class="bi bi-person-circle"></i>
                     </div>
-                    <span class="section-title">Client</span>
+                    <span class="nav-section-title">Client</span>
                 </div>
-                <i class="bi @(clientExpanded ? "bi-chevron-down" : "bi-chevron-right") chevron"></i>
-            </button>
+                <i class="bi @(clientExpanded ? "bi-chevron-down" : "bi-chevron-right") nav-section-arrow"></i>
+            </div>
             @if (clientExpanded)
             {
-                <div class="modern-nav-submenu">
-                    <NavLink class="modern-nav-link" href="search">
-                        <i class="bi bi-search"></i>
-                        <span class="nav-text">Search Hotels</span>
+                <div class="nav-section-content">
+                    <NavLink class="nav-item" href="search">
+                        <div class="nav-item-icon">
+                            <i class="bi bi-search"></i>
+                        </div>
+                        <span class="nav-item-text">Search Hotels</span>
                     </NavLink>
-                    <NavLink class="modern-nav-link" href="hotel-details">
-                        <i class="bi bi-building"></i>
-                        <span class="nav-text">Hotel Details</span>
+                    <NavLink class="nav-item" href="hotel-details">
+                        <div class="nav-item-icon">
+                            <i class="bi bi-building"></i>
+                        </div>
+                        <span class="nav-item-text">Hotel Details</span>
                     </NavLink>
-                    <NavLink class="modern-nav-link" href="my-bookings">
-                        <i class="bi bi-calendar-check"></i>
-                        <span class="nav-text">My Bookings</span>
+                    <NavLink class="nav-item" href="my-bookings">
+                        <div class="nav-item-icon">
+                            <i class="bi bi-calendar-check"></i>
+                        </div>
+                        <span class="nav-item-text">My Bookings</span>
                     </NavLink>
-                    <NavLink class="modern-nav-link" href="messages">
-                        <i class="bi bi-envelope"></i>
-                        <span class="nav-text">Messages</span>
+                    <NavLink class="nav-item" href="messages">
+                        <div class="nav-item-icon">
+                            <i class="bi bi-envelope"></i>
+                        </div>
+                        <span class="nav-item-text">Messages</span>
                     </NavLink>
                 </div>
             }
         </div>
 
         <!-- Owner Section -->
-        <div class="modern-nav-section">
-            <button class="modern-nav-section-toggle" @onclick="ToggleOwnerSection">
-                <div class="section-header">
-                    <div class="section-icon">
+        <div class="nav-section">
+            <div class="nav-section-header" @onclick="ToggleOwnerSection">
+                <div class="nav-section-info">
+                    <div class="nav-section-icon">
                         <i class="bi bi-briefcase"></i>
                     </div>
-                    <span class="section-title">Owner</span>
+                    <span class="nav-section-title">Owner</span>
                 </div>
-                <i class="bi @(ownerExpanded ? "bi-chevron-down" : "bi-chevron-right") chevron"></i>
-            </button>
+                <i class="bi @(ownerExpanded ? "bi-chevron-down" : "bi-chevron-right") nav-section-arrow"></i>
+            </div>
             @if (ownerExpanded)
             {
-                <div class="modern-nav-submenu">
-                    <NavLink class="modern-nav-link" href="owner/dashboard">
-                        <i class="bi bi-speedometer2"></i>
-                        <span class="nav-text">Dashboard</span>
+                <div class="nav-section-content">
+                    <NavLink class="nav-item" href="owner/dashboard">
+                        <div class="nav-item-icon">
+                            <i class="bi bi-speedometer2"></i>
+                        </div>
+                        <span class="nav-item-text">Dashboard</span>
                     </NavLink>
-                    <NavLink class="modern-nav-link" href="owner/hotels">
-                        <i class="bi bi-building"></i>
-                        <span class="nav-text">My Hotels</span>
+                    <NavLink class="nav-item" href="owner/hotels">
+                        <div class="nav-item-icon">
+                            <i class="bi bi-building"></i>
+                        </div>
+                        <span class="nav-item-text">My Hotels</span>
                     </NavLink>
-                    <NavLink class="modern-nav-link" href="owner/create-hotel">
-                        <i class="bi bi-plus-circle"></i>
-                        <span class="nav-text">Create Hotel</span>
+                    <NavLink class="nav-item" href="owner/create-hotel">
+                        <div class="nav-item-icon">
+                            <i class="bi bi-plus-circle"></i>
+                        </div>
+                        <span class="nav-item-text">Create Hotel</span>
                     </NavLink>
-                    <NavLink class="modern-nav-link" href="owner/bookings">
-                        <i class="bi bi-calendar2-check"></i>
-                        <span class="nav-text">Booking Requests</span>
+                    <NavLink class="nav-item" href="owner/bookings">
+                        <div class="nav-item-icon">
+                            <i class="bi bi-calendar2-check"></i>
+                        </div>
+                        <span class="nav-item-text">Booking Requests</span>
                     </NavLink>
                 </div>
             }
         </div>
 
         <!-- Admin Section -->
-        <div class="modern-nav-section">
-            <button class="modern-nav-section-toggle" @onclick="ToggleAdminSection">
-                <div class="section-header">
-                    <div class="section-icon">
+        <div class="nav-section">
+            <div class="nav-section-header" @onclick="ToggleAdminSection">
+                <div class="nav-section-info">
+                    <div class="nav-section-icon">
                         <i class="bi bi-shield-lock"></i>
                     </div>
-                    <span class="section-title">Admin</span>
+                    <span class="nav-section-title">Admin</span>
                 </div>
-                <i class="bi @(adminExpanded ? "bi-chevron-down" : "bi-chevron-right") chevron"></i>
-            </button>
+                <i class="bi @(adminExpanded ? "bi-chevron-down" : "bi-chevron-right") nav-section-arrow"></i>
+            </div>
             @if (adminExpanded)
             {
-                <div class="modern-nav-submenu">
-                    <NavLink class="modern-nav-link" href="admin/dashboard">
-                        <i class="bi bi-speedometer2"></i>
-                        <span class="nav-text">Dashboard</span>
+                <div class="nav-section-content">
+                    <NavLink class="nav-item" href="admin/dashboard">
+                        <div class="nav-item-icon">
+                            <i class="bi bi-speedometer2"></i>
+                        </div>
+                        <span class="nav-item-text">Dashboard</span>
                     </NavLink>
-                    <NavLink class="modern-nav-link" href="admin/users">
-                        <i class="bi bi-people"></i>
-                        <span class="nav-text">Users</span>
+                    <NavLink class="nav-item" href="admin/users">
+                        <div class="nav-item-icon">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <span class="nav-item-text">Users</span>
                     </NavLink>
-                    <NavLink class="modern-nav-link" href="admin/hotels">
-                        <i class="bi bi-building"></i>
-                        <span class="nav-text">Hotels</span>
+                    <NavLink class="nav-item" href="admin/hotels">
+                        <div class="nav-item-icon">
+                            <i class="bi bi-building"></i>
+                        </div>
+                        <span class="nav-item-text">Hotels</span>
                     </NavLink>
-                    <NavLink class="modern-nav-link" href="admin/bookings">
-                        <i class="bi bi-calendar-event"></i>
-                        <span class="nav-text">All Bookings</span>
+                    <NavLink class="nav-item" href="admin/bookings">
+                        <div class="nav-item-icon">
+                            <i class="bi bi-calendar-event"></i>
+                        </div>
+                        <span class="nav-item-text">All Bookings</span>
                     </NavLink>
-                    <NavLink class="modern-nav-link" href="admin/audit-logs">
-                        <i class="bi bi-file-text"></i>
-                        <span class="nav-text">Audit Logs</span>
+                    <NavLink class="nav-item" href="admin/audit-logs">
+                        <div class="nav-item-icon">
+                            <i class="bi bi-file-text"></i>
+                        </div>
+                        <span class="nav-item-text">Audit Logs</span>
                     </NavLink>
                 </div>
             }

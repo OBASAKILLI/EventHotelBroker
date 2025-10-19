@@ -1,0 +1,503 @@
+/* ============================================
+   Owner Dashboard Styles
+   ============================================ */
+
+.owner-dashboard {
+    background: var(--gray-50);
+    min-height: 100vh;
+    padding: 2rem;
+}
+
+/* ============================================
+   Dashboard Header
+   ============================================ */
+
+.dashboard-header {
+    background: linear-gradient(135deg, var(--primary) 0%, #1e40af 100%);
+    padding: 3rem 2rem;
+    border-radius: 20px;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 30px rgba(37, 99, 235, 0.2);
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.header-info {
+    flex: 1;
+}
+
+.dashboard-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.dashboard-subtitle {
+    font-size: 1.125rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+}
+
+/* ============================================
+   Stats Grid
+   ============================================ */
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.stat-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    color: var(--white);
+    flex-shrink: 0;
+}
+
+.stat-icon-primary {
+    background: var(--primary-gradient);
+}
+
+.stat-icon-success {
+    background: var(--success-gradient);
+}
+
+.stat-icon-warning {
+    background: var(--warning-gradient);
+}
+
+.stat-icon-info {
+    background: var(--info-gradient);
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+    margin-bottom: 0.25rem;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--gray-900);
+}
+
+/* ============================================
+   Dashboard Content
+   ============================================ */
+
+.dashboard-content {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 2rem;
+}
+
+.content-main {
+    min-width: 0;
+}
+
+.content-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* ============================================
+   Modern Card
+   ============================================ */
+
+.modern-card {
+    background: var(--white);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.card-header-modern {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.card-title-modern {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+.card-body-modern {
+    padding: 1.5rem;
+}
+
+/* ============================================
+   Hotel List
+   ============================================ */
+
+.hotel-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.hotel-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem;
+    background: var(--gray-50);
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+.hotel-item:hover {
+    background: var(--gray-100);
+    transform: translateX(4px);
+}
+
+.hotel-item-content {
+    flex: 1;
+}
+
+.hotel-item-name {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 0.5rem;
+}
+
+.hotel-item-location {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.hotel-item-location i {
+    color: var(--primary);
+}
+
+.hotel-item-meta {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.meta-item {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.meta-item i {
+    color: var(--primary);
+}
+
+.hotel-item-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.75rem;
+}
+
+/* ============================================
+   Status Badges
+   ============================================ */
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-success {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+}
+
+.status-warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning);
+}
+
+.status-secondary {
+    background: var(--gray-200);
+    color: var(--gray-700);
+}
+
+.status-danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+}
+
+/* ============================================
+   Booking List
+   ============================================ */
+
+.booking-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.booking-item {
+    padding: 1rem;
+    background: var(--gray-50);
+    border-radius: 10px;
+    transition: all 0.2s ease;
+}
+
+.booking-item:hover {
+    background: var(--gray-100);
+}
+
+.booking-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.booking-id {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--gray-700);
+}
+
+.booking-dates {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.booking-dates i {
+    color: var(--primary);
+}
+
+.booking-guests {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.booking-guests i {
+    color: var(--primary);
+}
+
+/* ============================================
+   Tips Card
+   ============================================ */
+
+.tips-card {
+    margin-top: 1.5rem;
+}
+
+.tips-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.tip-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+    color: var(--gray-700);
+    line-height: 1.6;
+}
+
+.tip-item i {
+    color: var(--success);
+    font-size: 1rem;
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+}
+
+/* ============================================
+   Empty States
+   ============================================ */
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+    text-align: center;
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    color: var(--gray-300);
+    margin-bottom: 1rem;
+}
+
+.empty-state-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 0.5rem;
+}
+
+.empty-state-text {
+    font-size: 1rem;
+    color: var(--gray-600);
+    margin-bottom: 1.5rem;
+}
+
+.empty-state-small {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem;
+    text-align: center;
+}
+
+.empty-state-small i {
+    font-size: 2.5rem;
+    color: var(--gray-300);
+    margin-bottom: 0.75rem;
+}
+
+.empty-state-small p {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+    margin: 0;
+}
+
+/* ============================================
+   Loading State
+   ============================================ */
+
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+}
+
+.spinner-modern {
+    width: 60px;
+    height: 60px;
+    border: 4px solid var(--gray-200);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-text {
+    margin-top: 1.5rem;
+    font-size: 1.125rem;
+    color: var(--gray-600);
+}
+
+/* ============================================
+   Responsive Design
+   ============================================ */
+
+@media (max-width: 1200px) {
+    .dashboard-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .content-sidebar {
+        grid-column: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .owner-dashboard {
+        padding: 1rem;
+    }
+    
+    .dashboard-header {
+        padding: 2rem 1.5rem;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1.5rem;
+    }
+    
+    .dashboard-title {
+        font-size: 2rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .hotel-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .hotel-item-actions {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+}
