@@ -1,0 +1,246 @@
+@page "/owner/create-equipment"
+@using EventHotelBroker.Models
+@using EventHotelBroker.Services
+@inject IEventService EventService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Add Event Equipment - Owner</PageTitle>
+
+<link href="/css/events-module.css" rel="stylesheet" />
+
+<div class="container-fluid px-4 py-4 animate-fade-in">
+    <div class="page-header mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1><i class="bi bi-plus-circle me-3"></i>Add Event Equipment</h1>
+                <p>Add new equipment to your inventory</p>
+            </div>
+            <button class="btn btn-outline-secondary" @onclick="Cancel">
+                <i class="bi bi-x-circle me-2"></i>Cancel
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="modern-card">
+                <div class="modern-card-body">
+                    <EditForm Model="@equipment" OnValidSubmit="@HandleSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="alert alert-danger" />
+
+                        <!-- Basic Information -->
+                        <div class="mb-4">
+                            <h5 class="mb-3"><i class="bi bi-info-circle me-2"></i>Basic Information</h5>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Equipment Name <span class="text-danger">*</span></label>
+                                <InputText @bind-Value="equipment.Name" class="form-control" placeholder="e.g., White Wedding Tent 20x30" />
+                                <ValidationMessage For="@(() => equipment.Name)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Category <span class="text-danger">*</span></label>
+                                <InputSelect @bind-Value="equipment.Category" class="form-select">
+                                    <option value="">-- Select Category --</option>
+                                    <option value="Tents">Tents</option>
+                                    <option value="Chairs">Chairs</option>
+                                    <option value="Sound System">Sound System</option>
+                                    <option value="Lighting">Lighting</option>
+                                    <option value="Catering">Catering</option>
+                                    <option value="Decoration">Decoration</option>
+                                    <option value="Tables">Tables</option>
+                                    <option value="Stage">Stage & Platform</option>
+                                    <option value="Audio Visual">Audio Visual</option>
+                                    <option value="Other">Other</option>
+                                </InputSelect>
+                                <ValidationMessage For="@(() => equipment.Category)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Description <span class="text-danger">*</span></label>
+                                <InputTextArea @bind-Value="equipment.Description" class="form-control" rows="4" 
+                                    placeholder="Provide detailed description of the equipment, its features, and condition..." />
+                                <ValidationMessage For="@(() => equipment.Description)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Specifications</label>
+                                <InputTextArea @bind-Value="equipment.Specifications" class="form-control" rows="3" 
+                                    placeholder="e.g., Dimensions: 20x30 feet, Material: Canvas, Capacity: 150 guests" />
+                                <small class="text-muted">Optional: Add technical specifications, dimensions, capacity, etc.</small>
+                            </div>
+                        </div>
+
+                        <!-- Pricing & Availability -->
+                        <div class="mb-4">
+                            <h5 class="mb-3"><i class="bi bi-currency-dollar me-2"></i>Pricing & Availability</h5>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Price Per Unit <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <InputNumber @bind-Value="equipment.PricePerUnit" class="form-control" 
+                                            placeholder="0.00" step="0.01" />
+                                    </div>
+                                    <ValidationMessage For="@(() => equipment.PricePerUnit)" />
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Unit Type <span class="text-danger">*</span></label>
+                                    <InputSelect @bind-Value="equipment.Unit" class="form-select">
+                                        <option value="">-- Select Unit --</option>
+                                        <option value="piece">Piece</option>
+                                        <option value="set">Set</option>
+                                        <option value="hour">Hour</option>
+                                        <option value="day">Day</option>
+                                        <option value="package">Package</option>
+                                    </InputSelect>
+                                    <ValidationMessage For="@(() => equipment.Unit)" />
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Available Quantity <span class="text-danger">*</span></label>
+                                    <InputNumber @bind-Value="equipment.AvailableQuantity" class="form-control" 
+                                        placeholder="0" min="0" />
+                                    <ValidationMessage For="@(() => equipment.AvailableQuantity)" />
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Status</label>
+                                    <div class="form-check form-switch mt-2">
+                                        <InputCheckbox @bind-Value="equipment.IsAvailable" class="form-check-input" id="isAvailable" />
+                                        <label class="form-check-label" for="isAvailable">
+                                            Available for Booking
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Image URL (Optional) -->
+                        <div class="mb-4">
+                            <h5 class="mb-3"><i class="bi bi-image me-2"></i>Equipment Image</h5>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Image URL</label>
+                                <InputText @bind-Value="imageUrl" class="form-control" 
+                                    placeholder="https://example.com/image.jpg" />
+                                <small class="text-muted">Optional: Add a URL to an image of your equipment</small>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(imageUrl))
+                            {
+                                <div class="mb-3">
+                                    <label class="form-label">Image Preview</label>
+                                    <div class="border rounded p-2">
+                                        <img src="@imageUrl" alt="Equipment preview" class="img-fluid" style="max-height: 200px;" 
+                                            @onerror="HandleImageError" />
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="d-flex gap-3 justify-content-end">
+                            <button type="button" class="btn btn-outline-secondary" @onclick="Cancel">
+                                <i class="bi bi-x-circle me-2"></i>Cancel
+                            </button>
+                            <button type="submit" class="btn-modern btn-gradient-primary" disabled="@isSubmitting">
+                                @if (isSubmitting)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                    <text>Saving...</text>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-check-circle me-2"></i>
+                                    <text>Add Equipment</text>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+
+            <!-- Information Card -->
+            <div class="modern-card mt-4">
+                <div class="modern-card-body">
+                    <h6 class="mb-3"><i class="bi bi-info-circle me-2"></i>Important Information</h6>
+                    <ul class="mb-0">
+                        <li>Your equipment will be submitted for admin approval before being visible to customers.</li>
+                        <li>Provide accurate descriptions and specifications to help customers make informed decisions.</li>
+                        <li>Set competitive pricing based on market rates and equipment quality.</li>
+                        <li>Keep your inventory updated to avoid booking conflicts.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private EventEquipment equipment = new();
+    private string imageUrl = string.Empty;
+    private bool isSubmitting = false;
+    private string currentProviderId = "temp-provider-id"; // In production, get from auth context
+
+    protected override void OnInitialized()
+    {
+        equipment.ProviderId = currentProviderId;
+        equipment.IsAvailable = true;
+        equipment.IsApproved = false;
+        equipment.CreatedAt = DateTime.UtcNow;
+        equipment.UpdatedAt = DateTime.UtcNow;
+    }
+
+    private async Task HandleSubmit()
+    {
+        isSubmitting = true;
+        try
+        {
+            // Create the equipment
+            await EventService.CreateEquipmentAsync(equipment);
+
+            // If image URL is provided, add it
+            if (!string.IsNullOrWhiteSpace(imageUrl))
+            {
+                var image = new EventEquipmentImage
+                {
+                    EquipmentId = equipment.Id,
+                    ImageUrl = imageUrl,
+                    IsPrimary = true,
+                    DisplayOrder = 1,
+                    UploadedAt = DateTime.UtcNow
+                };
+                // In production, you would have a method to add images
+                // await EventService.AddEquipmentImageAsync(image);
+            }
+
+            await JSRuntime.InvokeVoidAsync("alert", "Equipment added successfully! It will be visible after admin approval.");
+            Navigation.NavigateTo("/owner/event-equipments");
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/owner/event-equipments");
+    }
+
+    private void HandleImageError()
+    {
+        // Handle image load error
+    }
+}

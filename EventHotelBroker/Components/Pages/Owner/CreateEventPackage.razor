@@ -1,0 +1,307 @@
+@page "/owner/create-package"
+@using EventHotelBroker.Models
+@using EventHotelBroker.Services
+@inject IEventService EventService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Create Event Package - Owner</PageTitle>
+
+<link href="/css/events-module.css" rel="stylesheet" />
+
+<div class="container-fluid px-4 py-4 animate-fade-in">
+    <div class="page-header mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1><i class="bi bi-plus-circle me-3"></i>Create Event Package</h1>
+                <p>Bundle equipment into attractive packages for customers</p>
+            </div>
+            <button class="btn btn-outline-secondary" @onclick="Cancel">
+                <i class="bi bi-x-circle me-2"></i>Cancel
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="modern-card">
+                <div class="modern-card-body">
+                    <EditForm Model="@package" OnValidSubmit="@HandleSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="alert alert-danger" />
+
+                        <!-- Package Information -->
+                        <div class="mb-4">
+                            <h5 class="mb-3"><i class="bi bi-gift me-2"></i>Package Information</h5>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Package Name <span class="text-danger">*</span></label>
+                                <InputText @bind-Value="package.Name" class="form-control" 
+                                    placeholder="e.g., Premium Wedding Package" />
+                                <ValidationMessage For="@(() => package.Name)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Package Type <span class="text-danger">*</span></label>
+                                <InputSelect @bind-Value="package.PackageType" class="form-select">
+                                    <option value="">-- Select Type --</option>
+                                    <option value="Wedding">Wedding</option>
+                                    <option value="Corporate">Corporate Event</option>
+                                    <option value="Birthday">Birthday Party</option>
+                                    <option value="Conference">Conference</option>
+                                    <option value="Party">Party</option>
+                                    <option value="Festival">Festival</option>
+                                    <option value="Exhibition">Exhibition</option>
+                                    <option value="Custom">Custom Event</option>
+                                </InputSelect>
+                                <ValidationMessage For="@(() => package.PackageType)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Description <span class="text-danger">*</span></label>
+                                <InputTextArea @bind-Value="package.Description" class="form-control" rows="4" 
+                                    placeholder="Describe what's included in this package and what makes it special..." />
+                                <ValidationMessage For="@(() => package.Description)" />
+                            </div>
+                        </div>
+
+                        <!-- Pricing -->
+                        <div class="mb-4">
+                            <h5 class="mb-3"><i class="bi bi-currency-dollar me-2"></i>Pricing</h5>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Total Price <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <InputNumber @bind-Value="package.TotalPrice" class="form-control" 
+                                            placeholder="0.00" step="0.01" />
+                                    </div>
+                                    <ValidationMessage For="@(() => package.TotalPrice)" />
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Discounted Price</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <InputNumber @bind-Value="package.DiscountedPrice" class="form-control" 
+                                            placeholder="0.00" step="0.01" />
+                                    </div>
+                                    <small class="text-muted">Optional: Offer a special discounted price</small>
+                                </div>
+                            </div>
+
+                            @if (package.DiscountedPrice.HasValue && package.TotalPrice > 0)
+                            {
+                                var savings = package.TotalPrice - package.DiscountedPrice.Value;
+                                var percentage = (savings / package.TotalPrice) * 100;
+                                <div class="alert alert-success">
+                                    <i class="bi bi-tag me-2"></i>
+                                    Customers save <strong>$@savings.ToString("N2")</strong> (@percentage.ToString("N0")% off)
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Guest Capacity -->
+                        <div class="mb-4">
+                            <h5 class="mb-3"><i class="bi bi-people me-2"></i>Guest Capacity</h5>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Minimum Guests <span class="text-danger">*</span></label>
+                                    <InputNumber @bind-Value="package.MinGuests" class="form-control" 
+                                        placeholder="0" min="1" />
+                                    <ValidationMessage For="@(() => package.MinGuests)" />
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Maximum Guests <span class="text-danger">*</span></label>
+                                    <InputNumber @bind-Value="package.MaxGuests" class="form-control" 
+                                        placeholder="0" min="1" />
+                                    <ValidationMessage For="@(() => package.MaxGuests)" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Features -->
+                        <div class="mb-4">
+                            <h5 class="mb-3"><i class="bi bi-list-check me-2"></i>Package Features</h5>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Features (one per line)</label>
+                                <textarea @bind="featuresText" class="form-control" rows="6" 
+                                    placeholder="Enter each feature on a new line, e.g.:&#10;White Wedding Tent 20x30&#10;300 Chiavari Chairs&#10;Professional Sound System&#10;LED Uplighting&#10;Floral Centerpieces"></textarea>
+                                <small class="text-muted">List all items and services included in this package</small>
+                            </div>
+
+                            @if (!string.IsNullOrWhiteSpace(featuresText))
+                            {
+                                var features = featuresText.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                                <div class="alert alert-info">
+                                    <strong>Preview:</strong>
+                                    <ul class="mb-0 mt-2">
+                                        @foreach (var feature in features)
+                                        {
+                                            <li>@feature.Trim()</li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Package Settings -->
+                        <div class="mb-4">
+                            <h5 class="mb-3"><i class="bi bi-gear me-2"></i>Package Settings</h5>
+                            
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <div class="form-check form-switch">
+                                        <InputCheckbox @bind-Value="package.IsActive" class="form-check-input" id="isActive" />
+                                        <label class="form-check-label" for="isActive">
+                                            <strong>Active</strong>
+                                            <br><small class="text-muted">Available for booking</small>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 mb-3">
+                                    <div class="form-check form-switch">
+                                        <InputCheckbox @bind-Value="package.IsFeatured" class="form-check-input" id="isFeatured" />
+                                        <label class="form-check-label" for="isFeatured">
+                                            <strong>Featured</strong>
+                                            <br><small class="text-muted">Highlight this package</small>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 mb-3">
+                                    <div class="form-check form-switch">
+                                        <InputCheckbox @bind-Value="package.IsCustomizable" class="form-check-input" id="isCustomizable" />
+                                        <label class="form-check-label" for="isCustomizable">
+                                            <strong>Customizable</strong>
+                                            <br><small class="text-muted">Allow modifications</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Image URL (Optional) -->
+                        <div class="mb-4">
+                            <h5 class="mb-3"><i class="bi bi-image me-2"></i>Package Image</h5>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Image URL</label>
+                                <InputText @bind-Value="package.ImageUrl" class="form-control" 
+                                    placeholder="https://example.com/package-image.jpg" />
+                                <small class="text-muted">Optional: Add a URL to an image representing this package</small>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(package.ImageUrl))
+                            {
+                                <div class="mb-3">
+                                    <label class="form-label">Image Preview</label>
+                                    <div class="border rounded p-2">
+                                        <img src="@package.ImageUrl" alt="Package preview" class="img-fluid" 
+                                            style="max-height: 200px;" @onerror="HandleImageError" />
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="d-flex gap-3 justify-content-end">
+                            <button type="button" class="btn btn-outline-secondary" @onclick="Cancel">
+                                <i class="bi bi-x-circle me-2"></i>Cancel
+                            </button>
+                            <button type="submit" class="btn-modern btn-gradient-accent" disabled="@isSubmitting">
+                                @if (isSubmitting)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                    <text>Creating...</text>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-check-circle me-2"></i>
+                                    <text>Create Package</text>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+
+            <!-- Tips Card -->
+            <div class="modern-card mt-4">
+                <div class="modern-card-body">
+                    <h6 class="mb-3"><i class="bi bi-lightbulb me-2"></i>Package Creation Tips</h6>
+                    <ul class="mb-0">
+                        <li><strong>Bundle Wisely:</strong> Combine complementary items that customers typically need together.</li>
+                        <li><strong>Competitive Pricing:</strong> Offer packages at a discount compared to individual item prices.</li>
+                        <li><strong>Clear Descriptions:</strong> List exactly what's included to avoid confusion.</li>
+                        <li><strong>Target Audience:</strong> Create packages for specific event types (weddings, corporate, etc.).</li>
+                        <li><strong>Approval Required:</strong> Your package will need admin approval before going live.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private EventPackage package = new();
+    private string featuresText = string.Empty;
+    private bool isSubmitting = false;
+    private string currentProviderId = "temp-provider-id"; // In production, get from auth context
+
+    protected override void OnInitialized()
+    {
+        package.ProviderId = currentProviderId;
+        package.IsActive = true;
+        package.IsApproved = false;
+        package.IsFeatured = false;
+        package.IsCustomizable = true;
+        package.CreatedAt = DateTime.UtcNow;
+        package.UpdatedAt = DateTime.UtcNow;
+    }
+
+    private async Task HandleSubmit()
+    {
+        isSubmitting = true;
+        try
+        {
+            // Convert features text to JSON array
+            if (!string.IsNullOrWhiteSpace(featuresText))
+            {
+                var features = featuresText.Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(f => f.Trim())
+                    .Where(f => !string.IsNullOrEmpty(f))
+                    .ToList();
+                
+                package.Features = System.Text.Json.JsonSerializer.Serialize(features);
+            }
+
+            await EventService.CreatePackageAsync(package);
+            await JSRuntime.InvokeVoidAsync("alert", "Package created successfully! It will be visible after admin approval.");
+            Navigation.NavigateTo("/owner/event-packages");
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/owner/event-packages");
+    }
+
+    private void HandleImageError()
+    {
+        // Handle image load error
+    }
+}

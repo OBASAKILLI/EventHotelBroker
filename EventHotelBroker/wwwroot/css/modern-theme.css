@@ -1,33 +1,33 @@
 /* ============================================
-   EventHotelBroker - Modern iPhone 17 Theme
+   EventHotelBroker - Modern Corporate Blue & Gold Theme
    ============================================ */
 
 :root {
-    /* Custom Brand Color Palette - Balanced Orange & Green */
-    --nav-orange: #FF6B35;
-    --body-orange: #FF8C61;
-    --soft-orange: #FFB088;
-    --vibrant-green: #10B981;
+    /* Custom Brand Color Palette - Professional Blue & Gold */
+    --nav-blue: #1a365d;
+    --body-blue: #2563eb;
+    --soft-blue: #3b82f6;
+    --vibrant-gold: #f59e0b;
     --white: #ffffff;
-    --off-white: #f8f9fa;
+    --off-white: #f9fafb;
     
-    /* Primary Colors - Subtle for Body, Strong for Nav */
-    --primary: #FF8C61;
-    --primary-light: #FFB088;
-    --primary-dark: #FF6B35;
-    --secondary: #10B981;
-    --secondary-light: #34D399;
-    --secondary-dark: #059669;
-    --accent: #34D399;
+    /* Primary Colors - Blue Tones */
+    --primary: #2563eb;
+    --primary-light: #3b82f6;
+    --primary-dark: #1a365d;
+    --secondary: #f59e0b;
+    --secondary-light: #fbbf24;
+    --secondary-dark: #d97706;
+    --accent: #f59e0b;
     
-    /* Gradients - Softer for Body */
-    --primary-gradient: linear-gradient(135deg, #FFB088 0%, #FF8C61 100%);
-    --secondary-gradient: linear-gradient(135deg, #10B981 0%, #34D399 100%);
-    --success-gradient: linear-gradient(135deg, #34D399 0%, #10B981 100%);
-    --warning-gradient: linear-gradient(135deg, #FFB088 0%, #FF8C61 100%);
+    /* Gradients - Professional & Elegant */
+    --primary-gradient: linear-gradient(135deg, #1a365d 0%, #2563eb 100%);
+    --secondary-gradient: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+    --success-gradient: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+    --warning-gradient: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
     --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    --info-gradient: linear-gradient(135deg, #10B981 0%, #34D399 100%);
-    --nav-gradient: linear-gradient(135deg, #FF6B35 0%, #FF8C61 100%);
+    --info-gradient: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+    --nav-gradient: linear-gradient(135deg, #1a365d 0%, #2563eb 100%);
     
     /* Neutral Colors - White Dominant (70%) */
     --gray-50: #ffffff;

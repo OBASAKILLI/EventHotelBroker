@@ -17,6 +17,7 @@ public interface IEventService
 
     // Package Management
     Task<IEnumerable<EventPackage>> GetAllPackagesAsync();
+    Task<IEnumerable<EventPackage>> GetApprovedPackagesAsync();
     Task<IEnumerable<EventPackage>> GetPackagesByProviderAsync(string providerId);
     Task<IEnumerable<EventPackage>> GetPackagesByTypeAsync(string packageType);
     Task<IEnumerable<EventPackage>> GetFeaturedPackagesAsync();

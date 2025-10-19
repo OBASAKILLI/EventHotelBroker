@@ -1,0 +1,431 @@
+@page "/user/dashboard"
+@using EventHotelBroker.Models
+@using EventHotelBroker.Services
+@inject IBookingService BookingService
+@inject IEventService EventService
+@inject NavigationManager Navigation
+
+<PageTitle>My Dashboard - EventHotelBroker</PageTitle>
+
+<link href="/css/events-module.css" rel="stylesheet" />
+
+<div class="container-fluid px-4 py-4">
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border spinner-modern text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3 text-muted">Loading your dashboard...</p>
+        </div>
+    }
+    else
+    {
+        <!-- Page Header -->
+        <div class="page-header mb-4">
+            <h1><i class="bi bi-speedometer2 me-3"></i>My Dashboard</h1>
+            <p>Welcome back! Here's an overview of your bookings and messages.</p>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="stats-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <p class="stats-number">@hotelBookings.Count()</p>
+                            <p class="stats-label mb-0">Hotel Bookings</p>
+                        </div>
+                        <div class="stats-icon" style="background: var(--primary-gradient);">
+                            <i class="bi bi-building"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stats-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <p class="stats-number">@eventBookings.Count()</p>
+                            <p class="stats-label mb-0">Event Bookings</p>
+                        </div>
+                        <div class="stats-icon" style="background: var(--secondary-gradient);">
+                            <i class="bi bi-calendar-event"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stats-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <p class="stats-number">@messages.Count(m => !m.IsRead)</p>
+                            <p class="stats-label mb-0">Unread Messages</p>
+                        </div>
+                        <div class="stats-icon" style="background: var(--info-gradient);">
+                            <i class="bi bi-envelope"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stats-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <p class="stats-number">@GetPendingCount()</p>
+                            <p class="stats-label mb-0">Pending Approvals</p>
+                        </div>
+                        <div class="stats-icon" style="background: var(--warning-gradient);">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="row g-4">
+            <!-- Left Column: Bookings -->
+            <div class="col-lg-8">
+                <!-- Hotel Bookings -->
+                <div class="modern-card mb-4">
+                    <div class="modern-card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-building me-2"></i>My Hotel Bookings</h5>
+                            <a href="/my-bookings" class="btn btn-sm btn-outline-primary">View All</a>
+                        </div>
+                    </div>
+                    <div class="modern-card-body">
+                        @if (hotelBookings.Any())
+                        {
+                            <div class="list-group list-group-flush">
+                                @foreach (var booking in hotelBookings.Take(3))
+                                {
+                                    <div class="list-group-item px-0 py-3">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-2">@booking.Hotel?.Name</h6>
+                                                <div class="d-flex flex-wrap gap-3 text-muted small">
+                                                    <span><i class="bi bi-calendar me-1"></i>@booking.StartDate.ToString("MMM dd") - @booking.EndDate.ToString("MMM dd, yyyy")</span>
+                                                    <span><i class="bi bi-people me-1"></i>@booking.HeadCount guests</span>
+                                                    <span><i class="bi bi-moon me-1"></i>@((booking.EndDate - booking.StartDate).Days) nights</span>
+                                                </div>
+                                                <div class="mt-2">
+                                                    <span class="badge-modern @GetStatusBadgeClass(booking.Status)">
+                                                        @booking.Status
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="text-end">
+                                                <h5 class="mb-0 text-primary">$@CalculateBookingTotal(booking).ToString("N2")</h5>
+                                                <button class="btn btn-sm btn-outline-primary mt-2" @onclick="() => ViewHotelBooking(booking.Id)">
+                                                    <i class="bi bi-eye"></i> Details
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-4">
+                                <i class="bi bi-inbox display-4 text-muted"></i>
+                                <p class="mt-3 text-muted">No hotel bookings yet</p>
+                                <a href="/search" class="btn-modern btn-gradient-primary">
+                                    <i class="bi bi-search me-2"></i>Browse Hotels
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Event Bookings -->
+                <div class="modern-card">
+                    <div class="modern-card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-calendar-event me-2"></i>My Event Bookings</h5>
+                            <a href="/my-event-bookings" class="btn btn-sm btn-outline-primary">View All</a>
+                        </div>
+                    </div>
+                    <div class="modern-card-body">
+                        @if (eventBookings.Any())
+                        {
+                            <div class="list-group list-group-flush">
+                                @foreach (var booking in eventBookings.Take(3))
+                                {
+                                    <div class="list-group-item px-0 py-3">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-2">@booking.EventName</h6>
+                                                <span class="badge-modern badge-gradient-info mb-2">
+                                                    <i class="bi bi-tag me-1"></i>@booking.EventType
+                                                </span>
+                                                <div class="d-flex flex-wrap gap-3 text-muted small">
+                                                    <span><i class="bi bi-calendar me-1"></i>@booking.EventDate.ToString("MMM dd, yyyy")</span>
+                                                    <span><i class="bi bi-people me-1"></i>@booking.ExpectedGuests guests</span>
+                                                    <span><i class="bi bi-geo-alt me-1"></i>@booking.Venue</span>
+                                                </div>
+                                                <div class="mt-2">
+                                                    <span class="badge-modern @GetEventStatusBadgeClass(booking.Status)">
+                                                        @booking.Status
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="text-end">
+                                                <h5 class="mb-0 text-primary">$@booking.TotalAmount.ToString("N2")</h5>
+                                                @if (booking.DepositAmount.HasValue)
+                                                {
+                                                    <small class="text-muted">Deposit: $@booking.DepositAmount.Value.ToString("N2")</small>
+                                                }
+                                                <button class="btn btn-sm btn-outline-primary mt-2" @onclick="() => ViewEventBooking(booking.Id)">
+                                                    <i class="bi bi-eye"></i> Details
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-4">
+                                <i class="bi bi-gift display-4 text-muted"></i>
+                                <p class="mt-3 text-muted">No event bookings yet</p>
+                                <a href="/events" class="btn-modern btn-gradient-accent">
+                                    <i class="bi bi-gift me-2"></i>Browse Event Packages
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Messages & Quick Actions -->
+            <div class="col-lg-4">
+                <!-- Messages -->
+                <div class="modern-card mb-4">
+                    <div class="modern-card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-chat-dots me-2"></i>Messages</h5>
+                            <a href="/messages" class="btn btn-sm btn-outline-primary">View All</a>
+                        </div>
+                    </div>
+                    <div class="modern-card-body">
+                        @if (messages.Any())
+                        {
+                            <div class="messages-list">
+                                @foreach (var message in messages.Take(5))
+                                {
+                                    <div class="message-item @(message.IsRead ? "" : "unread")" @onclick="() => ViewMessage(message.Id)">
+                                        <div class="d-flex align-items-start gap-3">
+                                            <div class="message-avatar">
+                                                <i class="bi bi-person-circle"></i>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                                    <h6 class="mb-0">@message.SenderName</h6>
+                                                    @if (!message.IsRead)
+                                                    {
+                                                        <span class="badge bg-primary rounded-circle" style="width: 8px; height: 8px;"></span>
+                                                    }
+                                                </div>
+                                                <p class="message-subject mb-1">@message.Subject</p>
+                                                <p class="message-preview mb-1">@message.MessagePreview</p>
+                                                <small class="text-muted">
+                                                    <i class="bi bi-clock me-1"></i>@message.SentAt.ToString("MMM dd, h:mm tt")
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-4">
+                                <i class="bi bi-envelope display-4 text-muted"></i>
+                                <p class="mt-3 text-muted mb-0">No messages yet</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="modern-card">
+                    <div class="modern-card-header">
+                        <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>Quick Actions</h5>
+                    </div>
+                    <div class="modern-card-body">
+                        <div class="d-grid gap-2">
+                            <a href="/search" class="btn-modern btn-gradient-primary">
+                                <i class="bi bi-building me-2"></i>Book a Hotel
+                            </a>
+                            <a href="/events" class="btn-modern btn-gradient-accent">
+                                <i class="bi bi-gift me-2"></i>Book Event Package
+                            </a>
+                            <a href="/messages" class="btn btn-outline-primary">
+                                <i class="bi bi-envelope me-2"></i>View Messages
+                            </a>
+                            <a href="/my-bookings" class="btn btn-outline-secondary">
+                                <i class="bi bi-calendar-check me-2"></i>My Bookings
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private List<Booking> hotelBookings = new();
+    private List<EventBooking> eventBookings = new();
+    private List<UserMessage> messages = new();
+    private string currentUserId = "user-1"; // In production, get from auth context
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDashboardData();
+    }
+
+    private async Task LoadDashboardData()
+    {
+        isLoading = true;
+        try
+        {
+            // Load hotel bookings
+            hotelBookings = (await BookingService.GetBookingsByUserAsync(currentUserId)).ToList();
+            
+            // Load event bookings
+            eventBookings = (await EventService.GetBookingsByUserAsync(currentUserId)).ToList();
+            
+            // Load messages (sample data)
+            messages = GetSampleMessages();
+        }
+        catch (Exception)
+        {
+            // Handle error
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private List<UserMessage> GetSampleMessages()
+    {
+        return new List<UserMessage>
+        {
+            new UserMessage
+            {
+                Id = 1,
+                SenderName = "Grand Plaza Hotel",
+                Subject = "Booking Confirmation",
+                MessagePreview = "Your booking has been confirmed for March 15-17, 2025. We look forward to hosting you!",
+                SentAt = DateTime.Now.AddHours(-2),
+                IsRead = false
+            },
+            new UserMessage
+            {
+                Id = 2,
+                SenderName = "Elite Events Co.",
+                Subject = "Event Package Details",
+                MessagePreview = "Thank you for your interest in our Premium Wedding Package. Here are the details you requested...",
+                SentAt = DateTime.Now.AddDays(-1),
+                IsRead = false
+            },
+            new UserMessage
+            {
+                Id = 3,
+                SenderName = "Sunset Resort",
+                Subject = "Special Offer for You",
+                MessagePreview = "We noticed you viewed our venue. Book now and get 15% off your stay!",
+                SentAt = DateTime.Now.AddDays(-2),
+                IsRead = true
+            },
+            new UserMessage
+            {
+                Id = 4,
+                SenderName = "Perfect Events",
+                Subject = "Your Event Booking Update",
+                MessagePreview = "We've received your event booking request and are reviewing the details. We'll get back to you within 24 hours.",
+                SentAt = DateTime.Now.AddDays(-3),
+                IsRead = true
+            },
+            new UserMessage
+            {
+                Id = 5,
+                SenderName = "Luxury Venues Ltd",
+                Subject = "Payment Reminder",
+                MessagePreview = "This is a friendly reminder that your deposit payment of $500 is due by March 1st.",
+                SentAt = DateTime.Now.AddDays(-5),
+                IsRead = true
+            }
+        };
+    }
+
+    private int GetPendingCount()
+    {
+        return hotelBookings.Count(b => b.Status == BookingStatus.Pending) +
+               eventBookings.Count(b => b.Status == EventBookingStatus.Pending);
+    }
+
+    private string GetStatusBadgeClass(BookingStatus status)
+    {
+        return status switch
+        {
+            BookingStatus.Pending => "badge-gradient-warning",
+            BookingStatus.Confirmed => "badge-gradient-success",
+            BookingStatus.Rejected => "badge-gradient-danger",
+            BookingStatus.Cancelled => "bg-secondary",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetEventStatusBadgeClass(EventBookingStatus status)
+    {
+        return status switch
+        {
+            EventBookingStatus.Pending => "badge-gradient-warning",
+            EventBookingStatus.Confirmed => "badge-gradient-success",
+            EventBookingStatus.Completed => "badge-gradient-info",
+            EventBookingStatus.Cancelled => "bg-secondary",
+            _ => "bg-secondary"
+        };
+    }
+
+    private void ViewHotelBooking(int bookingId)
+    {
+        Navigation.NavigateTo("/my-bookings");
+    }
+
+    private void ViewEventBooking(int bookingId)
+    {
+        Navigation.NavigateTo("/my-event-bookings");
+    }
+
+    private void ViewMessage(int messageId)
+    {
+        Navigation.NavigateTo("/messages");
+    }
+
+    private decimal CalculateBookingTotal(Booking booking)
+    {
+        if (booking.Hotel == null) return 0;
+        var nights = (booking.EndDate - booking.StartDate).Days;
+        return booking.Hotel.PricePerNight * nights;
+    }
+
+    // Message model
+    public class UserMessage
+    {
+        public int Id { get; set; }
+        public string SenderName { get; set; } = string.Empty;
+        public string Subject { get; set; } = string.Empty;
+        public string MessagePreview { get; set; } = string.Empty;
+        public DateTime SentAt { get; set; }
+        public bool IsRead { get; set; }
+    }
+}

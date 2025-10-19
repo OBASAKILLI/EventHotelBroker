@@ -90,6 +90,11 @@ public class EventService : IEventService
         return await _unitOfWork.EventPackages.GetAllAsync();
     }
 
+    public async Task<IEnumerable<EventPackage>> GetApprovedPackagesAsync()
+    {
+        return await _unitOfWork.EventPackages.FindAsync(p => p.IsApproved && p.IsActive);
+    }
+
     public async Task<IEnumerable<EventPackage>> GetPackagesByProviderAsync(string providerId)
     {
         return await _unitOfWork.EventPackages.FindAsync(p => p.ProviderId == providerId);

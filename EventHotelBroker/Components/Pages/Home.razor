@@ -2,6 +2,8 @@
 @using EventHotelBroker.Services
 @using EventHotelBroker.Models
 @inject IHotelService HotelService
+@inject IEventService EventService
+@inject NavigationManager Navigation
 
 <PageTitle>Home - EventHotelBroker</PageTitle>
 
@@ -119,8 +121,238 @@
     </div>
 </div>
 
-<!-- Featured Venues Section -->
-<div class="featured-section">
+<!-- Explore Hotels & Events Section with Tabs -->
+<div class="explore-section py-5">
+    <div class="container">
+        <div class="section-header text-center mb-4">
+            <span class="section-badge">Explore Our Services</span>
+            <h2 class="section-title">Hotels & Event Packages</h2>
+            <p class="section-subtitle">Everything you need for your perfect event in one place</p>
+        </div>
+
+        <!-- Modern Tabs -->
+        <div class="modern-tabs-container mb-4">
+            <ul class="nav nav-pills modern-tabs justify-content-center" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link @(activeTab == "hotels" ? "active" : "")" 
+                            @onclick='() => SetActiveTab("hotels")'
+                            type="button">
+                        <i class="bi bi-building me-2"></i>
+                        <span>Hotels & Venues</span>
+                        <span class="tab-count">@(featuredHotels?.Count() ?? 0)</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link @(activeTab == "events" ? "active" : "")" 
+                            @onclick='() => SetActiveTab("events")'
+                            type="button">
+                        <i class="bi bi-gift me-2"></i>
+                        <span>Event Packages</span>
+                        <span class="tab-count">@(featuredPackages?.Count() ?? 0)</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            @if (activeTab == "hotels")
+            {
+                <!-- Hotels Tab -->
+                <div class="tab-pane-content animate-fade-in">
+                    @if (featuredHotels == null)
+                    {
+                        <div class="text-center py-5">
+                            <div class="spinner-border spinner-modern text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-3 text-muted">Loading venues...</p>
+                        </div>
+                    }
+                    else if (!featuredHotels.Any())
+                    {
+                        <div class="modern-card">
+                            <div class="empty-state">
+                                <i class="bi bi-building empty-state-icon"></i>
+                                <h3 class="empty-state-title">No Venues Available</h3>
+                                <p class="empty-state-text">Check back soon for amazing venues!</p>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="row g-4">
+                            @foreach (var hotel in featuredHotels.Take(6))
+                            {
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="venue-card" @onclick="() => ViewHotelDetails(hotel.Id)">
+                                        <div class="venue-image">
+                                            @if (hotel.Images?.Any() == true)
+                                            {
+                                                <img src="@hotel.Images.First().Url" alt="@hotel.Name" />
+                                            }
+                                            else
+                                            {
+                                                <div class="venue-placeholder">
+                                                    <i class="bi bi-building"></i>
+                                                </div>
+                                            }
+                                            <div class="venue-badge">
+                                                <i class="bi bi-star-fill"></i>
+                                                <span>Featured</span>
+                                            </div>
+                                        </div>
+                                        <div class="venue-content">
+                                            <h5 class="venue-title">@hotel.Name</h5>
+                                            <p class="venue-location">
+                                                <i class="bi bi-geo-alt"></i>
+                                                @hotel.City, @hotel.Country
+                                            </p>
+                                            <div class="venue-meta">
+                                                <span class="meta-item">
+                                                    <i class="bi bi-people"></i>
+                                                    @hotel.Capacity guests
+                                                </span>
+                                                <span class="meta-item">
+                                                    <i class="bi bi-star-fill text-warning"></i>
+                                                    4.8
+                                                </span>
+                                            </div>
+                                            <div class="venue-footer">
+                                                <div class="venue-price">
+                                                    <span class="price-label">From</span>
+                                                    <span class="price-amount">@hotel.Currency @hotel.PricePerNight.ToString("N0")</span>
+                                                    <span class="price-period">/night</span>
+                                                </div>
+                                                <button class="btn btn-sm btn-outline-primary" @onclick:stopPropagation="true">
+                                                    View Details
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <div class="text-center mt-4">
+                            <a href="/search" class="btn-modern btn-gradient-primary">
+                                <i class="bi bi-search me-2"></i>Explore All Hotels
+                            </a>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <!-- Events Tab -->
+                <div class="tab-pane-content animate-fade-in">
+                    @if (featuredPackages == null)
+                    {
+                        <div class="text-center py-5">
+                            <div class="spinner-border spinner-modern text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-3 text-muted">Loading event packages...</p>
+                        </div>
+                    }
+                    else if (!featuredPackages.Any())
+                    {
+                        <div class="modern-card">
+                            <div class="empty-state">
+                                <i class="bi bi-gift empty-state-icon"></i>
+                                <h3 class="empty-state-title">No Event Packages Available</h3>
+                                <p class="empty-state-text">Check back soon for amazing event packages!</p>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="row g-4">
+                            @foreach (var package in featuredPackages.Take(6))
+                            {
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="package-card-home" @onclick="() => ViewPackageDetails(package.Id)">
+                                        <div class="package-image">
+                                            @if (!string.IsNullOrEmpty(package.ImageUrl))
+                                            {
+                                                <img src="@package.ImageUrl" alt="@package.Name" />
+                                            }
+                                            else
+                                            {
+                                                <div class="package-placeholder">
+                                                    <i class="bi bi-gift"></i>
+                                                </div>
+                                            }
+                                            @if (package.IsFeatured)
+                                            {
+                                                <div class="package-badge">
+                                                    <i class="bi bi-star-fill"></i>
+                                                    <span>Featured</span>
+                                                </div>
+                                            }
+                                            @if (package.DiscountedPrice.HasValue)
+                                            {
+                                                var savings = ((package.TotalPrice - package.DiscountedPrice.Value) / package.TotalPrice) * 100;
+                                                <div class="discount-badge">
+                                                    @savings.ToString("N0")% OFF
+                                                </div>
+                                            }
+                                        </div>
+                                        <div class="package-content">
+                                            <span class="package-type-badge">
+                                                <i class="bi bi-tag me-1"></i>@package.PackageType
+                                            </span>
+                                            <h5 class="package-title">@package.Name</h5>
+                                            <p class="package-description">
+                                                @(package.Description.Length > 80 ? package.Description.Substring(0, 80) + "..." : package.Description)
+                                            </p>
+                                            <div class="package-meta">
+                                                <span class="meta-item">
+                                                    <i class="bi bi-people"></i>
+                                                    @package.MinGuests - @package.MaxGuests guests
+                                                </span>
+                                                @if (package.IsCustomizable)
+                                                {
+                                                    <span class="meta-item">
+                                                        <i class="bi bi-sliders text-success"></i>
+                                                        Customizable
+                                                    </span>
+                                                }
+                                            </div>
+                                            <div class="package-footer">
+                                                <div class="package-price">
+                                                    @if (package.DiscountedPrice.HasValue)
+                                                    {
+                                                        <span class="price-original">$@package.TotalPrice.ToString("N0")</span>
+                                                        <span class="price-discounted">$@package.DiscountedPrice.Value.ToString("N0")</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="price-amount">$@package.TotalPrice.ToString("N0")</span>
+                                                    }
+                                                </div>
+                                                <button class="btn btn-sm btn-outline-primary" @onclick:stopPropagation="true">
+                                                    View Details
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <div class="text-center mt-4">
+                            <a href="/events" class="btn-modern btn-gradient-accent">
+                                <i class="bi bi-gift me-2"></i>Explore All Event Packages
+                            </a>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Featured Venues Section (Legacy - Can be removed if tabs work well) -->
+<div class="featured-section d-none">
     <div class="container">
         <div class="section-header text-center">
             <span class="section-badge">Top Picks</span>
@@ -260,16 +492,39 @@
 
 @code {
     private IEnumerable<Hotel>? featuredHotels;
+    private IEnumerable<EventPackage>? featuredPackages;
+    private string activeTab = "hotels";
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
+            // Load hotels
             featuredHotels = await HotelService.GetPublishedHotelsAsync();
+            
+            // Load featured event packages
+            var allPackages = await EventService.GetApprovedPackagesAsync();
+            featuredPackages = allPackages.Where(p => p.IsFeatured || p.IsActive).Take(6);
         }
         catch (Exception)
         {
             featuredHotels = new List<Hotel>();
+            featuredPackages = new List<EventPackage>();
         }
+    }
+
+    private void SetActiveTab(string tab)
+    {
+        activeTab = tab;
+    }
+
+    private void ViewHotelDetails(int hotelId)
+    {
+        Navigation.NavigateTo($"/hotel/{hotelId}");
+    }
+
+    private void ViewPackageDetails(int packageId)
+    {
+        Navigation.NavigateTo($"/events/package/{packageId}");
     }
 }
