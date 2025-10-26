@@ -1,0 +1,80 @@
+@if (IsVisible)
+{
+    <div class="modal-system-overlay" @onclick="OnCancel">
+        <div class="modal-system" @onclick:stopPropagation="true">
+            <div class="modal-system-header">
+                <h5 class="modal-system-title">
+                    @if (Type == ConfirmType.Danger)
+                    {
+                        <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>
+                    }
+                    else if (Type == ConfirmType.Warning)
+                    {
+                        <i class="bi bi-exclamation-circle-fill text-warning me-2"></i>
+                    }
+                    else
+                    {
+                        <i class="bi bi-question-circle-fill text-info me-2"></i>
+                    }
+                    @Title
+                </h5>
+                <button class="modal-system-close" @onclick="OnCancel">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <div class="modal-system-body">
+                <p class="text-system-secondary mb-0">@Message</p>
+            </div>
+            <div class="modal-system-footer">
+                <button type="button" class="btn-system btn-system-secondary" @onclick="OnCancel">
+                    @CancelText
+                </button>
+                <button type="button" 
+                        class="btn-system @GetConfirmButtonClass()" 
+                        @onclick="OnConfirm">
+                    @ConfirmText
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public string Title { get; set; } = "Confirm Action";
+    [Parameter] public string Message { get; set; } = "Are you sure you want to proceed?";
+    [Parameter] public string ConfirmText { get; set; } = "Confirm";
+    [Parameter] public string CancelText { get; set; } = "Cancel";
+    [Parameter] public ConfirmType Type { get; set; } = ConfirmType.Info;
+    [Parameter] public EventCallback OnConfirmed { get; set; }
+    [Parameter] public EventCallback OnCancelled { get; set; }
+
+    private async Task OnConfirm()
+    {
+        IsVisible = false;
+        await OnConfirmed.InvokeAsync();
+    }
+
+    private async Task OnCancel()
+    {
+        IsVisible = false;
+        await OnCancelled.InvokeAsync();
+    }
+
+    private string GetConfirmButtonClass()
+    {
+        return Type switch
+        {
+            ConfirmType.Danger => "btn-system-danger",
+            ConfirmType.Warning => "btn-system-warning",
+            _ => "btn-system-primary"
+        };
+    }
+
+    public enum ConfirmType
+    {
+        Info,
+        Warning,
+        Danger
+    }
+}

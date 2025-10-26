@@ -1,0 +1,292 @@
+@rendermode InteractiveServer
+@inject ToastService ToastService
+
+<div class="reviews-section">
+    <!-- Reviews Summary -->
+    <div class="reviews-summary card-system mb-4">
+        <div class="card-system-body">
+            <div class="row align-items-center">
+                <div class="col-md-4 text-center border-end">
+                    <div class="overall-rating">
+                        <h1 class="display-3 fw-bold mb-0">4.8</h1>
+                        <div class="stars mb-2">
+                            @for (int i = 0; i < 5; i++)
+                            {
+                                <i class="bi bi-star-fill text-warning"></i>
+                            }
+                        </div>
+                        <p class="text-muted mb-0">Based on @TotalReviews reviews</p>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="rating-breakdown">
+                        @foreach (var rating in ratingBreakdown)
+                        {
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="me-2" style="min-width: 60px;">@rating.Stars stars</span>
+                                <div class="progress flex-grow-1 me-3" style="height: 8px;">
+                                    <div class="progress-bar bg-warning" style="width: @rating.Percentage%"></div>
+                                </div>
+                                <span class="text-muted" style="min-width: 40px;">@rating.Count</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Write Review Button -->
+    <div class="mb-4">
+        <button type="button" class="btn-system btn-system-primary" @onclick="ShowReviewForm">
+            <i class="bi bi-star me-2"></i>Write a Review
+        </button>
+    </div>
+
+    <!-- Review Form (Modal) -->
+    @if (showReviewForm)
+    {
+        <div class="modal-system-overlay" @onclick="HideReviewForm">
+            <div class="modal-system" @onclick:stopPropagation="true">
+                <div class="modal-system-header">
+                    <h5 class="modal-system-title">Write Your Review</h5>
+                    <button class="modal-system-close" @onclick="HideReviewForm">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+                <div class="modal-system-body">
+                    <div class="mb-3">
+                        <label class="form-label-system">Your Rating</label>
+                        <div class="rating-input">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                int starValue = i;
+                                <i class="bi @(starValue <= newReviewRating ? "bi-star-fill" : "bi-star") text-warning" 
+                                   style="font-size: 2rem; cursor: pointer;"
+                                   @onclick="() => newReviewRating = starValue"></i>
+                            }
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label-system">Review Title</label>
+                        <input type="text" class="form-control-system" @bind="newReviewTitle" placeholder="Sum up your experience" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label-system">Your Review</label>
+                        <textarea class="form-control-system" rows="4" @bind="newReviewText" placeholder="Share your experience..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-system-footer">
+                    <button type="button" class="btn-system btn-system-secondary" @onclick="HideReviewForm">Cancel</button>
+                    <button type="button" class="btn-system btn-system-primary" @onclick="SubmitReview">Submit Review</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Reviews List -->
+    <div class="reviews-list">
+        <h5 class="mb-4">Customer Reviews (@reviews.Count)</h5>
+        @foreach (var review in reviews)
+        {
+            <div class="review-item card-system mb-3">
+                <div class="card-system-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="review-avatar">
+                                <i class="bi bi-person-circle"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">@review.UserName</h6>
+                                <small class="text-muted">@review.Date.ToString("MMM dd, yyyy")</small>
+                            </div>
+                        </div>
+                        <div class="review-rating">
+                            @for (int i = 0; i < review.Rating; i++)
+                            {
+                                <i class="bi bi-star-fill text-warning"></i>
+                            }
+                            @for (int i = review.Rating; i < 5; i++)
+                            {
+                                <i class="bi bi-star text-warning"></i>
+                            }
+                        </div>
+                    </div>
+                    <h6 class="mb-2">@review.Title</h6>
+                    <p class="mb-3">@review.Text</p>
+                    @if (review.Images.Any())
+                    {
+                        <div class="review-images mb-3">
+                            @foreach (var img in review.Images)
+                            {
+                                <img src="@img" alt="Review" class="review-image" />
+                            }
+                        </div>
+                    }
+                    <div class="review-actions">
+                        <button type="button" class="btn-system btn-system-sm btn-system-ghost" @onclick="() => LikeReview(review.Id)">
+                            <i class="bi bi-hand-thumbs-up"></i> Helpful (@review.Likes)
+                        </button>
+                        @if (review.Response != null)
+                        {
+                            <span class="badge-system badge-system-info ms-2">
+                                <i class="bi bi-reply"></i> Owner Responded
+                            </span>
+                        }
+                    </div>
+                    @if (review.Response != null)
+                    {
+                        <div class="owner-response mt-3 p-3" style="background: #f8f9fa; border-left: 3px solid #667eea; border-radius: 0.5rem;">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="bi bi-building text-primary"></i>
+                                <strong>Response from Owner</strong>
+                            </div>
+                            <p class="mb-0">@review.Response</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .review-avatar {
+        font-size: 3rem;
+        color: #667eea;
+    }
+
+    .review-images {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .review-image {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 0.5rem;
+        cursor: pointer;
+    }
+
+    .review-image:hover {
+        opacity: 0.8;
+    }
+</style>
+
+@code {
+    [Parameter] public int HotelId { get; set; }
+    [Parameter] public int TotalReviews { get; set; } = 127;
+
+    private bool showReviewForm = false;
+    private int newReviewRating = 0;
+    private string newReviewTitle = "";
+    private string newReviewText = "";
+
+    private List<RatingBreakdown> ratingBreakdown = new()
+    {
+        new() { Stars = 5, Count = 89, Percentage = 70 },
+        new() { Stars = 4, Count = 25, Percentage = 20 },
+        new() { Stars = 3, Count = 8, Percentage = 6 },
+        new() { Stars = 2, Count = 3, Percentage = 2 },
+        new() { Stars = 1, Count = 2, Percentage = 2 }
+    };
+
+    private List<Review> reviews = new()
+    {
+        new() {
+            Id = 1,
+            UserName = "Sarah Johnson",
+            Rating = 5,
+            Title = "Amazing experience!",
+            Text = "The hotel exceeded all our expectations. The staff was incredibly friendly, the rooms were spotless, and the location was perfect. We'll definitely be back!",
+            Date = DateTime.Now.AddDays(-5),
+            Likes = 12,
+            Images = new List<string>(),
+            Response = "Thank you so much for your wonderful review! We're thrilled you enjoyed your stay and look forward to welcoming you back soon."
+        },
+        new() {
+            Id = 2,
+            UserName = "Michael Chen",
+            Rating = 4,
+            Title = "Great value for money",
+            Text = "Very comfortable stay with excellent amenities. The breakfast buffet was impressive. Only minor issue was the Wi-Fi speed in the room.",
+            Date = DateTime.Now.AddDays(-12),
+            Likes = 8,
+            Images = new List<string>()
+        },
+        new() {
+            Id = 3,
+            UserName = "Emma Williams",
+            Rating = 5,
+            Title = "Perfect for our wedding!",
+            Text = "We hosted our wedding here and it was absolutely perfect. The event coordinators were professional and attentive to every detail. Highly recommended!",
+            Date = DateTime.Now.AddDays(-20),
+            Likes = 24,
+            Images = new List<string>(),
+            Response = "Congratulations on your wedding! It was our pleasure to be part of your special day. Wishing you both a lifetime of happiness!"
+        }
+    };
+
+    private void ShowReviewForm()
+    {
+        showReviewForm = true;
+    }
+
+    private void HideReviewForm()
+    {
+        showReviewForm = false;
+        newReviewRating = 0;
+        newReviewTitle = "";
+        newReviewText = "";
+    }
+
+    private void SubmitReview()
+    {
+        if (newReviewRating == 0)
+        {
+            ToastService.ShowWarning("Rating Required", "Please select a star rating");
+            return;
+        }
+
+        if (string.IsNullOrEmpty(newReviewText))
+        {
+            ToastService.ShowWarning("Review Required", "Please write your review");
+            return;
+        }
+
+        ToastService.ShowSuccess("Review Submitted!", "Thank you for your feedback");
+        HideReviewForm();
+    }
+
+    private void LikeReview(int reviewId)
+    {
+        var review = reviews.FirstOrDefault(r => r.Id == reviewId);
+        if (review != null)
+        {
+            review.Likes++;
+            ToastService.ShowInfo("Marked as Helpful", "Thank you for your feedback");
+        }
+    }
+
+    public class RatingBreakdown
+    {
+        public int Stars { get; set; }
+        public int Count { get; set; }
+        public int Percentage { get; set; }
+    }
+
+    public class Review
+    {
+        public int Id { get; set; }
+        public string UserName { get; set; } = "";
+        public int Rating { get; set; }
+        public string Title { get; set; } = "";
+        public string Text { get; set; } = "";
+        public DateTime Date { get; set; }
+        public int Likes { get; set; }
+        public List<string> Images { get; set; } = new();
+        public string? Response { get; set; }
+    }
+}

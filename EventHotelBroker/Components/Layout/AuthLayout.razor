@@ -1,0 +1,22 @@
+@inherits LayoutComponentBase
+@using EventHotelBroker.Components.Shared
+
+<link href="/css/design-system.css" rel="stylesheet" />
+
+<ToastContainer />
+
+<div class="auth-layout">
+    @Body
+</div>
+
+<style>
+    .auth-layout {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    /* Hide error UI on auth pages */
+    #blazor-error-ui {
+        display: none !important;
+    }
+</style>

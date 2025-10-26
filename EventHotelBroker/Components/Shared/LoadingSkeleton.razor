@@ -1,0 +1,69 @@
+@* Card Skeleton *@
+@if (Type == SkeletonType.Card)
+{
+    <div class="card-system">
+        <div class="skeleton skeleton-image"></div>
+        <div class="card-system-body">
+            <div class="skeleton skeleton-title"></div>
+            <div class="skeleton skeleton-text"></div>
+            <div class="skeleton skeleton-text" style="width: 80%;"></div>
+        </div>
+    </div>
+}
+
+@* List Item Skeleton *@
+@if (Type == SkeletonType.ListItem)
+{
+    <div class="d-flex align-items-center gap-3 mb-3">
+        <div class="skeleton skeleton-avatar"></div>
+        <div class="flex-grow-1">
+            <div class="skeleton skeleton-text" style="width: 60%;"></div>
+            <div class="skeleton skeleton-text" style="width: 40%;"></div>
+        </div>
+    </div>
+}
+
+@* Table Row Skeleton *@
+@if (Type == SkeletonType.TableRow)
+{
+    <tr>
+        <td><div class="skeleton skeleton-text"></div></td>
+        <td><div class="skeleton skeleton-text"></div></td>
+        <td><div class="skeleton skeleton-text"></div></td>
+        <td><div class="skeleton skeleton-text"></div></td>
+    </tr>
+}
+
+@* Text Skeleton *@
+@if (Type == SkeletonType.Text)
+{
+    <div class="skeleton skeleton-text" style="width: @Width;"></div>
+}
+
+@* Title Skeleton *@
+@if (Type == SkeletonType.Title)
+{
+    <div class="skeleton skeleton-title"></div>
+}
+
+@* Custom Skeleton *@
+@if (Type == SkeletonType.Custom)
+{
+    <div class="skeleton" style="height: @Height; width: @Width;"></div>
+}
+
+@code {
+    [Parameter] public SkeletonType Type { get; set; } = SkeletonType.Card;
+    [Parameter] public string Width { get; set; } = "100%";
+    [Parameter] public string Height { get; set; } = "200px";
+
+    public enum SkeletonType
+    {
+        Card,
+        ListItem,
+        TableRow,
+        Text,
+        Title,
+        Custom
+    }
+}

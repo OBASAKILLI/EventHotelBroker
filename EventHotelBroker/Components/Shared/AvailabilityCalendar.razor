@@ -1,0 +1,417 @@
+@rendermode InteractiveServer
+@inject ToastService ToastService
+
+<div class="availability-calendar">
+    <div class="calendar-header">
+        <button type="button" class="btn-system btn-system-ghost btn-system-icon" @onclick="PreviousMonth">
+            <i class="bi bi-chevron-left"></i>
+        </button>
+        <h5 class="mb-0">@currentMonth.ToString("MMMM yyyy")</h5>
+        <button type="button" class="btn-system btn-system-ghost btn-system-icon" @onclick="NextMonth">
+            <i class="bi bi-chevron-right"></i>
+        </button>
+    </div>
+
+    <div class="calendar-legend">
+        <div class="legend-item">
+            <span class="legend-color available"></span>
+            <small>Available</small>
+        </div>
+        <div class="legend-item">
+            <span class="legend-color booked"></span>
+            <small>Booked</small>
+        </div>
+        <div class="legend-item">
+            <span class="legend-color selected"></span>
+            <small>Selected</small>
+        </div>
+        <div class="legend-item">
+            <span class="legend-color past"></span>
+            <small>Past</small>
+        </div>
+    </div>
+
+    <div class="calendar-grid">
+        <!-- Day Headers -->
+        <div class="calendar-day-header">Sun</div>
+        <div class="calendar-day-header">Mon</div>
+        <div class="calendar-day-header">Tue</div>
+        <div class="calendar-day-header">Wed</div>
+        <div class="calendar-day-header">Thu</div>
+        <div class="calendar-day-header">Fri</div>
+        <div class="calendar-day-header">Sat</div>
+
+        <!-- Days -->
+        @foreach (var day in calendarDays)
+        {
+            <div class="calendar-day @GetDayClass(day)" @onclick="() => SelectDate(day)">
+                <div class="day-number">@day.Day</div>
+                @if (day.IsCurrentMonth && day.Date >= DateTime.Today)
+                {
+                    <div class="day-price">@GetDayPrice(day)</div>
+                }
+            </div>
+        }
+    </div>
+
+    @if (selectedCheckIn != null || selectedCheckOut != null)
+    {
+        <div class="calendar-selection mt-3 p-3" style="background: #f8f9fa; border-radius: 0.75rem;">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label-system">Check-in</label>
+                    <div class="selected-date">
+                        @if (selectedCheckIn != null)
+                        {
+                            <i class="bi bi-calendar-check text-success me-2"></i>
+                            <span>@selectedCheckIn.Value.ToString("MMM dd, yyyy")</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Select check-in date</span>
+                        }
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label-system">Check-out</label>
+                    <div class="selected-date">
+                        @if (selectedCheckOut != null)
+                        {
+                            <i class="bi bi-calendar-check text-success me-2"></i>
+                            <span>@selectedCheckOut.Value.ToString("MMM dd, yyyy")</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Select check-out date</span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @if (selectedCheckIn != null && selectedCheckOut != null)
+            {
+                <div class="mt-3 p-3" style="background: white; border-radius: 0.5rem; border: 2px solid #10b981;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>@numberOfNights Night@(numberOfNights > 1 ? "s" : "")</strong>
+                            <p class="mb-0 text-muted">Total: <strong class="text-success">KES @totalPrice.ToString("N0")</strong></p>
+                        </div>
+                        <button type="button" class="btn-system btn-system-success" @onclick="ConfirmDates">
+                            <i class="bi bi-check-circle me-2"></i>Confirm
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .availability-calendar {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .calendar-legend {
+        display: flex;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 0.25rem;
+    }
+
+    .legend-color.available {
+        background: #10b981;
+    }
+
+    .legend-color.booked {
+        background: #ef4444;
+    }
+
+    .legend-color.selected {
+        background: #667eea;
+    }
+
+    .legend-color.past {
+        background: #e5e7eb;
+    }
+
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 0.5rem;
+    }
+
+    .calendar-day-header {
+        text-align: center;
+        font-weight: 600;
+        padding: 0.75rem;
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+
+    .calendar-day {
+        aspect-ratio: 1;
+        border: 2px solid #e5e7eb;
+        border-radius: 0.5rem;
+        padding: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+    }
+
+    .calendar-day:hover:not(.past):not(.booked):not(.other-month) {
+        border-color: #667eea;
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    }
+
+    .calendar-day.other-month {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+
+    .calendar-day.past {
+        background: #f3f4f6;
+        cursor: not-allowed;
+    }
+
+    .calendar-day.available {
+        background: #d1fae5;
+        border-color: #10b981;
+    }
+
+    .calendar-day.booked {
+        background: #fee2e2;
+        border-color: #ef4444;
+        cursor: not-allowed;
+    }
+
+    .calendar-day.selected {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: #667eea;
+        color: white;
+    }
+
+    .calendar-day.in-range {
+        background: #e8ebff;
+        border-color: #667eea;
+    }
+
+    .day-number {
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .day-price {
+        font-size: 0.75rem;
+        font-weight: 500;
+        margin-top: auto;
+    }
+
+    .calendar-day.selected .day-price {
+        color: white;
+    }
+
+    .selected-date {
+        padding: 0.75rem;
+        background: white;
+        border-radius: 0.5rem;
+        border: 2px solid #e5e7eb;
+        font-weight: 500;
+    }
+</style>
+
+@code {
+    [Parameter] public EventCallback<DateRange> OnDatesSelected { get; set; }
+    [Parameter] public int HotelId { get; set; }
+
+    private DateTime currentMonth = DateTime.Today;
+    private DateTime? selectedCheckIn = null;
+    private DateTime? selectedCheckOut = null;
+    private List<CalendarDay> calendarDays = new();
+
+    private int numberOfNights => selectedCheckIn != null && selectedCheckOut != null 
+        ? (selectedCheckOut.Value - selectedCheckIn.Value).Days 
+        : 0;
+
+    private decimal totalPrice => numberOfNights * 15000; // Base price per night
+
+    protected override void OnInitialized()
+    {
+        GenerateCalendar();
+    }
+
+    private void GenerateCalendar()
+    {
+        calendarDays.Clear();
+        
+        var firstDayOfMonth = new DateTime(currentMonth.Year, currentMonth.Month, 1);
+        var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
+        var startDate = firstDayOfMonth.AddDays(-(int)firstDayOfMonth.DayOfWeek);
+        
+        for (int i = 0; i < 42; i++) // 6 weeks
+        {
+            var date = startDate.AddDays(i);
+            calendarDays.Add(new CalendarDay
+            {
+                Date = date,
+                Day = date.Day,
+                IsCurrentMonth = date.Month == currentMonth.Month,
+                IsBooked = IsDateBooked(date),
+                IsPast = date < DateTime.Today
+            });
+        }
+    }
+
+    private bool IsDateBooked(DateTime date)
+    {
+        // Simulate some booked dates
+        var bookedDates = new List<DateTime>
+        {
+            DateTime.Today.AddDays(5),
+            DateTime.Today.AddDays(6),
+            DateTime.Today.AddDays(12),
+            DateTime.Today.AddDays(13),
+            DateTime.Today.AddDays(14),
+            DateTime.Today.AddDays(20),
+            DateTime.Today.AddDays(25),
+            DateTime.Today.AddDays(26)
+        };
+
+        return bookedDates.Any(d => d.Date == date.Date);
+    }
+
+    private string GetDayClass(CalendarDay day)
+    {
+        var classes = new List<string>();
+
+        if (!day.IsCurrentMonth) classes.Add("other-month");
+        if (day.IsPast) classes.Add("past");
+        if (day.IsBooked) classes.Add("booked");
+        
+        if (day.IsCurrentMonth && !day.IsPast && !day.IsBooked)
+        {
+            classes.Add("available");
+        }
+
+        if (selectedCheckIn != null && day.Date == selectedCheckIn.Value.Date)
+        {
+            classes.Add("selected");
+        }
+
+        if (selectedCheckOut != null && day.Date == selectedCheckOut.Value.Date)
+        {
+            classes.Add("selected");
+        }
+
+        if (selectedCheckIn != null && selectedCheckOut != null && 
+            day.Date > selectedCheckIn.Value.Date && day.Date < selectedCheckOut.Value.Date)
+        {
+            classes.Add("in-range");
+        }
+
+        return string.Join(" ", classes);
+    }
+
+    private string GetDayPrice(CalendarDay day)
+    {
+        // Simulate dynamic pricing
+        if (day.Date.DayOfWeek == DayOfWeek.Friday || day.Date.DayOfWeek == DayOfWeek.Saturday)
+        {
+            return "18K";
+        }
+        return "15K";
+    }
+
+    private void SelectDate(CalendarDay day)
+    {
+        if (!day.IsCurrentMonth || day.IsPast || day.IsBooked) return;
+
+        if (selectedCheckIn == null || (selectedCheckIn != null && selectedCheckOut != null))
+        {
+            // Start new selection
+            selectedCheckIn = day.Date;
+            selectedCheckOut = null;
+        }
+        else if (day.Date > selectedCheckIn.Value)
+        {
+            // Select check-out
+            selectedCheckOut = day.Date;
+        }
+        else
+        {
+            // Reset if selected date is before check-in
+            selectedCheckIn = day.Date;
+            selectedCheckOut = null;
+        }
+    }
+
+    private void PreviousMonth()
+    {
+        currentMonth = currentMonth.AddMonths(-1);
+        GenerateCalendar();
+    }
+
+    private void NextMonth()
+    {
+        currentMonth = currentMonth.AddMonths(1);
+        GenerateCalendar();
+    }
+
+    private async Task ConfirmDates()
+    {
+        if (selectedCheckIn != null && selectedCheckOut != null)
+        {
+            ToastService.ShowSuccess("Dates Selected", $"{numberOfNights} night(s) - KES {totalPrice:N0}");
+            
+            await OnDatesSelected.InvokeAsync(new DateRange
+            {
+                CheckIn = selectedCheckIn.Value,
+                CheckOut = selectedCheckOut.Value,
+                Nights = numberOfNights,
+                TotalPrice = totalPrice
+            });
+        }
+    }
+
+    public class CalendarDay
+    {
+        public DateTime Date { get; set; }
+        public int Day { get; set; }
+        public bool IsCurrentMonth { get; set; }
+        public bool IsBooked { get; set; }
+        public bool IsPast { get; set; }
+    }
+
+    public class DateRange
+    {
+        public DateTime CheckIn { get; set; }
+        public DateTime CheckOut { get; set; }
+        public int Nights { get; set; }
+        public decimal TotalPrice { get; set; }
+    }
+}

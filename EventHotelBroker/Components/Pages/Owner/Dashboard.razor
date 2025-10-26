@@ -294,6 +294,45 @@
                 bookingRequests.AddRange(hotelBookings.Where(b => b.Status == BookingStatus.Pending));
             }
 
+            // Add dummy bookings if none exist
+            if (!bookingRequests.Any() && myHotels.Any())
+            {
+                var firstHotel = myHotels.First();
+                bookingRequests.Add(new Booking
+                {
+                    Id = 101,
+                    HotelId = firstHotel.Id,
+                    Hotel = firstHotel,
+                    StartDate = DateTime.Now.AddDays(7),
+                    EndDate = DateTime.Now.AddDays(9),
+                    HeadCount = 2,
+                    Status = BookingStatus.Pending,
+                    UserId = "user-1"
+                });
+                bookingRequests.Add(new Booking
+                {
+                    Id = 102,
+                    HotelId = firstHotel.Id,
+                    Hotel = firstHotel,
+                    StartDate = DateTime.Now.AddDays(14),
+                    EndDate = DateTime.Now.AddDays(16),
+                    HeadCount = 4,
+                    Status = BookingStatus.Pending,
+                    UserId = "user-2"
+                });
+                bookingRequests.Add(new Booking
+                {
+                    Id = 103,
+                    HotelId = firstHotel.Id,
+                    Hotel = firstHotel,
+                    StartDate = DateTime.Now.AddDays(21),
+                    EndDate = DateTime.Now.AddDays(23),
+                    HeadCount = 3,
+                    Status = BookingStatus.Pending,
+                    UserId = "user-3"
+                });
+            }
+
             // Load event statistics
             var equipments = await EventService.GetEquipmentsByProviderAsync(currentUserId);
             eventEquipmentsCount = equipments.Count();

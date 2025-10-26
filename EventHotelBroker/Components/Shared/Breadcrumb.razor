@@ -1,0 +1,33 @@
+@using EventHotelBroker.Components.Shared
+
+@if (Items != null && Items.Any())
+{
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb-system">
+            @foreach (var item in Items)
+            {
+                <li class="breadcrumb-system-item @(item.IsActive ? "active" : "")">
+                    @if (!item.IsActive && !string.IsNullOrEmpty(item.Url))
+                    {
+                        <a href="@item.Url">@item.Text</a>
+                    }
+                    else
+                    {
+                        <span>@item.Text</span>
+                    }
+                    @if (item != Items.Last())
+                    {
+                        <span class="breadcrumb-system-separator">
+                            <i class="bi bi-chevron-right"></i>
+                        </span>
+                    }
+                </li>
+            }
+        </ol>
+    </nav>
+}
+
+@code {
+    [Parameter]
+    public List<BreadcrumbItem>? Items { get; set; }
+}

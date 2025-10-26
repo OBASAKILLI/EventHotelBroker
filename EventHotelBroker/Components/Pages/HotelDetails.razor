@@ -181,10 +181,10 @@
                     @if (!showBookingForm)
                     {
                         <div class="booking-actions">
-                            <button class="btn-modern btn-gradient-primary btn-lg" @onclick="() => showBookingForm = true">
-                                <i class="bi bi-calendar-check me-2"></i>Request Booking
-                            </button>
-                            <button class="btn-modern btn-outline-primary" @onclick="SendMessage">
+                            <a href="/booking/checkout/@HotelId" class="btn btn-primary btn-lg w-100 mb-2">
+                                <i class="bi bi-credit-card me-2"></i>Book Now & Pay
+                            </a>
+                            <button type="button" class="btn btn-outline-primary w-100" @onclick="SendMessage">
                                 <i class="bi bi-envelope me-2"></i>Send Message
                             </button>
                         </div>
@@ -334,6 +334,19 @@
     private void SendMessage()
     {
         NavigationManager.NavigateTo($"/messages?hotelId={HotelId}");
+    }
+
+    private void GoToCheckout()
+    {
+        Console.WriteLine($"GoToCheckout called for HotelId: {HotelId}");
+        if (HotelId > 0)
+        {
+            NavigationManager.NavigateTo($"/booking/checkout/{HotelId}");
+        }
+        else
+        {
+            Console.WriteLine("HotelId is invalid");
+        }
     }
 
     public class BookingRequest

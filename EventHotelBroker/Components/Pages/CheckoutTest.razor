@@ -1,0 +1,16 @@
+@page "/checkout-test/{hotelId:int}"
+
+<PageTitle>Checkout Test</PageTitle>
+
+<div class="container py-5">
+    <div class="alert alert-success">
+        <h3>Checkout Page Works!</h3>
+        <p>Hotel ID: @HotelId</p>
+        <a href="/hotels/@HotelId" class="btn btn-primary">Back to Hotel</a>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int HotelId { get; set; }
+}

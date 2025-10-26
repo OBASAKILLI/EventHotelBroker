@@ -1,0 +1,587 @@
+@page "/chat"
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+@inject ToastService ToastService
+
+<PageTitle>Messages - EventHotelBroker</PageTitle>
+
+<link href="/css/design-system.css" rel="stylesheet" />
+
+<div class="container-fluid px-4 py-4">
+    <Breadcrumb Items="@breadcrumbItems" />
+
+    <!-- Role Switcher (For Testing) -->
+    <div class="alert alert-info d-flex justify-content-between align-items-center mb-3">
+        <span><strong>Current View:</strong> @(userRole == "owner" ? "Owner (Chatting with Clients)" : "Client (Chatting with Hotels)")</span>
+        <button type="button" class="btn-system btn-system-sm btn-system-primary" @onclick="SwitchRole">
+            <i class="bi bi-arrow-repeat me-2"></i>Switch to @(userRole == "owner" ? "Client" : "Owner") View
+        </button>
+    </div>
+
+    <div class="chat-container">
+        <div class="row g-0">
+            <!-- Conversations List -->
+            <div class="col-md-4 border-end">
+                <div class="chat-sidebar">
+                    <div class="chat-header p-3 border-bottom">
+                        <h5 class="mb-0">Messages</h5>
+                        <button type="button" class="btn-system btn-system-sm btn-system-primary mt-2 w-100">
+                            <i class="bi bi-plus-circle me-2"></i>New Message
+                        </button>
+                    </div>
+                    
+                    <div class="chat-search p-3 border-bottom">
+                        <input type="text" class="form-control-system" placeholder="Search conversations..." @bind="searchQuery" />
+                    </div>
+
+                    <div class="conversations-list">
+                        @foreach (var conversation in conversations)
+                        {
+                            <div class="conversation-item @(selectedConversation?.Id == conversation.Id ? "active" : "")" 
+                                 @onclick="() => SelectConversation(conversation)">
+                                <div class="d-flex align-items-start gap-3">
+                                    <div class="position-relative">
+                                        <div class="conversation-avatar">
+                                            <i class="bi bi-@conversation.Icon"></i>
+                                        </div>
+                                        @if (conversation.IsOnline)
+                                        {
+                                            <span class="online-indicator"></span>
+                                        }
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-start mb-1">
+                                            <h6 class="mb-0">@conversation.Name</h6>
+                                            <small class="text-muted">@conversation.LastMessageTime</small>
+                                        </div>
+                                        <p class="conversation-preview mb-0">@conversation.LastMessage</p>
+                                    </div>
+                                    @if (conversation.UnreadCount > 0)
+                                    {
+                                        <span class="badge-system badge-system-primary">@conversation.UnreadCount</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Window -->
+            <div class="col-md-8">
+                @if (selectedConversation != null)
+                {
+                    <div class="chat-window">
+                        <!-- Chat Header -->
+                        <div class="chat-window-header p-3 border-bottom">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="position-relative">
+                                        <div class="conversation-avatar">
+                                            <i class="bi bi-@selectedConversation.Icon"></i>
+                                        </div>
+                                        @if (selectedConversation.IsOnline)
+                                        {
+                                            <span class="online-indicator"></span>
+                                        }
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">@selectedConversation.Name</h6>
+                                        <small class="text-muted">
+                                            @if (selectedConversation.IsOnline)
+                                            {
+                                                <span class="text-success">● Online</span>
+                                            }
+                                            else
+                                            {
+                                                <span>Last seen @selectedConversation.LastSeen</span>
+                                            }
+                                        </small>
+                                    </div>
+                                </div>
+                                <div>
+                                    <button type="button" class="btn-system btn-system-sm btn-system-ghost">
+                                        <i class="bi bi-telephone"></i>
+                                    </button>
+                                    <button type="button" class="btn-system btn-system-sm btn-system-ghost">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Messages -->
+                        <div class="chat-messages p-3">
+                            @foreach (var message in messages)
+                            {
+                                <div class="message @(message.IsSent ? "message-sent" : "message-received")">
+                                    <div class="message-bubble">
+                                        <p class="mb-0">@message.Text</p>
+                                        <small class="message-time">@message.Time</small>
+                                        @if (message.IsSent)
+                                        {
+                                            <i class="bi bi-check-all @(message.IsRead ? "text-primary" : "text-muted") ms-1"></i>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                            @if (isTyping)
+                            {
+                                <div class="message message-received">
+                                    <div class="message-bubble">
+                                        <div class="typing-indicator">
+                                            <span></span>
+                                            <span></span>
+                                            <span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Message Input -->
+                        <div class="chat-input p-3 border-top">
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn-system btn-system-ghost btn-system-icon">
+                                    <i class="bi bi-emoji-smile"></i>
+                                </button>
+                                <button type="button" class="btn-system btn-system-ghost btn-system-icon">
+                                    <i class="bi bi-paperclip"></i>
+                                </button>
+                                <input type="text" class="form-control-system flex-grow-1" 
+                                       placeholder="Type a message..." 
+                                       @bind="newMessage"
+                                       @onkeypress="HandleKeyPress" />
+                                <button type="button" class="btn-system btn-system-primary" @onclick="SendMessage">
+                                    <i class="bi bi-send-fill"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="chat-empty">
+                        <EmptyState 
+                            Icon="chat-dots"
+                            Title="Select a conversation"
+                            Description="Choose a conversation from the list to start messaging"
+                            ActionText=""
+                            OnActionClick="@(() => {})" />
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .chat-container {
+        background: white;
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        height: calc(100vh - 200px);
+    }
+
+    .chat-sidebar {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .conversations-list {
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    .conversation-item {
+        padding: 1rem;
+        cursor: pointer;
+        border-bottom: 1px solid #e9ecef;
+        transition: all 0.2s;
+    }
+
+    .conversation-item:hover {
+        background: #f8f9fa;
+    }
+
+    .conversation-item.active {
+        background: linear-gradient(135deg, #e8ebff 0%, #f0f2ff 100%);
+        border-left: 3px solid #667eea;
+    }
+
+    .conversation-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .online-indicator {
+        position: absolute;
+        bottom: 2px;
+        right: 2px;
+        width: 12px;
+        height: 12px;
+        background: #10b981;
+        border: 2px solid white;
+        border-radius: 50%;
+    }
+
+    .conversation-preview {
+        font-size: 0.875rem;
+        color: #6c757d;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .chat-window {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        background: #f8f9fa;
+    }
+
+    .message {
+        margin-bottom: 1rem;
+        display: flex;
+    }
+
+    .message-sent {
+        justify-content: flex-end;
+    }
+
+    .message-received {
+        justify-content: flex-start;
+    }
+
+    .message-bubble {
+        max-width: 70%;
+        padding: 0.75rem 1rem;
+        border-radius: 1rem;
+        position: relative;
+    }
+
+    .message-sent .message-bubble {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-bottom-right-radius: 0.25rem;
+    }
+
+    .message-received .message-bubble {
+        background: white;
+        border-bottom-left-radius: 0.25rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .message-time {
+        font-size: 0.75rem;
+        opacity: 0.7;
+        display: block;
+        margin-top: 0.25rem;
+    }
+
+    .typing-indicator {
+        display: flex;
+        gap: 0.25rem;
+    }
+
+    .typing-indicator span {
+        width: 8px;
+        height: 8px;
+        background: #6c757d;
+        border-radius: 50%;
+        animation: typing 1.4s infinite;
+    }
+
+    .typing-indicator span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .typing-indicator span:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    @@keyframes typing {
+        0%, 60%, 100% {
+            transform: translateY(0);
+        }
+        30% {
+            transform: translateY(-10px);
+        }
+    }
+
+    .chat-empty {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+
+@code {
+    private List<BreadcrumbItem> breadcrumbItems = new()
+    {
+        new BreadcrumbItem { Text = "Home", Url = "/" },
+        new BreadcrumbItem { Text = "Messages", IsActive = true }
+    };
+
+    private string searchQuery = "";
+    private string newMessage = "";
+    private bool isTyping = false;
+    private Conversation? selectedConversation;
+    private string userRole = "owner"; // Change to "client" or "owner" to test different views
+
+    private List<Conversation> conversations = new();
+    private List<Message> messages = new();
+
+    protected override void OnInitialized()
+    {
+        // Load conversations based on user role
+        LoadConversations();
+        
+        // Auto-select first conversation
+        if (conversations.Any())
+        {
+            SelectConversation(conversations.First());
+        }
+    }
+
+    private void LoadConversations()
+    {
+        if (userRole == "owner")
+        {
+            // Owner sees conversations with clients
+            conversations = new List<Conversation>
+            {
+                new() {
+                    Id = 1,
+                    Name = "John Smith (Client)",
+                    Icon = "person-circle",
+                    LastMessage = "Hi! I'm interested in booking your hotel for March 15-17.",
+                    LastMessageTime = "2m ago",
+                    UnreadCount = 2,
+                    IsOnline = true,
+                    LastSeen = "now"
+                },
+                new() {
+                    Id = 2,
+                    Name = "Sarah Johnson (Client)",
+                    Icon = "person-circle",
+                    LastMessage = "Do you have availability for a wedding event?",
+                    LastMessageTime = "1h ago",
+                    UnreadCount = 1,
+                    IsOnline = false,
+                    LastSeen = "30 minutes ago"
+                },
+                new() {
+                    Id = 3,
+                    Name = "Michael Chen (Client)",
+                    Icon = "person-circle",
+                    LastMessage = "What's included in the conference package?",
+                    LastMessageTime = "3h ago",
+                    UnreadCount = 0,
+                    IsOnline = true,
+                    LastSeen = "now"
+                },
+                new() {
+                    Id = 4,
+                    Name = "Emma Williams (Client)",
+                    Icon = "person-circle",
+                    LastMessage = "Thank you for the quick response!",
+                    LastMessageTime = "Yesterday",
+                    UnreadCount = 0,
+                    IsOnline = false,
+                    LastSeen = "2 hours ago"
+                },
+                new() {
+                    Id = 5,
+                    Name = "David Brown (Client)",
+                    Icon = "person-circle",
+                    LastMessage = "Can I modify my booking dates?",
+                    LastMessageTime = "2 days ago",
+                    UnreadCount = 1,
+                    IsOnline = false,
+                    LastSeen = "1 day ago"
+                }
+            };
+        }
+        else
+        {
+            // Client sees conversations with hotels/venues
+            conversations = new List<Conversation>
+            {
+                new() {
+                    Id = 1,
+                    Name = "Grand Plaza Hotel",
+                    Icon = "building",
+                    LastMessage = "Thank you for your interest! We have availability for those dates.",
+                    LastMessageTime = "2m ago",
+                    UnreadCount = 2,
+                    IsOnline = true,
+                    LastSeen = "now"
+                },
+                new() {
+                    Id = 2,
+                    Name = "Sunset Resort",
+                    Icon = "building",
+                    LastMessage = "Your booking has been confirmed. Looking forward to hosting you!",
+                    LastMessageTime = "1h ago",
+                    UnreadCount = 0,
+                    IsOnline = false,
+                    LastSeen = "30 minutes ago"
+                },
+                new() {
+                    Id = 3,
+                    Name = "Elite Events Co.",
+                    Icon = "calendar-event",
+                    LastMessage = "We can definitely accommodate 200 guests for your event.",
+                    LastMessageTime = "3h ago",
+                    UnreadCount = 1,
+                    IsOnline = true,
+                    LastSeen = "now"
+                },
+                new() {
+                    Id = 4,
+                    Name = "Luxury Venues Ltd",
+                    Icon = "building",
+                    LastMessage = "Please find attached the updated quote for your wedding package.",
+                    LastMessageTime = "Yesterday",
+                    UnreadCount = 0,
+                    IsOnline = false,
+                    LastSeen = "2 hours ago"
+                },
+                new() {
+                    Id = 5,
+                    Name = "Support Team",
+                    Icon = "headset",
+                    LastMessage = "How can we help you today?",
+                    LastMessageTime = "2 days ago",
+                    UnreadCount = 0,
+                    IsOnline = true,
+                    LastSeen = "now"
+                }
+            };
+        }
+    }
+
+    private void SelectConversation(Conversation conversation)
+    {
+        selectedConversation = conversation;
+        conversation.UnreadCount = 0;
+        
+        // Load messages for this conversation
+        messages = new List<Message>
+        {
+            new() { Text = "Hi! I'm interested in booking your hotel for March 15-17.", IsSent = true, Time = "10:30 AM", IsRead = true },
+            new() { Text = "Hello! Thank you for reaching out. We'd be happy to help you with your booking.", IsSent = false, Time = "10:32 AM", IsRead = false },
+            new() { Text = "Do you have any rooms available for 2 adults?", IsSent = true, Time = "10:33 AM", IsRead = true },
+            new() { Text = "Yes, we have several options available. Our deluxe rooms start at KES 15,000 per night.", IsSent = false, Time = "10:35 AM", IsRead = false },
+            new() { Text = "That sounds perfect! What amenities are included?", IsSent = true, Time = "10:36 AM", IsRead = true },
+            new() { Text = "All rooms include free WiFi, breakfast, pool access, and parking. Would you like to proceed with the booking?", IsSent = false, Time = "10:38 AM", IsRead = false }
+        };
+
+        // Simulate typing
+        SimulateTyping();
+    }
+
+    private async void SimulateTyping()
+    {
+        await Task.Delay(2000);
+        isTyping = true;
+        StateHasChanged();
+        
+        await Task.Delay(2000);
+        isTyping = false;
+        StateHasChanged();
+    }
+
+    private void SendMessage()
+    {
+        if (string.IsNullOrWhiteSpace(newMessage)) return;
+
+        messages.Add(new Message
+        {
+            Text = newMessage,
+            IsSent = true,
+            Time = DateTime.Now.ToString("h:mm tt"),
+            IsRead = false
+        });
+
+        newMessage = "";
+        ToastService.ShowSuccess("Message Sent", "Your message has been delivered");
+
+        // Simulate response
+        SimulateResponse();
+    }
+
+    private async void SimulateResponse()
+    {
+        await Task.Delay(3000);
+        
+        messages.Add(new Message
+        {
+            Text = "Thank you for your message! We'll get back to you shortly.",
+            IsSent = false,
+            Time = DateTime.Now.ToString("h:mm tt"),
+            IsRead = false
+        });
+        
+        StateHasChanged();
+    }
+
+    private void HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            SendMessage();
+        }
+    }
+
+    private void SwitchRole()
+    {
+        userRole = userRole == "owner" ? "client" : "owner";
+        selectedConversation = null;
+        messages.Clear();
+        LoadConversations();
+        
+        if (conversations.Any())
+        {
+            SelectConversation(conversations.First());
+        }
+        
+        ToastService.ShowInfo("View Switched", $"Now viewing as {(userRole == "owner" ? "Owner" : "Client")}");
+    }
+
+    public class Conversation
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = "";
+        public string Icon { get; set; } = "building";
+        public string LastMessage { get; set; } = "";
+        public string LastMessageTime { get; set; } = "";
+        public int UnreadCount { get; set; }
+        public bool IsOnline { get; set; }
+        public string LastSeen { get; set; } = "";
+    }
+
+    public class Message
+    {
+        public string Text { get; set; } = "";
+        public bool IsSent { get; set; }
+        public string Time { get; set; } = "";
+        public bool IsRead { get; set; }
+    }
+}

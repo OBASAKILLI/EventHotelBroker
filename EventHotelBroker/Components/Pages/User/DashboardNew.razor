@@ -1,0 +1,386 @@
+@page "/client/dashboard"
+@rendermode InteractiveServer
+@using EventHotelBroker.Models
+@using EventHotelBroker.Services
+@using EventHotelBroker.Components.Shared
+@inject IBookingService BookingService
+@inject IEventService EventService
+@inject IHotelService HotelService
+@inject NavigationManager Navigation
+@inject ToastService ToastService
+
+<PageTitle>My Dashboard - EventHotelBroker</PageTitle>
+
+<link href="/css/design-system.css" rel="stylesheet" />
+
+<div class="container-fluid px-4 py-4">
+    <!-- Breadcrumb -->
+    <Breadcrumb Items="@breadcrumbItems" />
+
+    @if (isLoading)
+    {
+        <!-- Loading Skeletons -->
+        <div class="row g-4 mb-4">
+            @for (int i = 0; i < 4; i++)
+            {
+                <div class="col-lg-3 col-md-6">
+                    <LoadingSkeleton Type="LoadingSkeleton.SkeletonType.Custom" Height="120px" />
+                </div>
+            }
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <LoadingSkeleton Type="LoadingSkeleton.SkeletonType.Card" />
+            </div>
+            <div class="col-lg-4">
+                <LoadingSkeleton Type="LoadingSkeleton.SkeletonType.Card" />
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4 fade-in">
+            <div>
+                <h1 class="mb-1">
+                    <i class="bi bi-speedometer2 me-2 text-primary"></i>
+                    Welcome back, @userName!
+                </h1>
+                <p class="text-system-secondary mb-0">Here's what's happening with your bookings</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn-system btn-system-outline-primary" @onclick="RefreshDashboard">
+                    <i class="bi bi-arrow-clockwise me-2"></i>Refresh
+                </button>
+                <button type="button" class="btn-system btn-system-primary" @onclick="GoToSearch">
+                    <i class="bi bi-search me-2"></i>Find Hotels
+                </button>
+            </div>
+        </div>
+
+        <!-- Quick Stats Cards -->
+        <div class="row g-4 mb-4 fade-in">
+            <!-- Total Bookings -->
+            <div class="col-lg-3 col-md-6">
+                <div class="card-system card-system-interactive">
+                    <div class="card-system-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="text-system-secondary mb-1" style="font-size: 0.875rem;">Total Bookings</p>
+                                <h2 class="mb-0" style="font-size: 2rem; font-weight: 700;">@totalBookings</h2>
+                                <p class="mb-0 mt-2" style="font-size: 0.8125rem;">
+                                    <span class="badge-system badge-system-success">
+                                        <i class="bi bi-arrow-up"></i> 12% from last month
+                                    </span>
+                                </p>
+                            </div>
+                            <div style="width: 3rem; height: 3rem; border-radius: 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem;">
+                                <i class="bi bi-calendar-check"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upcoming Events -->
+            <div class="col-lg-3 col-md-6">
+                <div class="card-system card-system-interactive">
+                    <div class="card-system-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="text-system-secondary mb-1" style="font-size: 0.875rem;">Upcoming</p>
+                                <h2 class="mb-0" style="font-size: 2rem; font-weight: 700;">@upcomingBookings</h2>
+                                <p class="mb-0 mt-2" style="font-size: 0.8125rem;">
+                                    <span class="badge-system badge-system-info">
+                                        Next: @nextBookingDate
+                                    </span>
+                                </p>
+                            </div>
+                            <div style="width: 3rem; height: 3rem; border-radius: 0.75rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem;">
+                                <i class="bi bi-clock-history"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Spent -->
+            <div class="col-lg-3 col-md-6">
+                <div class="card-system card-system-interactive">
+                    <div class="card-system-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="text-system-secondary mb-1" style="font-size: 0.875rem;">Total Spent</p>
+                                <h2 class="mb-0" style="font-size: 2rem; font-weight: 700;">KES @totalSpent.ToString("N0")</h2>
+                                <p class="mb-0 mt-2" style="font-size: 0.8125rem;">
+                                    <span class="badge-system badge-system-secondary">
+                                        Avg: KES @averageBooking.ToString("N0")
+                                    </span>
+                                </p>
+                            </div>
+                            <div style="width: 3rem; height: 3rem; border-radius: 0.75rem; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem;">
+                                <i class="bi bi-wallet2"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Saved Hotels -->
+            <div class="col-lg-3 col-md-6">
+                <div class="card-system card-system-interactive" @onclick="GoToFavorites">
+                    <div class="card-system-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="text-system-secondary mb-1" style="font-size: 0.875rem;">Saved Hotels</p>
+                                <h2 class="mb-0" style="font-size: 2rem; font-weight: 700;">@savedHotels</h2>
+                                <p class="mb-0 mt-2" style="font-size: 0.8125rem;">
+                                    <span class="badge-system badge-system-danger">
+                                        <i class="bi bi-heart-fill"></i> Favorites
+                                    </span>
+                                </p>
+                            </div>
+                            <div style="width: 3rem; height: 3rem; border-radius: 0.75rem; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem;">
+                                <i class="bi bi-heart"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Recent Bookings -->
+            <div class="col-lg-8">
+                <div class="card-system fade-in">
+                    <div class="card-system-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="bi bi-clock-history me-2"></i>Recent Bookings
+                            </h5>
+                            <a href="/my-bookings" class="btn-system btn-system-sm btn-system-ghost">
+                                View All <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-system-body">
+                        @if (recentBookings.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Hotel</th>
+                                            <th>Check-in</th>
+                                            <th>Status</th>
+                                            <th>Amount</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var booking in recentBookings.Take(5))
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <i class="bi bi-building text-primary"></i>
+                                                        <strong>Hotel #@booking.HotelId</strong>
+                                                    </div>
+                                                </td>
+                                                <td>@booking.StartDate.ToString("MMM dd, yyyy")</td>
+                                                <td>
+                                                    <span class="badge-system badge-system-@GetStatusBadge(booking.Status.ToString())">
+                                                        @booking.Status
+                                                    </span>
+                                                </td>
+                                                <td><strong>KES 50,000</strong></td>
+                                                <td>
+                                                    <button type="button" class="btn-system btn-system-sm btn-system-ghost" @onclick="() => ViewBooking(booking.Id)">
+                                                        <i class="bi bi-eye"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <EmptyState 
+                                Icon="calendar-x"
+                                Title="No bookings yet"
+                                Description="Start exploring amazing hotels and make your first booking!"
+                                ActionText="Browse Hotels"
+                                ActionIcon="search"
+                                OnActionClick="GoToSearch" />
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions & Recommendations -->
+            <div class="col-lg-4">
+                <!-- Quick Actions -->
+                <div class="card-system mb-4 fade-in">
+                    <div class="card-system-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-lightning-charge me-2"></i>Quick Actions
+                        </h5>
+                    </div>
+                    <div class="card-system-body">
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn-system btn-system-primary" @onclick="GoToSearch">
+                                <i class="bi bi-search me-2"></i>Find Hotels
+                            </button>
+                            <button type="button" class="btn-system btn-system-outline-primary" @onclick="GoToEvents">
+                                <i class="bi bi-calendar-event me-2"></i>Browse Events
+                            </button>
+                            <button type="button" class="btn-system btn-system-outline-secondary" @onclick="GoToBookings">
+                                <i class="bi bi-list-check me-2"></i>My Bookings
+                            </button>
+                            <button type="button" class="btn-system btn-system-outline-secondary" @onclick="GoToMessages">
+                                <i class="bi bi-chat-dots me-2"></i>Messages
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recommended Hotels -->
+                <div class="card-system fade-in">
+                    <div class="card-system-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-star me-2"></i>Recommended for You
+                        </h5>
+                    </div>
+                    <div class="card-system-body">
+                        @if (recommendedHotels.Any())
+                        {
+                            @foreach (var hotel in recommendedHotels.Take(3))
+                            {
+                                <div class="d-flex gap-3 mb-3 pb-3 border-bottom" style="cursor: pointer;" @onclick="() => ViewHotel(hotel.Id)">
+                                    <div style="width: 60px; height: 60px; border-radius: 0.5rem; background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); display: flex; align-items: center; justify-content: center;">
+                                        <i class="bi bi-building" style="font-size: 1.5rem; color: #667eea;"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">@hotel.Name</h6>
+                                        <p class="text-system-secondary mb-1" style="font-size: 0.8125rem;">
+                                            <i class="bi bi-geo-alt"></i> @hotel.City
+                                        </p>
+                                        <p class="mb-0">
+                                            <strong class="text-primary">KES @hotel.PricePerNight.ToString("N0")</strong>
+                                            <span class="text-system-secondary" style="font-size: 0.8125rem;">/night</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-system-secondary text-center mb-0">
+                                <i class="bi bi-info-circle me-1"></i>
+                                No recommendations yet
+                            </p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private string userName = "Guest";
+    
+    // Stats
+    private int totalBookings = 0;
+    private int upcomingBookings = 0;
+    private decimal totalSpent = 0;
+    private decimal averageBooking = 0;
+    private int savedHotels = 0;
+    private string nextBookingDate = "N/A";
+    
+    // Data
+    private List<Booking> recentBookings = new();
+    private List<Hotel> recommendedHotels = new();
+    
+    // Breadcrumb
+    private List<BreadcrumbItem> breadcrumbItems = new()
+    {
+        new BreadcrumbItem { Text = "Home", Url = "/" },
+        new BreadcrumbItem { Text = "Dashboard", IsActive = true }
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDashboardData();
+    }
+
+    private async Task LoadDashboardData()
+    {
+        isLoading = true;
+        
+        try
+        {
+            // Load bookings
+            var allBookings = await BookingService.GetBookingsByUserAsync("temp-user-id");
+            recentBookings = allBookings.OrderByDescending(b => b.CreatedAt).ToList();
+            
+            // Calculate stats
+            totalBookings = allBookings.Count();
+            upcomingBookings = allBookings.Count(b => b.StartDate > DateTime.Now);
+            totalSpent = totalBookings * 50000; // Placeholder calculation
+            averageBooking = totalBookings > 0 ? totalSpent / totalBookings : 0;
+            savedHotels = 5; // Placeholder
+            
+            var nextBooking = allBookings
+                .Where(b => b.StartDate > DateTime.Now)
+                .OrderBy(b => b.StartDate)
+                .FirstOrDefault();
+            
+            nextBookingDate = nextBooking != null 
+                ? nextBooking.StartDate.ToString("MMM dd") 
+                : "N/A";
+            
+            // Load recommended hotels
+            var hotels = await HotelService.GetAllHotelsAsync();
+            recommendedHotels = hotels.Take(3).ToList();
+            
+            ToastService.ShowSuccess("Dashboard Loaded", "Your dashboard has been updated successfully!");
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError("Error", "Failed to load dashboard data");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task RefreshDashboard()
+    {
+        ToastService.ShowInfo("Refreshing", "Updating your dashboard...");
+        await LoadDashboardData();
+    }
+
+    private string GetStatusBadge(string status)
+    {
+        return status.ToLower() switch
+        {
+            "confirmed" => "success",
+            "pending" => "warning",
+            "cancelled" => "danger",
+            _ => "secondary"
+        };
+    }
+
+    private void ViewBooking(int id) => Navigation.NavigateTo($"/booking/{id}");
+    private void ViewHotel(int id) => Navigation.NavigateTo($"/hotels/{id}");
+    private void GoToSearch() => Navigation.NavigateTo("/search");
+    private void GoToEvents() => Navigation.NavigateTo("/events");
+    private void GoToBookings() => Navigation.NavigateTo("/my-bookings");
+    private void GoToMessages() => Navigation.NavigateTo("/messages");
+    private void GoToFavorites() => Navigation.NavigateTo("/favorites");
+}

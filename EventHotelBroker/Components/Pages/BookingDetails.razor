@@ -1,0 +1,483 @@
+@page "/booking/details/{bookingId:int}"
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+@inject ToastService ToastService
+
+<PageTitle>Booking Details - EventHotelBroker</PageTitle>
+
+<link href="/css/design-system.css" rel="stylesheet" />
+
+<div class="container-fluid px-4 py-4">
+    <Breadcrumb Items="@breadcrumbItems" />
+
+    <div class="row g-4">
+        <!-- Booking Information -->
+        <div class="col-lg-8">
+            <!-- Status Card -->
+            <div class="card-system mb-4">
+                <div class="card-system-body">
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <div>
+                            <h3 class="mb-2">Booking #HTL-@BookingId.ToString("D6")</h3>
+                            <span class="badge-system badge-system-success" style="font-size: 1rem; padding: 0.5rem 1rem;">
+                                <i class="bi bi-check-circle me-2"></i>Confirmed
+                            </span>
+                        </div>
+                        <div class="text-end">
+                            <button type="button" class="btn-system btn-system-outline-secondary btn-system-sm" @onclick="DownloadInvoice">
+                                <i class="bi bi-download me-2"></i>Download Invoice
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Timeline -->
+                    <div class="booking-timeline">
+                        <div class="timeline-item completed">
+                            <div class="timeline-marker">
+                                <i class="bi bi-check-circle-fill"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h6>Booking Confirmed</h6>
+                                <small class="text-muted">March 10, 2025 - 10:30 AM</small>
+                            </div>
+                        </div>
+                        <div class="timeline-item completed">
+                            <div class="timeline-marker">
+                                <i class="bi bi-check-circle-fill"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h6>Payment Received</h6>
+                                <small class="text-muted">March 10, 2025 - 10:32 AM</small>
+                            </div>
+                        </div>
+                        <div class="timeline-item active">
+                            <div class="timeline-marker">
+                                <i class="bi bi-clock-fill"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h6>Awaiting Check-in</h6>
+                                <small class="text-muted">March 15, 2025 - 2:00 PM</small>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker">
+                                <i class="bi bi-circle"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h6>Check-out</h6>
+                                <small class="text-muted">March 17, 2025 - 11:00 AM</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hotel Details -->
+            <div class="card-system mb-4">
+                <div class="card-system-header">
+                    <h5 class="mb-0"><i class="bi bi-building me-2"></i>Hotel Information</h5>
+                </div>
+                <div class="card-system-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <img src="https://via.placeholder.com/300x200" alt="Hotel" class="img-fluid rounded" />
+                        </div>
+                        <div class="col-md-8">
+                            <h4 class="mb-3">Grand Plaza Hotel</h4>
+                            <p class="mb-2">
+                                <i class="bi bi-geo-alt text-primary me-2"></i>
+                                123 Main Street, Nairobi, Kenya
+                            </p>
+                            <p class="mb-2">
+                                <i class="bi bi-telephone text-primary me-2"></i>
+                                +254 712 345 678
+                            </p>
+                            <p class="mb-3">
+                                <i class="bi bi-envelope text-primary me-2"></i>
+                                info@grandplaza.com
+                            </p>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn-system btn-system-outline-primary btn-system-sm" @onclick="ContactHotel">
+                                    <i class="bi bi-chat-dots me-2"></i>Message Hotel
+                                </button>
+                                <button type="button" class="btn-system btn-system-outline-secondary btn-system-sm" @onclick="ViewHotel">
+                                    <i class="bi bi-eye me-2"></i>View Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Booking Details -->
+            <div class="card-system mb-4">
+                <div class="card-system-header">
+                    <h5 class="mb-0"><i class="bi bi-calendar-check me-2"></i>Booking Details</h5>
+                </div>
+                <div class="card-system-body">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="detail-item">
+                                <label>Check-in</label>
+                                <div class="detail-value">
+                                    <i class="bi bi-calendar-event text-primary me-2"></i>
+                                    March 15, 2025 (2:00 PM)
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-item">
+                                <label>Check-out</label>
+                                <div class="detail-value">
+                                    <i class="bi bi-calendar-event text-primary me-2"></i>
+                                    March 17, 2025 (11:00 AM)
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-item">
+                                <label>Room Type</label>
+                                <div class="detail-value">
+                                    <i class="bi bi-door-open text-primary me-2"></i>
+                                    Deluxe Suite
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-item">
+                                <label>Guests</label>
+                                <div class="detail-value">
+                                    <i class="bi bi-people text-primary me-2"></i>
+                                    2 Adults
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-item">
+                                <label>Number of Nights</label>
+                                <div class="detail-value">
+                                    <i class="bi bi-moon text-primary me-2"></i>
+                                    2 Nights
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-item">
+                                <label>Total Amount</label>
+                                <div class="detail-value">
+                                    <i class="bi bi-cash text-success me-2"></i>
+                                    <strong>KES 30,000</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(specialRequests))
+                    {
+                        <div class="mt-4 p-3" style="background: #f8f9fa; border-radius: 0.5rem;">
+                            <label class="fw-bold mb-2">Special Requests:</label>
+                            <p class="mb-0">@specialRequests</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card-system">
+                <div class="card-system-header">
+                    <h5 class="mb-0"><i class="bi bi-gear me-2"></i>Manage Booking</h5>
+                </div>
+                <div class="card-system-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <button type="button" class="btn-system btn-system-primary w-100" @onclick="ShowModifyModal">
+                                <i class="bi bi-pencil-square me-2"></i>Modify Dates
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <button type="button" class="btn-system btn-system-outline-primary w-100" @onclick="AddSpecialRequest">
+                                <i class="bi bi-plus-circle me-2"></i>Add Special Request
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <button type="button" class="btn-system btn-system-outline-secondary w-100" @onclick="ContactSupport">
+                                <i class="bi bi-headset me-2"></i>Contact Support
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <button type="button" class="btn-system btn-system-danger w-100" @onclick="ShowCancelModal">
+                                <i class="bi bi-x-circle me-2"></i>Cancel Booking
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Payment Summary -->
+            <div class="card-system mb-4">
+                <div class="card-system-header">
+                    <h5 class="mb-0"><i class="bi bi-receipt me-2"></i>Payment Summary</h5>
+                </div>
+                <div class="card-system-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Room Rate (2 nights)</span>
+                        <span>KES 28,000</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Service Charge</span>
+                        <span>KES 1,500</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Tax (VAT 16%)</span>
+                        <span>KES 500</span>
+                    </div>
+                    <hr />
+                    <div class="d-flex justify-content-between">
+                        <strong>Total Paid</strong>
+                        <strong class="text-success">KES 30,000</strong>
+                    </div>
+                    <div class="mt-3 p-2" style="background: #d1fae5; border-radius: 0.5rem;">
+                        <small class="text-success">
+                            <i class="bi bi-check-circle me-1"></i>
+                            Payment completed via M-Pesa
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cancellation Policy -->
+            <div class="card-system mb-4">
+                <div class="card-system-header">
+                    <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Cancellation Policy</h5>
+                </div>
+                <div class="card-system-body">
+                    <div class="alert-system alert-system-warning">
+                        <div class="alert-system-icon">
+                            <i class="bi bi-exclamation-triangle"></i>
+                        </div>
+                        <div class="alert-system-content">
+                            <div class="alert-system-title">Free Cancellation</div>
+                            <div class="alert-system-description">
+                                Cancel up to 48 hours before check-in for a full refund.
+                                After that, 50% cancellation fee applies.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card-system">
+                <div class="card-system-header">
+                    <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="card-system-body">
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn-system btn-system-outline-primary" @onclick="PrintBooking">
+                            <i class="bi bi-printer me-2"></i>Print Booking
+                        </button>
+                        <button type="button" class="btn-system btn-system-outline-primary" @onclick="ShareBooking">
+                            <i class="bi bi-share me-2"></i>Share Booking
+                        </button>
+                        <button type="button" class="btn-system btn-system-outline-secondary" @onclick="ViewAllBookings">
+                            <i class="bi bi-list-check me-2"></i>View All Bookings
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modify Dates Modal -->
+<ConfirmDialog 
+    IsVisible="@showModifyModal"
+    Title="Modify Booking Dates"
+    Message="Would you like to change your check-in or check-out dates? Note: Price may change based on new dates."
+    ConfirmText="Continue"
+    CancelText="Cancel"
+    Type="ConfirmDialog.ConfirmType.Info"
+    OnConfirmed="@ModifyDates"
+    OnCancelled="@(() => showModifyModal = false)" />
+
+<!-- Cancel Booking Modal -->
+<ConfirmDialog 
+    IsVisible="@showCancelModal"
+    Title="Cancel Booking"
+    Message="Are you sure you want to cancel this booking? Based on our cancellation policy, you will receive a full refund."
+    ConfirmText="Yes, Cancel Booking"
+    CancelText="Keep Booking"
+    Type="ConfirmDialog.ConfirmType.Danger"
+    OnConfirmed="@CancelBooking"
+    OnCancelled="@(() => showCancelModal = false)" />
+
+<style>
+    .detail-item label {
+        display: block;
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+
+    .detail-value {
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    .booking-timeline {
+        position: relative;
+        padding-left: 2rem;
+    }
+
+    .timeline-item {
+        position: relative;
+        padding-bottom: 2rem;
+    }
+
+    .timeline-item:last-child {
+        padding-bottom: 0;
+    }
+
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -1.5rem;
+        top: 2rem;
+        width: 2px;
+        height: calc(100% - 1rem);
+        background: #e9ecef;
+    }
+
+    .timeline-item:last-child::before {
+        display: none;
+    }
+
+    .timeline-item.completed::before {
+        background: #10b981;
+    }
+
+    .timeline-item.active::before {
+        background: linear-gradient(to bottom, #10b981 0%, #e9ecef 100%);
+    }
+
+    .timeline-marker {
+        position: absolute;
+        left: -2rem;
+        top: 0;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        border: 2px solid #e9ecef;
+    }
+
+    .timeline-item.completed .timeline-marker {
+        background: #10b981;
+        color: white;
+        border-color: #10b981;
+    }
+
+    .timeline-item.active .timeline-marker {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+        animation: pulse 2s infinite;
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7);
+        }
+        50% {
+            box-shadow: 0 0 0 10px rgba(102, 126, 234, 0);
+        }
+    }
+
+    .timeline-content h6 {
+        margin-bottom: 0.25rem;
+        font-weight: 600;
+    }
+</style>
+
+@code {
+    [Parameter] public int BookingId { get; set; }
+
+    private List<BreadcrumbItem> breadcrumbItems = new();
+    private bool showModifyModal = false;
+    private bool showCancelModal = false;
+    private string specialRequests = "Late check-in requested. Non-smoking room preferred.";
+
+    protected override void OnInitialized()
+    {
+        breadcrumbItems = new()
+        {
+            new BreadcrumbItem { Text = "Home", Url = "/" },
+            new BreadcrumbItem { Text = "My Bookings", Url = "/my-bookings" },
+            new BreadcrumbItem { Text = $"Booking #{BookingId}", IsActive = true }
+        };
+    }
+
+    private void ShowModifyModal() => showModifyModal = true;
+    private void ShowCancelModal() => showCancelModal = true;
+
+    private void ModifyDates()
+    {
+        showModifyModal = false;
+        ToastService.ShowInfo("Modify Dates", "Redirecting to date selection...");
+        // Would show calendar picker here
+    }
+
+    private void CancelBooking()
+    {
+        showCancelModal = false;
+        ToastService.ShowSuccess("Booking Cancelled", "Your booking has been cancelled. Refund will be processed within 5-7 business days.");
+        Task.Delay(2000).ContinueWith(_ => Navigation.NavigateTo("/my-bookings"));
+    }
+
+    private void AddSpecialRequest()
+    {
+        ToastService.ShowInfo("Special Request", "Special request form would open here");
+    }
+
+    private void ContactHotel()
+    {
+        Navigation.NavigateTo("/chat");
+    }
+
+    private void ViewHotel()
+    {
+        Navigation.NavigateTo("/hotels/5");
+    }
+
+    private void ContactSupport()
+    {
+        Navigation.NavigateTo("/chat");
+    }
+
+    private void DownloadInvoice()
+    {
+        ToastService.ShowSuccess("Download Started", "Your invoice is being downloaded");
+    }
+
+    private void PrintBooking()
+    {
+        ToastService.ShowInfo("Print", "Print dialog would open here");
+    }
+
+    private void ShareBooking()
+    {
+        ToastService.ShowInfo("Share", "Share options would appear here");
+    }
+
+    private void ViewAllBookings()
+    {
+        Navigation.NavigateTo("/my-bookings");
+    }
+}

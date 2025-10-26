@@ -1,4 +1,5 @@
 @page "/book-event"
+@rendermode InteractiveServer
 @using EventHotelBroker.Models
 @using EventHotelBroker.Services
 @inject IEventService EventService
@@ -130,17 +131,9 @@
 
                         <!-- Submit Button -->
                         <div class="col-12 mt-4">
-                            <button type="submit" class="btn-modern btn-gradient-primary w-100" disabled="@isSubmitting">
-                                @if (isSubmitting)
-                                {
-                                    <span class="spinner-border spinner-border-sm me-2"></span>
-                                    <span>Processing...</span>
-                                }
-                                else
-                                {
-                                    <i class="bi bi-check-circle me-2"></i>
-                                    <span>Submit Booking Request</span>
-                                }
+                            <button type="button" class="btn btn-primary btn-lg w-100" @onclick="ProceedToCheckout">
+                                <i class="bi bi-credit-card me-2"></i>
+                                <span>Proceed to Payment</span>
                             </button>
                         </div>
 
@@ -224,5 +217,15 @@
         {
             isSubmitting = false;
         }
+    }
+
+    private void ProceedToCheckout()
+    {
+        // Store booking data in session/temp storage and navigate to checkout
+        // For now, navigate to event checkout with package ID if available
+        var packageId = Navigation.Uri.Contains("packageId=") 
+            ? Navigation.Uri.Split("packageId=")[1].Split('&')[0] 
+            : "0";
+        Navigation.NavigateTo($"/event/checkout?packageId={packageId}");
     }
 }

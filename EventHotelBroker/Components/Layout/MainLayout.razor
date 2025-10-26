@@ -1,5 +1,9 @@
 @inherits LayoutComponentBase
 
+<link href="/css/design-system.css" rel="stylesheet" />
+
+<ToastContainer />
+
 <div class="modern-layout">
     <!-- Modern App Bar -->
     <header class="modern-app-bar">
@@ -12,18 +16,22 @@
                 <span class="brand-text">EventHotelBroker</span>
             </div>
             <div class="app-bar-actions">
-                <button class="app-bar-btn">
-                    <i class="bi bi-bell"></i>
+                <a href="/chat" class="app-bar-btn" title="Messages">
+                    <i class="bi bi-chat-dots"></i>
                     <span class="notification-badge">3</span>
+                </a>
+                <button class="app-bar-btn" title="Notifications">
+                    <i class="bi bi-bell"></i>
+                    <span class="notification-badge">5</span>
                 </button>
-                <button class="app-bar-btn">
+                <button class="app-bar-btn" title="Settings">
                     <i class="bi bi-gear"></i>
                 </button>
-                <div class="user-profile">
+                <div class="user-profile" style="cursor: pointer;" onclick="window.location.href='/login'">
                     <div class="user-avatar">
                         <i class="bi bi-person-circle"></i>
                     </div>
-                    <span class="user-name">Admin User</span>
+                    <span class="user-name">Login / Register</span>
                 </div>
             </div>
         </div>
@@ -40,7 +48,57 @@
             @Body
         </div>
     </main>
+
+    <!-- Floating Chat Button -->
+    <a href="/chat" class="floating-chat-btn" title="Open Messages">
+        <i class="bi bi-chat-dots-fill"></i>
+        <span class="chat-badge">3</span>
+    </a>
 </div>
+
+<style>
+    .floating-chat-btn {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+        z-index: 1000;
+        transition: all 0.3s;
+        text-decoration: none;
+    }
+
+    .floating-chat-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 12px 32px rgba(102, 126, 234, 0.6);
+        color: white;
+    }
+
+    .chat-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: #ef4444;
+        color: white;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border: 3px solid white;
+    }
+</style>
 
 @code {
     private bool sidebarCollapsed = false;
