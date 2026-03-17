@@ -1,0 +1,116 @@
+@inherits LayoutComponentBase
+
+<link href="/css/design-system.css" rel="stylesheet" />
+
+<ToastContainer />
+
+<div class="modern-layout home-layout">
+    <!-- Modern App Bar (no sidebar toggle) -->
+    <header class="modern-app-bar home-app-bar">
+        <div class="app-bar-content">
+            <a href="/" class="app-bar-brand" style="text-decoration:none;">
+                <span class="brand-text">Safari Vents</span>
+            </a>
+            <div class="app-bar-actions">
+                <a href="/chat" class="app-bar-btn" title="Messages">
+                    <i class="bi bi-chat-dots"></i>
+                    <span class="notification-badge">3</span>
+                </a>
+                <button class="app-bar-btn" title="Notifications">
+                    <i class="bi bi-bell"></i>
+                    <span class="notification-badge">5</span>
+                </button>
+                <button class="app-bar-btn" title="Settings">
+                    <i class="bi bi-gear"></i>
+                </button>
+                <div class="user-profile" style="cursor: pointer;" onclick="window.location.href='/login'">
+                    <div class="user-avatar">
+                        <i class="bi bi-person-circle"></i>
+                    </div>
+                    <span class="user-name">Login / Register</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content (full width, no sidebar offset) -->
+    <main class="home-main-content">
+        @Body
+    </main>
+
+    <!-- Floating Chat Button -->
+    <a href="/chat" class="floating-chat-btn" title="Open Messages">
+        <i class="bi bi-chat-dots-fill"></i>
+        <span class="chat-badge">3</span>
+    </a>
+</div>
+
+<style>
+    .home-layout {
+        display: block !important;
+        grid-template-columns: unset !important;
+    }
+
+    .home-app-bar {
+        left: 0 !important;
+        width: 100% !important;
+    }
+
+    .home-main-content {
+        margin-left: 0 !important;
+        padding-top: 60px;
+        min-height: 100vh;
+    }
+
+    .floating-chat-btn {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: #2A2A2A;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        box-shadow: 0 4px 16px rgba(42, 42, 42, 0.3);
+        z-index: 1000;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+
+    .floating-chat-btn:hover {
+        transform: scale(1.08);
+        box-shadow: 0 6px 20px rgba(42, 42, 42, 0.4);
+        background: #9E8B63;
+        color: white;
+    }
+
+    .chat-badge {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        background: #9E8B63;
+        color: white;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.65rem;
+        font-weight: 600;
+        border: 2px solid white;
+    }
+</style>
+
+@* <div id="blazor-error-ui" class="modern-error-ui">
+    <div class="error-content">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span>An unhandled error has occurred.</span>
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">×</a>
+    </div>
+</div> *@

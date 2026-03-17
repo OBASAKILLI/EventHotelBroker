@@ -1,0 +1,418 @@
+/* ============================================
+   Event Package Details — Safari Vents Compact
+   Matches /user/dashboard design language
+   ============================================ */
+
+/* ── Page Shell ── */
+.epd {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    color: #2A2A2A;
+    background: #f5f3ef;
+    min-height: 100vh;
+    padding: 1.25rem 1.5rem;
+}
+
+/* ── Hero Banner ── */
+.epd-hero {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+    height: 200px;
+    background: linear-gradient(135deg, #2A2A2A 0%, #3d3d3d 100%);
+}
+.epd-hero img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.epd-hero-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,0.3);
+    font-size: 3rem;
+}
+.epd-hero-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1rem 1.25rem;
+    background: linear-gradient(to top, rgba(42,42,42,0.85) 0%, transparent 100%);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+}
+.epd-hero-title {
+    font-size: 1.125rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.25rem;
+}
+.epd-hero-badges { display: flex; gap: 0.375rem; margin-top: 0.25rem; }
+.epd-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    font-size: 0.5625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+}
+.epd-badge-type { background: rgba(72, 140, 130, 0.15); color: #488C82; }
+.epd-badge-featured { background: rgba(200, 121, 65, 0.15); color: #C87941; }
+.epd-badge-custom { background: rgba(158, 139, 99, 0.15); color: #9E8B63; }
+.epd-hero-price { text-align: right; }
+.epd-price-old {
+    font-size: 0.6875rem;
+    color: rgba(255,255,255,0.5);
+    text-decoration: line-through;
+}
+.epd-price-main {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #C87941;
+    line-height: 1;
+}
+.epd-price-save {
+    font-size: 0.5625rem;
+    color: #488C82;
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    margin-top: 0.125rem;
+    justify-content: flex-end;
+}
+
+/* ── Cards ── */
+.epd-card {
+    background: #fff;
+    border: 1px solid rgba(158, 139, 99, 0.12);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+}
+.epd-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.625rem 0.875rem;
+    border-bottom: 1px solid rgba(158, 139, 99, 0.1);
+}
+.epd-card-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #2A2A2A;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+.epd-card-title i { color: #9E8B63; font-size: 0.8125rem; }
+.epd-card-body { padding: 0.875rem; }
+
+/* ── Description ── */
+.epd-desc {
+    font-size: 0.75rem;
+    color: #5a5450;
+    line-height: 1.65;
+}
+
+/* ── Stat Pair (min/max guests) ── */
+.epd-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.625rem;
+}
+.epd-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    background: rgba(158, 139, 99, 0.04);
+    border: 1px solid rgba(158, 139, 99, 0.1);
+    border-radius: 10px;
+    padding: 0.625rem 0.75rem;
+}
+.epd-stat-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8125rem;
+    flex-shrink: 0;
+}
+.epd-stat-value {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #2A2A2A;
+    line-height: 1;
+}
+.epd-stat-label {
+    font-size: 0.5625rem;
+    color: #8a8177;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+    margin-top: 0.125rem;
+}
+
+/* ── Features List ── */
+.epd-features {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.375rem;
+}
+.epd-feature {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.375rem;
+    font-size: 0.75rem;
+    color: #2A2A2A;
+    padding: 0.25rem 0;
+}
+.epd-feature i {
+    color: #488C82;
+    font-size: 0.625rem;
+    margin-top: 0.1875rem;
+    flex-shrink: 0;
+}
+
+/* ── Provider Info Alert ── */
+.epd-info {
+    display: flex;
+    gap: 0.625rem;
+    background: rgba(72, 140, 130, 0.06);
+    border: 1px solid rgba(72, 140, 130, 0.12);
+    border-radius: 10px;
+    padding: 0.625rem 0.75rem;
+    margin-top: 0.75rem;
+}
+.epd-info-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: rgba(72, 140, 130, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: #488C82;
+    font-size: 0.75rem;
+}
+.epd-info-text {
+    font-size: 0.6875rem;
+    color: #5a5450;
+    line-height: 1.5;
+}
+.epd-info-text strong { color: #2A2A2A; }
+
+/* ── Accordion ── */
+.epd-accordion { border-radius: 10px; overflow: hidden; }
+.epd-acc-item {
+    border-bottom: 1px solid rgba(158, 139, 99, 0.1);
+}
+.epd-acc-item:last-child { border-bottom: none; }
+.epd-acc-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 0.625rem 0;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #2A2A2A;
+    text-align: left;
+}
+.epd-acc-header i:first-child { color: #9E8B63; font-size: 0.75rem; }
+.epd-acc-chevron {
+    margin-left: auto;
+    font-size: 0.625rem;
+    color: #c4b99a;
+    transition: transform 0.2s ease;
+}
+.epd-acc-item.open .epd-acc-chevron { transform: rotate(180deg); }
+.epd-acc-body {
+    font-size: 0.6875rem;
+    color: #5a5450;
+    line-height: 1.65;
+    padding-bottom: 0.625rem;
+    display: none;
+}
+.epd-acc-item.open .epd-acc-body { display: block; }
+.epd-acc-body ol, .epd-acc-body ul {
+    padding-left: 1.125rem;
+    margin-bottom: 0;
+}
+.epd-acc-body li { margin-bottom: 0.25rem; }
+.epd-acc-body li strong { color: #2A2A2A; }
+
+/* ── Buttons ── */
+.epd-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    padding: 0.4rem 0.75rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-decoration: none;
+    white-space: nowrap;
+    width: 100%;
+}
+.epd-btn-primary { background: #2A2A2A; color: #fff; }
+.epd-btn-primary:hover { background: #C87941; color: #fff; text-decoration: none; }
+.epd-btn-accent { background: #C87941; color: #fff; }
+.epd-btn-accent:hover { background: #b36a35; color: #fff; text-decoration: none; }
+.epd-btn-outline { background: transparent; color: #2A2A2A; border: 1px solid rgba(158,139,99,0.25); }
+.epd-btn-outline:hover { border-color: #9E8B63; color: #9E8B63; text-decoration: none; }
+.epd-btn-teal { background: transparent; color: #488C82; border: 1px solid rgba(72,140,130,0.25); }
+.epd-btn-teal:hover { background: rgba(72,140,130,0.06); border-color: #488C82; text-decoration: none; }
+
+/* ── Sidebar Booking Card ── */
+.epd-book-price {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 0.375rem 0;
+    font-size: 0.75rem;
+    color: #8a8177;
+}
+.epd-book-price span:last-child { color: #2A2A2A; font-weight: 600; }
+.epd-book-total {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.875rem;
+    font-weight: 700;
+    padding-top: 0.5rem;
+}
+.epd-book-total .epd-total-amount { color: #C87941; }
+.epd-save-tag {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: rgba(72, 140, 130, 0.08);
+    border: 1px solid rgba(72, 140, 130, 0.15);
+    border-radius: 8px;
+    padding: 0.375rem 0.625rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.625rem;
+    font-size: 0.625rem;
+    color: #488C82;
+    font-weight: 600;
+}
+.epd-divider {
+    border: none;
+    border-top: 1px solid rgba(158, 139, 99, 0.12);
+    margin: 0.5rem 0;
+}
+
+/* ── Trust Badges ── */
+.epd-trust { display: flex; flex-direction: column; gap: 0.5rem; }
+.epd-trust-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.6875rem;
+    color: #5a5450;
+}
+.epd-trust-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6875rem;
+    flex-shrink: 0;
+}
+
+/* ── Quick Action Stack ── */
+.epd-qa-stack { display: flex; flex-direction: column; gap: 0.5rem; }
+.epd-qa {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    background: #fff;
+    border: 1px solid rgba(158, 139, 99, 0.08);
+    border-radius: 10px;
+    padding: 0.625rem 0.75rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-decoration: none;
+    color: #2A2A2A;
+}
+.epd-qa:hover {
+    box-shadow: 0 4px 12px rgba(42, 42, 42, 0.06);
+    border-color: rgba(158, 139, 99, 0.2);
+    text-decoration: none;
+    color: #2A2A2A;
+}
+.epd-qa-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+.epd-qa-text { font-size: 0.75rem; font-weight: 600; flex: 1; }
+.epd-qa-arrow { font-size: 0.625rem; color: #c4b99a; }
+.epd-qa:hover .epd-qa-arrow { color: #9E8B63; }
+
+/* ── Color Icons ── */
+.epd-icon-terracotta { background: rgba(200, 121, 65, 0.1); color: #C87941; }
+.epd-icon-teal { background: rgba(72, 140, 130, 0.1); color: #488C82; }
+.epd-icon-bronze { background: rgba(158, 139, 99, 0.1); color: #9E8B63; }
+.epd-icon-charcoal { background: rgba(42, 42, 42, 0.06); color: #2A2A2A; }
+
+/* ── Loading & Empty States ── */
+.epd-empty {
+    text-align: center;
+    padding: 2rem;
+}
+.epd-empty i { font-size: 2.5rem; color: #c4b99a; }
+.epd-empty-title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #2A2A2A;
+    margin-top: 0.75rem;
+}
+.epd-empty-text {
+    font-size: 0.6875rem;
+    color: #8a8177;
+    margin-top: 0.25rem;
+}
+
+/* ── Spin Animation ── */
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+.spin { animation: spin 1s linear infinite; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+    .epd { padding: 0.75rem; }
+    .epd-hero { height: 160px; }
+    .epd-stats { grid-template-columns: 1fr; }
+    .epd-features { grid-template-columns: 1fr; }
+    .epd-hero-overlay { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+    .epd-hero-price { text-align: left; }
+}

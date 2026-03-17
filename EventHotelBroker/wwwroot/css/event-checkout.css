@@ -1,0 +1,1078 @@
+/* ============================================
+   Event Checkout Page
+   Matches /user/dashboard design language
+   Charcoal · Terracotta · Teal · Bronze
+   ============================================ */
+
+.ec-shell {
+    padding: 1.25rem 1.5rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    color: #2A2A2A;
+    background: #f5f3ef;
+    min-height: 100%;
+}
+
+/* ── Two-Column Layout ── */
+.ec-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 1.25rem;
+    align-items: start;
+}
+
+.ec-main { min-width: 0; }
+
+.ec-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: sticky;
+    top: 80px;
+}
+
+/* ── Step Indicator ── */
+.ec-steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border: 1px solid rgba(158, 139, 99, 0.12);
+    border-radius: 14px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.25rem;
+}
+
+.ec-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.375rem;
+    flex: 0 0 auto;
+}
+
+.ec-step-dot {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(158, 139, 99, 0.08);
+    color: #c4b99a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    transition: all 0.2s ease;
+}
+
+.ec-step.active .ec-step-dot {
+    background: #2A2A2A;
+    color: #fff;
+}
+
+.ec-step.done .ec-step-dot {
+    background: #488C82;
+    color: #fff;
+}
+
+.ec-step-label {
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #c4b99a;
+}
+
+.ec-step.active .ec-step-label { color: #2A2A2A; }
+.ec-step.done .ec-step-label { color: #488C82; }
+
+.ec-step-line {
+    flex: 1;
+    height: 2px;
+    background: rgba(158, 139, 99, 0.1);
+    margin: 0 0.75rem;
+    margin-bottom: 1.25rem;
+    border-radius: 1px;
+    min-width: 40px;
+}
+
+.ec-step-line.active {
+    background: #488C82;
+}
+
+/* ── Card ── */
+.ec-card {
+    background: #fff;
+    border: 1px solid rgba(158, 139, 99, 0.12);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+    animation: ecFadeIn 0.3s ease;
+}
+
+@keyframes ecFadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.ec-card-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(158, 139, 99, 0.1);
+    background: #2A2A2A;
+    color: #fff;
+}
+
+.ec-card-head i {
+    font-size: 0.875rem;
+    color: #C87941;
+}
+
+.ec-card-head h5 {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.ec-card-head.ec-head-pay {
+    background: #2A2A2A;
+}
+
+.ec-card-body {
+    padding: 1.25rem;
+}
+
+/* ── Summary Grid ── */
+.ec-summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.ec-summary-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.ec-summary-item.full {
+    grid-column: 1 / -1;
+}
+
+.ec-summary-label {
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #a09a93;
+}
+
+.ec-summary-value {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #2A2A2A;
+}
+
+.ec-summary-value i {
+    color: #9E8B63;
+    margin-right: 0.25rem;
+    font-size: 0.75rem;
+}
+
+.ec-divider {
+    height: 1px;
+    background: rgba(158, 139, 99, 0.1);
+    margin: 0.75rem 0;
+}
+
+/* ── Price Row ── */
+.ec-price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.25rem 0;
+}
+
+.ec-price-row span:first-child {
+    font-size: 0.75rem;
+    color: #8a8177;
+}
+
+.ec-price-row span:last-child {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #2A2A2A;
+}
+
+.ec-price-row.ec-total span:first-child {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #2A2A2A;
+}
+
+.ec-price-row.ec-total span:last-child {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #C87941;
+}
+
+/* ── Card Footer ── */
+.ec-card-footer {
+    padding: 0.875rem 1rem;
+    border-top: 1px solid rgba(158, 139, 99, 0.1);
+    background: rgba(158, 139, 99, 0.03);
+}
+
+.ec-btn-primary {
+    width: 100%;
+    padding: 0.625rem 1rem;
+    border-radius: 8px;
+    background: #2A2A2A;
+    color: #fff;
+    border: none;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+}
+
+.ec-btn-primary:hover:not(:disabled) {
+    background: #C87941;
+}
+
+.ec-btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.ec-btn-secondary {
+    width: 100%;
+    padding: 0.625rem 1rem;
+    border-radius: 8px;
+    background: transparent;
+    color: #2A2A2A;
+    border: 2px solid rgba(158, 139, 99, 0.15);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+}
+
+.ec-btn-secondary:hover {
+    border-color: #9E8B63;
+    color: #9E8B63;
+}
+
+.ec-footer-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+/* ── Security Notice ── */
+.ec-notice {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 10px;
+    background: rgba(72, 140, 130, 0.06);
+    border: 1px solid rgba(72, 140, 130, 0.1);
+    font-size: 0.6875rem;
+    color: #488C82;
+    font-weight: 500;
+    margin-bottom: 1rem;
+}
+
+.ec-notice i {
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+
+/* ── Payment Options ── */
+.ec-pay-option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border: 2px solid rgba(158, 139, 99, 0.12);
+    border-radius: 12px;
+    cursor: pointer;
+    margin-bottom: 0.625rem;
+    transition: all 0.15s ease;
+    background: #fff;
+}
+
+.ec-pay-option:hover {
+    border-color: rgba(158, 139, 99, 0.25);
+    background: rgba(158, 139, 99, 0.02);
+}
+
+.ec-pay-option.selected {
+    border-color: #C87941;
+    background: rgba(200, 121, 65, 0.04);
+}
+
+.ec-pay-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.ec-pay-icon.mpesa { background: rgba(72, 140, 130, 0.1); color: #488C82; }
+.ec-pay-icon.card { background: rgba(42, 42, 42, 0.08); color: #2A2A2A; }
+.ec-pay-icon.paypal { background: rgba(158, 139, 99, 0.1); color: #9E8B63; }
+
+.ec-pay-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.ec-pay-name {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #2A2A2A;
+}
+
+.ec-pay-desc {
+    font-size: 0.625rem;
+    color: #8a8177;
+}
+
+.ec-pay-check {
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.ec-pay-check .checked { color: #C87941; }
+.ec-pay-check .unchecked { color: #ddd5c7; }
+
+/* ── Payment Details Form ── */
+.ec-pay-form {
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 12px;
+    background: rgba(158, 139, 99, 0.04);
+    border: 1px solid rgba(158, 139, 99, 0.08);
+}
+
+.ec-pay-form h6 {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #2A2A2A;
+    margin: 0 0 0.75rem;
+}
+
+.ec-form-group {
+    margin-bottom: 0.625rem;
+}
+
+.ec-form-label {
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #2A2A2A;
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+.ec-form-input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 2px solid rgba(158, 139, 99, 0.12);
+    border-radius: 10px;
+    font-size: 0.8125rem;
+    color: #2A2A2A;
+    background: #fff;
+    transition: all 0.15s ease;
+}
+
+.ec-form-input:focus {
+    outline: none;
+    border-color: #9E8B63;
+    box-shadow: 0 0 0 3px rgba(158, 139, 99, 0.1);
+}
+
+.ec-form-input::placeholder {
+    color: #c4b99a;
+}
+
+.ec-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.625rem;
+}
+
+.ec-info-box {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    background: rgba(158, 139, 99, 0.06);
+    font-size: 0.6875rem;
+    color: #9E8B63;
+    margin-top: 0.5rem;
+}
+
+.ec-info-box i {
+    font-size: 0.6875rem;
+    flex-shrink: 0;
+}
+
+/* ── Processing State ── */
+.ec-processing {
+    text-align: center;
+    padding: 2.5rem 1rem;
+}
+
+.ec-spinner {
+    width: 48px;
+    height: 48px;
+    border: 3px solid rgba(158, 139, 99, 0.12);
+    border-top-color: #C87941;
+    border-radius: 50%;
+    animation: ecSpin 0.8s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes ecSpin {
+    to { transform: rotate(360deg); }
+}
+
+.ec-processing h4 {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: #2A2A2A;
+    margin: 0 0 0.25rem;
+}
+
+.ec-processing p {
+    font-size: 0.75rem;
+    color: #8a8177;
+    margin: 0;
+}
+
+.ec-processing .ec-info-box {
+    margin-top: 1rem;
+    justify-content: center;
+}
+
+/* ── Success State ── */
+.ec-success {
+    text-align: center;
+    padding: 2rem 1.25rem;
+}
+
+.ec-success-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(72, 140, 130, 0.1);
+    color: #488C82;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    margin: 0 auto 0.75rem;
+}
+
+.ec-success h2 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #488C82;
+    margin: 0 0 0.25rem;
+}
+
+.ec-success .ec-success-sub {
+    font-size: 0.75rem;
+    color: #8a8177;
+    margin: 0 0 1.25rem;
+}
+
+/* ── Confirmation Details ── */
+.ec-confirm-box {
+    background: rgba(158, 139, 99, 0.04);
+    border: 1px solid rgba(158, 139, 99, 0.1);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    text-align: left;
+}
+
+.ec-confirm-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.ec-confirm-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.0625rem;
+}
+
+.ec-confirm-item.right {
+    text-align: right;
+}
+
+.ec-confirm-item .ec-summary-label {
+    font-size: 0.5625rem;
+}
+
+.ec-confirm-item .ec-summary-value {
+    font-size: 0.8125rem;
+}
+
+.ec-confirm-item .ec-summary-value.highlight {
+    color: #C87941;
+}
+
+.ec-email-notice {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 10px;
+    background: rgba(158, 139, 99, 0.06);
+    font-size: 0.6875rem;
+    color: #9E8B63;
+    margin-bottom: 1.25rem;
+}
+
+.ec-success-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* ── Tabs (pill style, matches hotel details) ── */
+.ec-tabs {
+    display: flex;
+    gap: 0.25rem;
+    background: #fff;
+    border-radius: 10px;
+    padding: 0.25rem;
+    border: 1px solid rgba(158, 139, 99, 0.1);
+    margin-top: 1rem;
+}
+
+.ec-tab {
+    padding: 0.5rem 0.875rem;
+    border-radius: 8px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: #8a8177;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    white-space: nowrap;
+}
+
+.ec-tab:hover {
+    color: #2A2A2A;
+    background: #f5f3ef;
+}
+
+.ec-tab.active {
+    background: #2A2A2A;
+    color: #fff;
+}
+
+.ec-tab i {
+    font-size: 0.6875rem;
+}
+
+.ec-tab-content {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.25rem;
+    border: 1px solid rgba(158, 139, 99, 0.1);
+    animation: ecFadeIn 0.2s ease;
+    margin-top: 0.5rem;
+}
+
+/* ── Proceed Button (standalone) ── */
+.ec-btn-proceed {
+    margin-top: 1rem;
+    padding: 0.875rem 1.25rem;
+    font-size: 0.875rem;
+    border-radius: 10px;
+}
+
+/* ── Help Inline (inside Trust tab) ── */
+.ec-help-inline {
+    margin-top: 0.25rem;
+}
+
+.ec-help-inline-head {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #2A2A2A;
+    margin-bottom: 0.625rem;
+}
+
+.ec-help-inline-head i {
+    font-size: 0.875rem;
+    color: #C87941;
+}
+
+.ec-help-inline .ec-help-contacts {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.ec-help-inline .ec-help-link {
+    flex: 1;
+    min-width: 140px;
+}
+
+/* ============================================
+   Sidebar Components
+   ============================================ */
+
+/* ── Side Card ── */
+.ec-side-card {
+    background: #fff;
+    border: 1px solid rgba(158, 139, 99, 0.12);
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.ec-side-head {
+    padding: 1rem;
+    background: #2A2A2A;
+    color: #fff;
+}
+
+.ec-side-title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    margin: 0.25rem 0 0.375rem;
+    letter-spacing: -0.02em;
+}
+
+.ec-side-section-title {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: #C87941;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.75rem 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.ec-side-section-title i {
+    font-size: 0.75rem;
+}
+
+.ec-side-body {
+    padding: 0.875rem 1rem;
+}
+
+/* ── Package Badge & Rating ── */
+.ec-pkg-badge {
+    display: inline-block;
+    font-size: 0.5rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    background: #C87941;
+    color: #fff;
+    padding: 0.125rem 0.5rem;
+    border-radius: 4px;
+}
+
+.ec-pkg-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.125rem;
+    font-size: 0.625rem;
+}
+
+.ec-pkg-rating i {
+    color: #C87941;
+    font-size: 0.5625rem;
+}
+
+.ec-pkg-rating span {
+    color: rgba(255, 255, 255, 0.6);
+    margin-left: 0.25rem;
+    font-size: 0.5625rem;
+}
+
+/* ── Package Price & Meta ── */
+.ec-pkg-price {
+    display: flex;
+    align-items: baseline;
+    gap: 0.375rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(158, 139, 99, 0.08);
+}
+
+.ec-pkg-amount {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #C87941;
+    letter-spacing: -0.02em;
+}
+
+.ec-pkg-per {
+    font-size: 0.625rem;
+    color: #8a8177;
+}
+
+.ec-pkg-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.ec-pkg-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.6875rem;
+    color: #5a5550;
+}
+
+.ec-pkg-meta-item i {
+    font-size: 0.625rem;
+    color: #9E8B63;
+    width: 14px;
+    text-align: center;
+}
+
+/* ── What's Included ── */
+.ec-included-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.ec-included-item {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.6875rem;
+    color: #5a5550;
+}
+
+.ec-included-item i {
+    font-size: 0.5625rem;
+    color: #488C82;
+    flex-shrink: 0;
+}
+
+/* ── Timeline ── */
+.ec-timeline {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.ec-timeline-item {
+    display: flex;
+    gap: 0.625rem;
+    padding-bottom: 0.875rem;
+    position: relative;
+}
+
+.ec-timeline-item:last-child {
+    padding-bottom: 0;
+}
+
+.ec-timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 13px;
+    top: 28px;
+    bottom: 0;
+    width: 2px;
+    background: rgba(158, 139, 99, 0.1);
+}
+
+.ec-timeline-item:last-child::before {
+    display: none;
+}
+
+.ec-timeline-item.done::before {
+    background: #488C82;
+}
+
+.ec-timeline-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(158, 139, 99, 0.08);
+    color: #c4b99a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.5625rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.ec-timeline-item.done .ec-timeline-dot {
+    background: #488C82;
+    color: #fff;
+}
+
+.ec-timeline-item.active .ec-timeline-dot {
+    background: #2A2A2A;
+    color: #fff;
+}
+
+.ec-timeline-item:last-child .ec-timeline-dot {
+    background: rgba(200, 121, 65, 0.1);
+    color: #C87941;
+}
+
+.ec-timeline-content {
+    padding-top: 0.25rem;
+}
+
+.ec-timeline-title {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: #2A2A2A;
+}
+
+.ec-timeline-item:not(.done):not(.active) .ec-timeline-title {
+    color: #a09a93;
+}
+
+.ec-timeline-desc {
+    font-size: 0.5625rem;
+    color: #c4b99a;
+}
+
+.ec-timeline-item.done .ec-timeline-desc { color: #488C82; }
+.ec-timeline-item.active .ec-timeline-desc { color: #C87941; }
+
+/* ── Trust Badges ── */
+.ec-trust-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.625rem;
+    padding: 0.875rem 0;
+}
+
+.ec-side-card .ec-trust-grid {
+    grid-template-columns: 1fr 1fr;
+    padding: 0.875rem 1rem;
+}
+
+.ec-trust-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    text-align: center;
+}
+
+.ec-trust-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(72, 140, 130, 0.08);
+    color: #488C82;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+}
+
+.ec-trust-label {
+    font-size: 0.5625rem;
+    font-weight: 600;
+    color: #5a5550;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+/* ── Reviews ── */
+.ec-review {
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(158, 139, 99, 0.06);
+}
+
+.ec-review:last-child {
+    padding-bottom: 0;
+    margin-bottom: 0;
+    border-bottom: none;
+}
+
+.ec-review-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.375rem;
+}
+
+.ec-review-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: rgba(200, 121, 65, 0.1);
+    color: #C87941;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.5625rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.ec-review-name {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: #2A2A2A;
+}
+
+.ec-review-stars {
+    display: flex;
+    gap: 0.0625rem;
+}
+
+.ec-review-stars i {
+    font-size: 0.5rem;
+    color: #C87941;
+}
+
+.ec-review-text {
+    font-size: 0.6875rem;
+    color: #5a5550;
+    line-height: 1.45;
+    font-style: italic;
+}
+
+/* ── Need Help Card ── */
+.ec-help-card {
+    text-align: center;
+    padding: 1.25rem 1rem;
+}
+
+.ec-help-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(200, 121, 65, 0.1);
+    color: #C87941;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.125rem;
+    margin: 0 auto 0.5rem;
+}
+
+.ec-help-title {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #2A2A2A;
+    margin-bottom: 0.125rem;
+}
+
+.ec-help-desc {
+    font-size: 0.625rem;
+    color: #8a8177;
+    margin-bottom: 0.75rem;
+}
+
+.ec-help-contacts {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.ec-help-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: #2A2A2A;
+    text-decoration: none;
+    padding: 0.375rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid rgba(158, 139, 99, 0.12);
+    transition: all 0.15s ease;
+}
+
+.ec-help-link:hover {
+    border-color: #C87941;
+    color: #C87941;
+    background: rgba(200, 121, 65, 0.04);
+}
+
+.ec-help-link i {
+    font-size: 0.625rem;
+    color: #9E8B63;
+}
+
+/* ============================================
+   Responsive
+   ============================================ */
+
+@media (max-width: 1024px) {
+    .ec-layout {
+        grid-template-columns: 1fr 300px;
+    }
+}
+
+@media (max-width: 768px) {
+    .ec-shell {
+        padding: 1rem;
+    }
+    .ec-layout {
+        grid-template-columns: 1fr;
+    }
+    .ec-sidebar {
+        position: static;
+    }
+    .ec-summary-grid {
+        grid-template-columns: 1fr;
+    }
+    .ec-footer-grid {
+        grid-template-columns: 1fr;
+    }
+    .ec-form-row {
+        grid-template-columns: 1fr;
+    }
+    .ec-confirm-row {
+        grid-template-columns: 1fr;
+    }
+}

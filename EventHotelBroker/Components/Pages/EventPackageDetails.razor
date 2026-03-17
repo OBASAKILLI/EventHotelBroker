@@ -1,4 +1,5 @@
 @page "/events/package/{id:int}"
+@rendermode InteractiveServer
 @using EventHotelBroker.Models
 @using EventHotelBroker.Services
 @inject IEventService EventService
@@ -6,223 +7,191 @@
 
 <PageTitle>@(package?.Name ?? "Package Details") - EventHotelBroker</PageTitle>
 
-<link href="/css/events-module.css" rel="stylesheet" />
+<link href="/css/event-package-details.css" rel="stylesheet" />
 
-<div class="container-fluid px-4 py-4">
+<div class="epd">
     @if (isLoading)
     {
-        <div class="text-center py-5">
-            <div class="spinner-border spinner-modern text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            <p class="mt-3 text-muted">Loading package details...</p>
+        <div class="epd-empty">
+            <i class="bi bi-arrow-repeat spin"></i>
+            <div class="epd-empty-title">Loading...</div>
         </div>
     }
     else if (package == null)
     {
-        <div class="modern-card text-center py-5">
-            <i class="bi bi-exclamation-triangle display-1 text-warning"></i>
-            <h3 class="mt-3">Package Not Found</h3>
-            <p class="text-muted">The package you're looking for doesn't exist or has been removed.</p>
-            <a href="/events" class="btn-modern btn-gradient-primary mt-3">
-                <i class="bi bi-arrow-left me-2"></i>Back to Events
+        <div class="epd-empty">
+            <i class="bi bi-exclamation-triangle"></i>
+            <div class="epd-empty-title">Package Not Found</div>
+            <div class="epd-empty-text">The package you're looking for doesn't exist or has been removed.</div>
+            <a href="/events" class="epd-btn epd-btn-primary" style="width: auto; margin-top: 0.75rem; display: inline-flex;">
+                <i class="bi bi-arrow-left"></i> Back to Events
             </a>
         </div>
     }
     else
     {
-        <!-- Breadcrumb -->
-        <nav aria-label="breadcrumb" class="mb-4">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="/">Home</a></li>
-                <li class="breadcrumb-item"><a href="/events">Events</a></li>
-                <li class="breadcrumb-item active">@package.Name</li>
-            </ol>
-        </nav>
+        <Breadcrumb Items="@breadcrumbItems" />
 
-        <div class="row">
-            <!-- Main Content -->
-            <div class="col-lg-8">
-                <!-- Package Header -->
-                <div class="modern-card mb-4">
-                    @if (!string.IsNullOrEmpty(package.ImageUrl))
+        <!-- Hero Banner -->
+        <div class="epd-hero">
+            @if (!string.IsNullOrEmpty(package.ImageUrl))
+            {
+                <img src="@package.ImageUrl" alt="@package.Name" />
+            }
+            else
+            {
+                <div class="epd-hero-placeholder"><i class="bi bi-gift"></i></div>
+            }
+            <div class="epd-hero-overlay">
+                <div>
+                    <div class="epd-hero-title">@package.Name</div>
+                    <div class="epd-hero-badges">
+                        <span class="epd-badge epd-badge-type"><i class="bi bi-tag-fill"></i> @package.PackageType</span>
+                        @if (package.IsFeatured)
+                        {
+                            <span class="epd-badge epd-badge-featured"><i class="bi bi-star-fill"></i> Featured</span>
+                        }
+                        @if (package.IsCustomizable)
+                        {
+                            <span class="epd-badge epd-badge-custom"><i class="bi bi-sliders"></i> Customizable</span>
+                        }
+                    </div>
+                </div>
+                <div class="epd-hero-price">
+                    @if (package.DiscountedPrice.HasValue)
                     {
-                        <img src="@package.ImageUrl" class="card-img-top" alt="@package.Name" 
-                            style="max-height: 400px; object-fit: cover;" />
+                        <div class="epd-price-old">$@package.TotalPrice.ToString("N2")</div>
+                        <div class="epd-price-main">$@package.DiscountedPrice.Value.ToString("N2")</div>
+                        <div class="epd-price-save"><i class="bi bi-tag-fill"></i> Save $@((package.TotalPrice - package.DiscountedPrice.Value).ToString("N2"))</div>
                     }
                     else
                     {
-                        <div class="bg-gradient-primary text-white text-center py-5" style="background: var(--gradient-accent);">
-                            <i class="bi bi-gift display-1"></i>
-                        </div>
+                        <div class="epd-price-main">$@package.TotalPrice.ToString("N2")</div>
                     }
-                    
-                    <div class="modern-card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div>
-                                <h1 class="mb-2">@package.Name</h1>
-                                <div class="d-flex gap-2 flex-wrap">
-                                    <span class="badge-modern badge-gradient-info">
-                                        <i class="bi bi-tag me-1"></i>@package.PackageType
-                                    </span>
-                                    @if (package.IsFeatured)
-                                    {
-                                        <span class="badge-modern badge-gradient-accent">
-                                            <i class="bi bi-star-fill me-1"></i>Featured
-                                        </span>
-                                    }
-                                    @if (package.IsCustomizable)
-                                    {
-                                        <span class="badge-modern badge-gradient-success">
-                                            <i class="bi bi-sliders me-1"></i>Customizable
-                                        </span>
-                                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <!-- ── Left Column ── -->
+            <div class="col-lg-8">
+
+                <!-- Description -->
+                <div class="epd-card">
+                    <div class="epd-card-head">
+                        <span class="epd-card-title"><i class="bi bi-info-circle"></i> About This Package</span>
+                    </div>
+                    <div class="epd-card-body">
+                        <div class="epd-desc">@package.Description</div>
+                    </div>
+                </div>
+
+                <!-- Guest Capacity -->
+                <div class="epd-card">
+                    <div class="epd-card-head">
+                        <span class="epd-card-title"><i class="bi bi-people"></i> Guest Capacity</span>
+                    </div>
+                    <div class="epd-card-body">
+                        <div class="epd-stats">
+                            <div class="epd-stat">
+                                <div class="epd-stat-icon epd-icon-teal"><i class="bi bi-person-check"></i></div>
+                                <div>
+                                    <div class="epd-stat-value">@package.MinGuests</div>
+                                    <div class="epd-stat-label">Minimum</div>
                                 </div>
                             </div>
-                            <div class="text-end">
-                                @if (package.DiscountedPrice.HasValue)
-                                {
-                                    <div class="text-muted text-decoration-line-through">$@package.TotalPrice.ToString("N2")</div>
-                                    <h2 class="text-primary mb-0">$@package.DiscountedPrice.Value.ToString("N2")</h2>
-                                    <small class="text-success">
-                                        <i class="bi bi-tag-fill"></i> Save $@((package.TotalPrice - package.DiscountedPrice.Value).ToString("N2"))
-                                    </small>
-                                }
-                                else
-                                {
-                                    <h2 class="text-primary mb-0">$@package.TotalPrice.ToString("N2")</h2>
-                                }
-                            </div>
-                        </div>
-
-                        <hr />
-
-                        <!-- Description -->
-                        <div class="mb-4">
-                            <h5 class="mb-3"><i class="bi bi-info-circle me-2"></i>About This Package</h5>
-                            <p class="text-muted">@package.Description</p>
-                        </div>
-
-                        <!-- Guest Capacity -->
-                        <div class="mb-4">
-                            <h5 class="mb-3"><i class="bi bi-people me-2"></i>Guest Capacity</h5>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <div class="d-flex align-items-center p-3 border rounded">
-                                        <div class="me-3">
-                                            <i class="bi bi-person-check display-6 text-primary"></i>
-                                        </div>
-                                        <div>
-                                            <div class="text-muted small">Minimum Guests</div>
-                                            <h4 class="mb-0">@package.MinGuests</h4>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="d-flex align-items-center p-3 border rounded">
-                                        <div class="me-3">
-                                            <i class="bi bi-people-fill display-6 text-success"></i>
-                                        </div>
-                                        <div>
-                                            <div class="text-muted small">Maximum Guests</div>
-                                            <h4 class="mb-0">@package.MaxGuests</h4>
-                                        </div>
-                                    </div>
+                            <div class="epd-stat">
+                                <div class="epd-stat-icon epd-icon-terracotta"><i class="bi bi-people-fill"></i></div>
+                                <div>
+                                    <div class="epd-stat-value">@package.MaxGuests</div>
+                                    <div class="epd-stat-label">Maximum</div>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Features -->
-                        @if (!string.IsNullOrEmpty(package.Features))
-                        {
-                            <div class="mb-4">
-                                <h5 class="mb-3"><i class="bi bi-check-circle me-2"></i>What's Included</h5>
-                                <div class="row">
-                                    @foreach (var feature in GetFeatures())
-                                    {
-                                        <div class="col-md-6 mb-2">
-                                            <div class="d-flex align-items-start">
-                                                <i class="bi bi-check-circle-fill text-success me-2 mt-1"></i>
-                                                <span>@feature</span>
-                                            </div>
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                        }
-
-                        <!-- Provider Info -->
-                        <div class="alert alert-info">
-                            <i class="bi bi-info-circle me-2"></i>
-                            <strong>Professional Service:</strong> This package is provided by verified event professionals with years of experience.
                         </div>
                     </div>
                 </div>
 
-                <!-- Additional Information -->
-                <div class="modern-card">
-                    <div class="modern-card-body">
-                        <h5 class="mb-3"><i class="bi bi-question-circle me-2"></i>Important Information</h5>
-                        <div class="accordion" id="packageInfoAccordion">
-                            <div class="accordion-item">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBooking">
-                                        <i class="bi bi-calendar-check me-2"></i>Booking Process
-                                    </button>
-                                </h2>
-                                <div id="collapseBooking" class="accordion-collapse collapse show" data-bs-parent="#packageInfoAccordion">
-                                    <div class="accordion-body">
-                                        <ol>
-                                            <li>Select your event date and provide details</li>
-                                            <li>Submit your booking request</li>
-                                            <li>Our team will review and confirm availability</li>
-                                            <li>Pay the deposit to secure your booking</li>
-                                            <li>Finalize details closer to your event date</li>
-                                        </ol>
+                <!-- Features -->
+                @if (!string.IsNullOrEmpty(package.Features))
+                {
+                    <div class="epd-card">
+                        <div class="epd-card-head">
+                            <span class="epd-card-title"><i class="bi bi-check-circle"></i> What's Included</span>
+                        </div>
+                        <div class="epd-card-body">
+                            <div class="epd-features">
+                                @foreach (var feature in GetFeatures())
+                                {
+                                    <div class="epd-feature">
+                                        <i class="bi bi-check-circle-fill"></i>
+                                        <span>@feature</span>
                                     </div>
+                                }
+                            </div>
+                            <div class="epd-info">
+                                <div class="epd-info-icon"><i class="bi bi-shield-check"></i></div>
+                                <div class="epd-info-text"><strong>Professional Service</strong> — Provided by verified event professionals with years of experience.</div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Important Information (Accordion) -->
+                <div class="epd-card">
+                    <div class="epd-card-head">
+                        <span class="epd-card-title"><i class="bi bi-question-circle"></i> Important Information</span>
+                    </div>
+                    <div class="epd-card-body">
+                        <div class="epd-accordion">
+                            <div class="epd-acc-item @(openAccordion == 0 ? "open" : "")">
+                                <button class="epd-acc-header" @onclick="() => ToggleAccordion(0)">
+                                    <i class="bi bi-calendar-check"></i> Booking Process
+                                    <i class="bi bi-chevron-down epd-acc-chevron"></i>
+                                </button>
+                                <div class="epd-acc-body" style="@(openAccordion == 0 ? "display:block" : "display:none")">
+                                    <ol>
+                                        <li>Select your event date and provide details</li>
+                                        <li>Submit your booking request</li>
+                                        <li>Our team will review and confirm availability</li>
+                                        <li>Pay the deposit to secure your booking</li>
+                                        <li>Finalize details closer to your event date</li>
+                                    </ol>
                                 </div>
                             </div>
-                            <div class="accordion-item">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCustomization">
-                                        <i class="bi bi-sliders me-2"></i>Customization Options
-                                    </button>
-                                </h2>
-                                <div id="collapseCustomization" class="accordion-collapse collapse" data-bs-parent="#packageInfoAccordion">
-                                    <div class="accordion-body">
-                                        @if (package.IsCustomizable)
-                                        {
-                                            <p>This package can be customized to meet your specific needs:</p>
-                                            <ul>
-                                                <li>Add or remove equipment items</li>
-                                                <li>Adjust quantities based on guest count</li>
-                                                <li>Include additional services</li>
-                                                <li>Modify setup and delivery times</li>
-                                            </ul>
-                                            <p class="mb-0"><strong>Note:</strong> Customizations may affect the final price.</p>
-                                        }
-                                        else
-                                        {
-                                            <p class="mb-0">This is a fixed package. For custom requirements, please contact us directly.</p>
-                                        }
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="accordion-item">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCancellation">
-                                        <i class="bi bi-x-circle me-2"></i>Cancellation Policy
-                                    </button>
-                                </h2>
-                                <div id="collapseCancellation" class="accordion-collapse collapse" data-bs-parent="#packageInfoAccordion">
-                                    <div class="accordion-body">
+                            <div class="epd-acc-item @(openAccordion == 1 ? "open" : "")">
+                                <button class="epd-acc-header" @onclick="() => ToggleAccordion(1)">
+                                    <i class="bi bi-sliders"></i> Customization Options
+                                    <i class="bi bi-chevron-down epd-acc-chevron"></i>
+                                </button>
+                                <div class="epd-acc-body" style="@(openAccordion == 1 ? "display:block" : "display:none")">
+                                    @if (package.IsCustomizable)
+                                    {
+                                        <p>This package can be customized to meet your specific needs:</p>
                                         <ul>
-                                            <li><strong>30+ days before event:</strong> Full refund minus processing fee</li>
-                                            <li><strong>15-29 days before:</strong> 50% refund</li>
-                                            <li><strong>Less than 15 days:</strong> No refund, but can reschedule</li>
+                                            <li>Add or remove equipment items</li>
+                                            <li>Adjust quantities based on guest count</li>
+                                            <li>Include additional services</li>
+                                            <li>Modify setup and delivery times</li>
                                         </ul>
-                                        <p class="mb-0 text-muted small">Terms and conditions apply. Contact us for special circumstances.</p>
-                                    </div>
+                                        <p style="margin-bottom:0"><strong>Note:</strong> Customizations may affect the final price.</p>
+                                    }
+                                    else
+                                    {
+                                        <p style="margin-bottom:0">This is a fixed package. For custom requirements, please contact us directly.</p>
+                                    }
+                                </div>
+                            </div>
+                            <div class="epd-acc-item @(openAccordion == 2 ? "open" : "")">
+                                <button class="epd-acc-header" @onclick="() => ToggleAccordion(2)">
+                                    <i class="bi bi-x-circle"></i> Cancellation Policy
+                                    <i class="bi bi-chevron-down epd-acc-chevron"></i>
+                                </button>
+                                <div class="epd-acc-body" style="@(openAccordion == 2 ? "display:block" : "display:none")">
+                                    <ul>
+                                        <li><strong>30+ days before event:</strong> Full refund minus processing fee</li>
+                                        <li><strong>15-29 days before:</strong> 50% refund</li>
+                                        <li><strong>Less than 15 days:</strong> No refund, but can reschedule</li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
@@ -230,77 +199,83 @@
                 </div>
             </div>
 
-            <!-- Sidebar -->
+            <!-- ── Right Column ── -->
             <div class="col-lg-4">
+
                 <!-- Booking Card -->
-                <div class="modern-card sticky-top" style="top: 20px;">
-                    <div class="modern-card-body">
-                        <h5 class="mb-3">Book This Package</h5>
-                        
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Package Price:</span>
-                                @if (package.DiscountedPrice.HasValue)
-                                {
-                                    <strong class="text-primary">$@package.DiscountedPrice.Value.ToString("N2")</strong>
-                                }
-                                else
-                                {
-                                    <strong class="text-primary">$@package.TotalPrice.ToString("N2")</strong>
-                                }
-                            </div>
+                <div class="epd-card" style="position: sticky; top: 1rem;">
+                    <div class="epd-card-head">
+                        <span class="epd-card-title"><i class="bi bi-calendar-check"></i> Book This Package</span>
+                    </div>
+                    <div class="epd-card-body">
+                        <div class="epd-book-price">
+                            <span>Package Price</span>
                             @if (package.DiscountedPrice.HasValue)
                             {
-                                var savings = package.TotalPrice - package.DiscountedPrice.Value;
-                                var percentage = (savings / package.TotalPrice) * 100;
-                                <div class="alert alert-success py-2 mb-3">
-                                    <small>
-                                        <i class="bi bi-tag-fill me-1"></i>
-                                        You save $@savings.ToString("N2") (@percentage.ToString("N0")% off)
-                                    </small>
-                                </div>
+                                <span style="font-weight:700; color:#C87941;">$@package.DiscountedPrice.Value.ToString("N2")</span>
+                            }
+                            else
+                            {
+                                <span style="font-weight:700; color:#C87941;">$@package.TotalPrice.ToString("N2")</span>
                             }
                         </div>
+                        @if (package.DiscountedPrice.HasValue)
+                        {
+                            var savings = package.TotalPrice - package.DiscountedPrice.Value;
+                            var percentage = (savings / package.TotalPrice) * 100;
+                            <div class="epd-save-tag">
+                                <i class="bi bi-tag-fill"></i> You save $@savings.ToString("N2") (@percentage.ToString("N0")% off)
+                            </div>
+                        }
 
-                        <div class="d-grid gap-2 mb-3">
-                            <a href="/book-event?packageId=@package.Id" class="btn-modern btn-gradient-accent">
-                                <i class="bi bi-calendar-check me-2"></i>Book Now
-                            </a>
-                            <button class="btn btn-outline-primary" @onclick="ContactProvider">
-                                <i class="bi bi-chat-dots me-2"></i>Contact Provider
-                            </button>
-                        </div>
+                        <a href="/book-event?packageId=@package.Id" class="epd-btn epd-btn-accent" style="margin-bottom: 0.5rem;">
+                            <i class="bi bi-calendar-check"></i> Book Now
+                        </a>
+                        <button class="epd-btn epd-btn-outline" @onclick="ContactProvider">
+                            <i class="bi bi-chat-dots"></i> Contact Provider
+                        </button>
 
-                        <hr />
+                        <hr class="epd-divider" />
 
-                        <div class="small text-muted">
-                            <div class="d-flex align-items-center mb-2">
-                                <i class="bi bi-shield-check text-success me-2"></i>
+                        <div class="epd-trust">
+                            <div class="epd-trust-item">
+                                <div class="epd-trust-icon epd-icon-teal"><i class="bi bi-shield-check"></i></div>
                                 <span>Verified Provider</span>
                             </div>
-                            <div class="d-flex align-items-center mb-2">
-                                <i class="bi bi-clock-history text-primary me-2"></i>
+                            <div class="epd-trust-item">
+                                <div class="epd-trust-icon epd-icon-bronze"><i class="bi bi-clock-history"></i></div>
                                 <span>Quick Response Time</span>
                             </div>
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-award text-warning me-2"></i>
+                            <div class="epd-trust-item">
+                                <div class="epd-trust-icon epd-icon-terracotta"><i class="bi bi-award"></i></div>
                                 <span>Quality Guaranteed</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Share Card -->
-                <div class="modern-card mt-4">
-                    <div class="modern-card-body">
-                        <h6 class="mb-3">Share This Package</h6>
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-outline-primary flex-fill" @onclick="SharePackage">
-                                <i class="bi bi-share"></i>
-                            </button>
-                            <button class="btn btn-outline-danger flex-fill">
-                                <i class="bi bi-heart"></i>
-                            </button>
+                <!-- Quick Actions -->
+                <div class="epd-card">
+                    <div class="epd-card-head">
+                        <span class="epd-card-title"><i class="bi bi-lightning"></i> Quick Actions</span>
+                    </div>
+                    <div class="epd-card-body" style="padding: 0.5rem;">
+                        <div class="epd-qa-stack">
+                            <div class="epd-qa" @onclick="SharePackage">
+                                <div class="epd-qa-icon epd-icon-teal"><i class="bi bi-share"></i></div>
+                                <span class="epd-qa-text">Share Package</span>
+                                <i class="bi bi-chevron-right epd-qa-arrow"></i>
+                            </div>
+                            <div class="epd-qa" @onclick='() => Navigation.NavigateTo("/events")'>
+                                <div class="epd-qa-icon epd-icon-bronze"><i class="bi bi-grid"></i></div>
+                                <span class="epd-qa-text">Browse All Packages</span>
+                                <i class="bi bi-chevron-right epd-qa-arrow"></i>
+                            </div>
+                            <div class="epd-qa" @onclick="ContactProvider">
+                                <div class="epd-qa-icon epd-icon-terracotta"><i class="bi bi-headset"></i></div>
+                                <span class="epd-qa-text">Contact Support</span>
+                                <i class="bi bi-chevron-right epd-qa-arrow"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -315,6 +290,14 @@
 
     private EventPackage? package;
     private bool isLoading = true;
+    private int openAccordion = 0;
+
+    private List<BreadcrumbItem> breadcrumbItems = new()
+    {
+        new BreadcrumbItem { Text = "Home", Url = "/" },
+        new BreadcrumbItem { Text = "Events", Url = "/events" },
+        new BreadcrumbItem { Text = "Package Details", IsActive = true }
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -351,6 +334,11 @@
         {
             return new List<string>();
         }
+    }
+
+    private void ToggleAccordion(int index)
+    {
+        openAccordion = openAccordion == index ? -1 : index;
     }
 
     private void ContactProvider()

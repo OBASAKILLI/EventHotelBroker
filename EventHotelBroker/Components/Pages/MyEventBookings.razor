@@ -3,6 +3,8 @@
 @using EventHotelBroker.Models
 @using EventHotelBroker.Services
 @inject IEventService EventService
+@inject NavigationManager Navigation
+@inject ToastService ToastService
 
 <PageTitle>My Event Bookings - EventHotelBroker</PageTitle>
 
@@ -136,11 +138,11 @@
                             <div class="evt-card-actions">
                                 @if (booking.Status == EventBookingStatus.Pending)
                                 {
-                                    <button class="evt-action-btn cancel" @onclick="() => CancelBooking(booking.Id)">
+                                    <button class="evt-action-btn cancel" @onclick="() => ShowCancelDialog(booking.Id)">
                                         <i class="bi bi-x-circle"></i> Cancel
                                     </button>
                                 }
-                                <button class="evt-action-btn view">
+                                <button class="evt-action-btn view" @onclick="() => ViewDetails(booking.Id)">
                                     <i class="bi bi-eye"></i> Details
                                 </button>
                             </div>
@@ -186,11 +188,23 @@
     }
 </div>
 
+<ConfirmDialog
+    IsVisible="@showCancelModal"
+    Title="Cancel Event Booking"
+    Message="Are you sure you want to cancel this event booking? This action cannot be undone."
+    ConfirmText="Yes, Cancel Booking"
+    CancelText="Keep Booking"
+    Type="ConfirmDialog.ConfirmType.Danger"
+    OnConfirmed="@ConfirmCancelBooking"
+    OnCancelled="@(() => showCancelModal = false)" />
+
 @code {
     private bool isLoading = true;
     private List<EventBooking> bookings = new();
     private int upcomingEvents = 0;
     private string currentUserId = "temp-user-id";
+    private bool showCancelModal = false;
+    private int cancelBookingId = 0;
 
     // Search & filter
     private string searchTerm = "";
@@ -399,19 +413,37 @@
         };
     }
 
-    private async Task CancelBooking(int bookingId)
+    private void ViewDetails(int bookingId)
     {
-        if (confirm("Are you sure you want to cancel this booking?"))
-        {
-            await EventService.CancelBookingAsync(bookingId);
-            await LoadBookings();
-        }
+        Navigation.NavigateTo($"/booking/details/{bookingId}");
     }
 
-    private bool confirm(string message)
+    private void ShowCancelDialog(int bookingId)
     {
-        // In production, use a proper modal dialog
-        return true;
+        cancelBookingId = bookingId;
+        showCancelModal = true;
+    }
+
+    private async Task ConfirmCancelBooking()
+    {
+        showCancelModal = false;
+        try
+        {
+            var result = await EventService.CancelBookingAsync(cancelBookingId);
+            if (result)
+            {
+                ToastService.ShowSuccess("Cancelled", "Event booking cancelled successfully.");
+                await LoadBookings();
+            }
+            else
+            {
+                ToastService.ShowError("Error", "Failed to cancel booking. Please try again.");
+            }
+        }
+        catch (Exception)
+        {
+            ToastService.ShowError("Error", "An error occurred while cancelling the booking.");
+        }
     }
 
     private string GetStatusClass(EventBookingStatus status)

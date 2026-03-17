@@ -4,477 +4,493 @@
 
 <PageTitle>Event Checkout - EventHotelBroker</PageTitle>
 
-<div class="container py-5">
-    <div class="row">
-        <div class="col-lg-8 mx-auto">
-            <!-- Progress Steps -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="text-center flex-fill">
-                            <div class="step-circle @(currentStep >= 1 ? "active" : "")">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-                            <small class="d-block mt-2">Event Details</small>
-                        </div>
-                        <div class="step-line @(currentStep >= 2 ? "active" : "")"></div>
-                        <div class="text-center flex-fill">
-                            <div class="step-circle @(currentStep >= 2 ? "active" : "")">
-                                @if (currentStep >= 2)
-                                {
-                                    <i class="bi bi-check-circle-fill"></i>
-                                }
-                                else
-                                {
-                                    <span>2</span>
-                                }
-                            </div>
-                            <small class="d-block mt-2">Payment</small>
-                        </div>
-                        <div class="step-line @(currentStep >= 3 ? "active" : "")"></div>
-                        <div class="text-center flex-fill">
-                            <div class="step-circle @(currentStep >= 3 ? "active" : "")">
-                                @if (currentStep >= 3)
-                                {
-                                    <i class="bi bi-check-circle-fill"></i>
-                                }
-                                else
-                                {
-                                    <span>3</span>
-                                }
-                            </div>
-                            <small class="d-block mt-2">Confirmation</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<link href="/css/event-checkout.css" rel="stylesheet" />
 
+<div class="ec-shell">
+    <!-- Step Indicator -->
+    <div class="ec-steps">
+        <div class="ec-step @(currentStep >= 1 ? (currentStep > 1 ? "done" : "active") : "")">
+            <div class="ec-step-dot">
+                @if (currentStep > 1) { <i class="bi bi-check"></i> } else { <span>1</span> }
+            </div>
+            <span class="ec-step-label">Details</span>
+        </div>
+        <div class="ec-step-line @(currentStep >= 2 ? "active" : "")"></div>
+        <div class="ec-step @(currentStep >= 2 ? (currentStep > 2 ? "done" : "active") : "")">
+            <div class="ec-step-dot">
+                @if (currentStep > 2) { <i class="bi bi-check"></i> } else { <span>2</span> }
+            </div>
+            <span class="ec-step-label">Payment</span>
+        </div>
+        <div class="ec-step-line @(currentStep >= 3 ? "active" : "")"></div>
+        <div class="ec-step @(currentStep >= 3 ? "active" : "")">
+            <div class="ec-step-dot">
+                @if (paymentComplete) { <i class="bi bi-check"></i> } else { <span>3</span> }
+            </div>
+            <span class="ec-step-label">Confirm</span>
+        </div>
+    </div>
+
+    <div class="ec-layout">
+        <!-- ═══ LEFT: Checkout Flow ═══ -->
+        <div class="ec-main">
             @if (currentStep == 1)
             {
                 <!-- Step 1: Event Booking Summary -->
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0"><i class="bi bi-calendar-event"></i> Event Booking Summary</h5>
+                <div class="ec-card">
+                    <div class="ec-card-head">
+                        <i class="bi bi-calendar-event"></i>
+                        <h5>Event Booking Summary</h5>
                     </div>
-                    <div class="card-body">
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <h6 class="text-muted">Event Type</h6>
-                                <h5>@eventType</h5>
+                    <div class="ec-card-body">
+                        <div class="ec-summary-grid">
+                            <div class="ec-summary-item">
+                                <span class="ec-summary-label">Event Type</span>
+                                <span class="ec-summary-value">@eventType</span>
                             </div>
-                            <div class="col-md-6">
-                                <h6 class="text-muted">Package</h6>
-                                <p>@packageName</p>
+                            <div class="ec-summary-item">
+                                <span class="ec-summary-label">Package</span>
+                                <span class="ec-summary-value">@packageName</span>
                             </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <h6 class="text-muted">Event Date</h6>
-                                <p><i class="bi bi-calendar"></i> @eventDate.ToString("MMM dd, yyyy")</p>
+                            <div class="ec-summary-item">
+                                <span class="ec-summary-label">Event Date</span>
+                                <span class="ec-summary-value"><i class="bi bi-calendar3"></i> @eventDate.ToString("MMM dd, yyyy")</span>
                             </div>
-                            <div class="col-md-6">
-                                <h6 class="text-muted">Number of Guests</h6>
-                                <p><i class="bi bi-people"></i> @numberOfGuests guests</p>
+                            <div class="ec-summary-item">
+                                <span class="ec-summary-label">Number of Guests</span>
+                                <span class="ec-summary-value"><i class="bi bi-people"></i> @numberOfGuests guests</span>
                             </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-12">
-                                <h6 class="text-muted">Venue</h6>
-                                <p><i class="bi bi-geo-alt"></i> @venueName</p>
+                            <div class="ec-summary-item full">
+                                <span class="ec-summary-label">Venue</span>
+                                <span class="ec-summary-value"><i class="bi bi-geo-alt"></i> @venueName</span>
                             </div>
                         </div>
-                        <hr />
-                        <div class="row">
-                            <div class="col-6">
-                                <h6 class="text-muted">Package Price</h6>
-                                <p>KES @packagePrice.ToString("N0")</p>
-                            </div>
-                            <div class="col-6 text-end">
-                                <h6 class="text-muted">Additional Services</h6>
-                                <h5>KES @additionalServices.ToString("N0")</h5>
-                            </div>
+
+                        <div class="ec-divider"></div>
+
+                        <div class="ec-price-row">
+                            <span>Package Price</span>
+                            <span>KES @packagePrice.ToString("N0")</span>
                         </div>
-                        <hr />
-                        <div class="row">
-                            <div class="col-6">
-                                <h4>Total Amount</h4>
-                            </div>
-                            <div class="col-6 text-end">
-                                <h3 class="text-primary">KES @totalAmount.ToString("N0")</h3>
-                            </div>
+                        <div class="ec-price-row">
+                            <span>Additional Services</span>
+                            <span>KES @additionalServices.ToString("N0")</span>
+                        </div>
+
+                        <div class="ec-divider"></div>
+
+                        <div class="ec-price-row ec-total">
+                            <span>Total Amount</span>
+                            <span>KES @totalAmount.ToString("N0")</span>
                         </div>
                     </div>
-                    <div class="card-footer bg-light">
-                        <button type="button" class="btn btn-primary btn-lg w-100" @onclick="ProceedToPayment">
-                            Proceed to Payment <i class="bi bi-arrow-right"></i>
-                        </button>
-                    </div>
+                </div>
+
+                <!-- Detail Tabs -->
+                <div class="ec-tabs">
+                    <button class="ec-tab @(activeTab == "included" ? "active" : "")" @onclick='() => SelectTab("included")'>
+                        <i class="bi bi-box-seam"></i> What's Included
+                    </button>
+                    <button class="ec-tab @(activeTab == "timeline" ? "active" : "")" @onclick='() => SelectTab("timeline")'>
+                        <i class="bi bi-clock-history"></i> Timeline
+                    </button>
+                    <button class="ec-tab @(activeTab == "reviews" ? "active" : "")" @onclick='() => SelectTab("reviews")'>
+                        <i class="bi bi-chat-quote"></i> Reviews
+                    </button>
+                    <button class="ec-tab @(activeTab == "trust" ? "active" : "")" @onclick='() => SelectTab("trust")'>
+                        <i class="bi bi-shield-check"></i> Trust & Support
+                    </button>
+                </div>
+
+                <div class="ec-tab-content">
+                    @if (activeTab == "included")
+                    {
+                        <div class="ec-included-list">
+                            <div class="ec-included-item"><i class="bi bi-check-circle-fill"></i> Venue hire & exclusive access</div>
+                            <div class="ec-included-item"><i class="bi bi-check-circle-fill"></i> Tables, chairs & linen for @numberOfGuests</div>
+                            <div class="ec-included-item"><i class="bi bi-check-circle-fill"></i> Professional event coordinator</div>
+                            <div class="ec-included-item"><i class="bi bi-check-circle-fill"></i> Sound system & lighting setup</div>
+                            <div class="ec-included-item"><i class="bi bi-check-circle-fill"></i> Floral centerpieces & decor</div>
+                            <div class="ec-included-item"><i class="bi bi-check-circle-fill"></i> Parking for 80+ vehicles</div>
+                            <div class="ec-included-item"><i class="bi bi-check-circle-fill"></i> Post-event cleanup</div>
+                        </div>
+                    }
+                    else if (activeTab == "timeline")
+                    {
+                        <div class="ec-timeline">
+                            <div class="ec-timeline-item done">
+                                <div class="ec-timeline-dot"><i class="bi bi-check"></i></div>
+                                <div class="ec-timeline-content">
+                                    <div class="ec-timeline-title">Booking Created</div>
+                                    <div class="ec-timeline-desc">Today</div>
+                                </div>
+                            </div>
+                            <div class="ec-timeline-item active">
+                                <div class="ec-timeline-dot"><span>2</span></div>
+                                <div class="ec-timeline-content">
+                                    <div class="ec-timeline-title">Payment & Confirmation</div>
+                                    <div class="ec-timeline-desc">Complete checkout</div>
+                                </div>
+                            </div>
+                            <div class="ec-timeline-item">
+                                <div class="ec-timeline-dot"><span>3</span></div>
+                                <div class="ec-timeline-content">
+                                    <div class="ec-timeline-title">Planning Call</div>
+                                    <div class="ec-timeline-desc">Within 48 hours</div>
+                                </div>
+                            </div>
+                            <div class="ec-timeline-item">
+                                <div class="ec-timeline-dot"><span>4</span></div>
+                                <div class="ec-timeline-content">
+                                    <div class="ec-timeline-title">Menu & Decor Finalization</div>
+                                    <div class="ec-timeline-desc">2 weeks before event</div>
+                                </div>
+                            </div>
+                            <div class="ec-timeline-item">
+                                <div class="ec-timeline-dot"><span>5</span></div>
+                                <div class="ec-timeline-content">
+                                    <div class="ec-timeline-title">Venue Walkthrough</div>
+                                    <div class="ec-timeline-desc">1 week before event</div>
+                                </div>
+                            </div>
+                            <div class="ec-timeline-item">
+                                <div class="ec-timeline-dot"><i class="bi bi-star-fill"></i></div>
+                                <div class="ec-timeline-content">
+                                    <div class="ec-timeline-title">Event Day</div>
+                                    <div class="ec-timeline-desc">@eventDate.ToString("MMM dd, yyyy")</div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else if (activeTab == "reviews")
+                    {
+                        <div class="ec-review">
+                            <div class="ec-review-head">
+                                <div class="ec-review-avatar">AK</div>
+                                <div>
+                                    <div class="ec-review-name">Amani K.</div>
+                                    <div class="ec-review-stars">
+                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ec-review-text">"Absolutely stunning wedding setup. The coordination team was flawless and our guests couldn't stop complimenting the decor!"</div>
+                        </div>
+                        <div class="ec-review">
+                            <div class="ec-review-head">
+                                <div class="ec-review-avatar">JM</div>
+                                <div>
+                                    <div class="ec-review-name">James M.</div>
+                                    <div class="ec-review-stars">
+                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ec-review-text">"Great value for money. The venue was beautiful and the team handled everything professionally."</div>
+                        </div>
+                        <div class="ec-review">
+                            <div class="ec-review-head">
+                                <div class="ec-review-avatar">SW</div>
+                                <div>
+                                    <div class="ec-review-name">Sarah W.</div>
+                                    <div class="ec-review-stars">
+                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ec-review-text">"From planning to execution, everything was seamless. Highly recommend for any special occasion."</div>
+                        </div>
+                    }
+                    else if (activeTab == "trust")
+                    {
+                        <div class="ec-trust-grid">
+                            <div class="ec-trust-item">
+                                <div class="ec-trust-icon"><i class="bi bi-shield-lock-fill"></i></div>
+                                <div class="ec-trust-label">Secure Payment</div>
+                            </div>
+                            <div class="ec-trust-item">
+                                <div class="ec-trust-icon"><i class="bi bi-arrow-counterclockwise"></i></div>
+                                <div class="ec-trust-label">Free Cancellation</div>
+                            </div>
+                            <div class="ec-trust-item">
+                                <div class="ec-trust-icon"><i class="bi bi-patch-check-fill"></i></div>
+                                <div class="ec-trust-label">Verified Venue</div>
+                            </div>
+                            <div class="ec-trust-item">
+                                <div class="ec-trust-icon"><i class="bi bi-headset"></i></div>
+                                <div class="ec-trust-label">24/7 Support</div>
+                            </div>
+                        </div>
+                        <div class="ec-divider"></div>
+                        <div class="ec-help-inline">
+                            <div class="ec-help-inline-head">
+                                <i class="bi bi-headset"></i>
+                                <span>Need Help? Our event specialists are ready to assist you</span>
+                            </div>
+                            <div class="ec-help-contacts">
+                                <a href="tel:+254700000000" class="ec-help-link"><i class="bi bi-telephone-fill"></i> +254 700 000 000</a>
+                                <a href="mailto:events@eventhotelbroker.com" class="ec-help-link"><i class="bi bi-envelope-fill"></i> events@eventhotelbroker.com</a>
+                                <a href="/chat" class="ec-help-link"><i class="bi bi-chat-dots-fill"></i> Live Chat</a>
+                            </div>
+                        </div>
+                    }
                 </div>
             }
             else if (currentStep == 2)
             {
-                <!-- Step 2: Payment Method Selection -->
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0"><i class="bi bi-credit-card"></i> Select Payment Method</h5>
+                <!-- Step 2: Payment Method -->
+                <div class="ec-card">
+                    <div class="ec-card-head ec-head-pay">
+                        <i class="bi bi-credit-card"></i>
+                        <h5>Select Payment Method</h5>
                     </div>
-                    <div class="card-body">
-                        <div class="alert alert-info">
+                    <div class="ec-card-body">
+                        <div class="ec-notice">
                             <i class="bi bi-shield-check"></i> Your payment is secure and encrypted
                         </div>
 
                         <!-- M-Pesa -->
-                        <div class="payment-option @(selectedPayment == "mpesa" ? "selected" : "")" @onclick='() => SelectPayment("mpesa")'>
-                            <div class="d-flex align-items-center">
-                                <div class="payment-icon bg-success">
-                                    <i class="bi bi-phone"></i>
-                                </div>
-                                <div class="flex-fill ms-3">
-                                    <h6 class="mb-0">M-Pesa</h6>
-                                    <small class="text-muted">Pay with your mobile money</small>
-                                </div>
-                                <div>
-                                    @if (selectedPayment == "mpesa")
-                                    {
-                                        <i class="bi bi-check-circle-fill text-success fs-4"></i>
-                                    }
-                                    else
-                                    {
-                                        <i class="bi bi-circle text-muted fs-4"></i>
-                                    }
-                                </div>
+                        <div class="ec-pay-option @(selectedPayment == "mpesa" ? "selected" : "")" @onclick='() => SelectPayment("mpesa")'>
+                            <div class="ec-pay-icon mpesa"><i class="bi bi-phone"></i></div>
+                            <div class="ec-pay-body">
+                                <div class="ec-pay-name">M-Pesa</div>
+                                <div class="ec-pay-desc">Pay with your mobile money</div>
+                            </div>
+                            <div class="ec-pay-check">
+                                @if (selectedPayment == "mpesa")
+                                { <i class="bi bi-check-circle-fill checked"></i> }
+                                else
+                                { <i class="bi bi-circle unchecked"></i> }
                             </div>
                         </div>
 
                         <!-- Credit/Debit Card -->
-                        <div class="payment-option @(selectedPayment == "card" ? "selected" : "")" @onclick='() => SelectPayment("card")'>
-                            <div class="d-flex align-items-center">
-                                <div class="payment-icon bg-primary">
-                                    <i class="bi bi-credit-card"></i>
-                                </div>
-                                <div class="flex-fill ms-3">
-                                    <h6 class="mb-0">Credit/Debit Card</h6>
-                                    <small class="text-muted">Visa, Mastercard, Amex</small>
-                                </div>
-                                <div>
-                                    @if (selectedPayment == "card")
-                                    {
-                                        <i class="bi bi-check-circle-fill text-success fs-4"></i>
-                                    }
-                                    else
-                                    {
-                                        <i class="bi bi-circle text-muted fs-4"></i>
-                                    }
-                                </div>
+                        <div class="ec-pay-option @(selectedPayment == "card" ? "selected" : "")" @onclick='() => SelectPayment("card")'>
+                            <div class="ec-pay-icon card"><i class="bi bi-credit-card"></i></div>
+                            <div class="ec-pay-body">
+                                <div class="ec-pay-name">Credit/Debit Card</div>
+                                <div class="ec-pay-desc">Visa, Mastercard, Amex</div>
+                            </div>
+                            <div class="ec-pay-check">
+                                @if (selectedPayment == "card")
+                                { <i class="bi bi-check-circle-fill checked"></i> }
+                                else
+                                { <i class="bi bi-circle unchecked"></i> }
                             </div>
                         </div>
 
                         <!-- PayPal -->
-                        <div class="payment-option @(selectedPayment == "paypal" ? "selected" : "")" @onclick='() => SelectPayment("paypal")'>
-                            <div class="d-flex align-items-center">
-                                <div class="payment-icon bg-info">
-                                    <i class="bi bi-paypal"></i>
-                                </div>
-                                <div class="flex-fill ms-3">
-                                    <h6 class="mb-0">PayPal</h6>
-                                    <small class="text-muted">Pay with your PayPal account</small>
-                                </div>
-                                <div>
-                                    @if (selectedPayment == "paypal")
-                                    {
-                                        <i class="bi bi-check-circle-fill text-success fs-4"></i>
-                                    }
-                                    else
-                                    {
-                                        <i class="bi bi-circle text-muted fs-4"></i>
-                                    }
-                                </div>
+                        <div class="ec-pay-option @(selectedPayment == "paypal" ? "selected" : "")" @onclick='() => SelectPayment("paypal")'>
+                            <div class="ec-pay-icon paypal"><i class="bi bi-paypal"></i></div>
+                            <div class="ec-pay-body">
+                                <div class="ec-pay-name">PayPal</div>
+                                <div class="ec-pay-desc">Pay with your PayPal account</div>
+                            </div>
+                            <div class="ec-pay-check">
+                                @if (selectedPayment == "paypal")
+                                { <i class="bi bi-check-circle-fill checked"></i> }
+                                else
+                                { <i class="bi bi-circle unchecked"></i> }
                             </div>
                         </div>
 
                         @if (!string.IsNullOrEmpty(selectedPayment))
                         {
-                            <div class="mt-4">
-                                @if (selectedPayment == "mpesa")
-                                {
-                                    <div class="payment-details">
-                                        <h6 class="mb-3">Enter M-Pesa Details</h6>
-                                        <div class="mb-3">
-                                            <label class="form-label">Phone Number</label>
-                                            <input type="tel" class="form-control" @bind="phoneNumber" placeholder="254712345678" />
+                            @if (selectedPayment == "mpesa")
+                            {
+                                <div class="ec-pay-form">
+                                    <h6>Enter M-Pesa Details</h6>
+                                    <div class="ec-form-group">
+                                        <label class="ec-form-label">Phone Number</label>
+                                        <input type="tel" class="ec-form-input" @bind="phoneNumber" placeholder="254712345678" />
+                                    </div>
+                                    <div class="ec-info-box">
+                                        <i class="bi bi-info-circle"></i> You will receive an STK push to complete payment
+                                    </div>
+                                </div>
+                            }
+                            else if (selectedPayment == "card")
+                            {
+                                <div class="ec-pay-form">
+                                    <h6>Enter Card Details</h6>
+                                    <div class="ec-form-group">
+                                        <label class="ec-form-label">Card Number</label>
+                                        <input type="text" class="ec-form-input" @bind="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" />
+                                    </div>
+                                    <div class="ec-form-row">
+                                        <div class="ec-form-group">
+                                            <label class="ec-form-label">Expiry Date</label>
+                                            <input type="text" class="ec-form-input" @bind="expiryDate" placeholder="MM/YY" maxlength="5" />
                                         </div>
-                                        <div class="alert alert-info mb-0">
-                                            <small>
-                                                <i class="bi bi-info-circle"></i> You will receive an STK push to complete payment
-                                            </small>
+                                        <div class="ec-form-group">
+                                            <label class="ec-form-label">CVV</label>
+                                            <input type="text" class="ec-form-input" @bind="cvv" placeholder="123" maxlength="3" />
                                         </div>
                                     </div>
-                                }
-                                else if (selectedPayment == "card")
-                                {
-                                    <div class="payment-details">
-                                        <h6 class="mb-3">Enter Card Details</h6>
-                                        <div class="mb-3">
-                                            <label class="form-label">Card Number</label>
-                                            <input type="text" class="form-control" @bind="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" />
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-6 mb-3">
-                                                <label class="form-label">Expiry Date</label>
-                                                <input type="text" class="form-control" @bind="expiryDate" placeholder="MM/YY" maxlength="5" />
-                                            </div>
-                                            <div class="col-md-6 mb-3">
-                                                <label class="form-label">CVV</label>
-                                                <input type="text" class="form-control" @bind="cvv" placeholder="123" maxlength="3" />
-                                            </div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Cardholder Name</label>
-                                            <input type="text" class="form-control" @bind="cardholderName" placeholder="John Doe" />
-                                        </div>
+                                    <div class="ec-form-group">
+                                        <label class="ec-form-label">Cardholder Name</label>
+                                        <input type="text" class="ec-form-input" @bind="cardholderName" placeholder="John Doe" />
                                     </div>
-                                }
-                                else if (selectedPayment == "paypal")
-                                {
-                                    <div class="payment-details">
-                                        <div class="alert alert-info mb-0">
-                                            <i class="bi bi-info-circle"></i> You will be redirected to PayPal to complete your payment
-                                        </div>
+                                </div>
+                            }
+                            else if (selectedPayment == "paypal")
+                            {
+                                <div class="ec-pay-form">
+                                    <div class="ec-info-box">
+                                        <i class="bi bi-info-circle"></i> You will be redirected to PayPal to complete your payment
                                     </div>
-                                }
-                            </div>
+                                </div>
+                            }
                         }
                     </div>
-                    <div class="card-footer bg-light">
-                        <div class="row">
-                            <div class="col-6">
-                                <button type="button" class="btn btn-outline-secondary w-100" @onclick="() => currentStep = 1">
-                                    <i class="bi bi-arrow-left"></i> Back
-                                </button>
-                            </div>
-                            <div class="col-6">
-                                <button type="button" class="btn btn-success btn-lg w-100" 
-                                        @onclick="ProcessPayment" 
-                                        disabled="@(string.IsNullOrEmpty(selectedPayment))">
-                                    Pay KES @totalAmount.ToString("N0") <i class="bi bi-lock-fill"></i>
-                                </button>
-                            </div>
+                    <div class="ec-card-footer">
+                        <div class="ec-footer-grid">
+                            <button type="button" class="ec-btn-secondary" @onclick="() => currentStep = 1">
+                                <i class="bi bi-arrow-left"></i> Back
+                            </button>
+                            <button type="button" class="ec-btn-primary"
+                                    @onclick="ProcessPayment"
+                                    disabled="@(string.IsNullOrEmpty(selectedPayment))">
+                                Pay KES @totalAmount.ToString("N0") <i class="bi bi-lock-fill"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
             }
             else if (currentStep == 3)
             {
-                @if (!paymentComplete)
-                {
-                    <!-- Processing -->
-                    <div class="card shadow-sm">
-                        <div class="card-body text-center py-5">
-                            <div class="spinner-border text-primary mb-3" style="width: 4rem; height: 4rem;" role="status">
-                                <span class="visually-hidden">Processing...</span>
+                <div class="ec-card">
+                    @if (!paymentComplete)
+                    {
+                        <div class="ec-card-body">
+                            <div class="ec-processing">
+                                <div class="ec-spinner"></div>
+                                <h4>Processing Your Payment</h4>
+                                <p>Please wait while we confirm your payment...</p>
+                                @if (selectedPayment == "mpesa")
+                                {
+                                    <div class="ec-info-box">
+                                        <i class="bi bi-phone"></i> Check your phone for M-Pesa prompt
+                                    </div>
+                                }
                             </div>
-                            <h4>Processing Your Payment</h4>
-                            <p class="text-muted">Please wait while we confirm your payment...</p>
-                            @if (selectedPayment == "mpesa")
-                            {
-                                <div class="alert alert-info mt-3">
-                                    <i class="bi bi-phone"></i> Check your phone for M-Pesa prompt
-                                </div>
-                            }
                         </div>
-                    </div>
-                }
-                else
-                {
-                    <!-- Success -->
-                    <div class="card shadow-sm border-success">
-                        <div class="card-body text-center py-5">
-                            <div class="mb-4">
-                                <i class="bi bi-check-circle-fill text-success" style="font-size: 5rem;"></i>
-                            </div>
-                            <h2 class="text-success mb-3">Event Booking Confirmed!</h2>
-                            <p class="lead">Your payment was successful</p>
-                            
-                            <div class="card bg-light mt-4 mb-4">
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-6 text-start">
-                                            <small class="text-muted">Booking Reference</small>
-                                            <h5 class="mb-0">EVT-@bookingReference</h5>
+                    }
+                    else
+                    {
+                        <div class="ec-card-body">
+                            <div class="ec-success">
+                                <div class="ec-success-icon">
+                                    <i class="bi bi-check-lg"></i>
+                                </div>
+                                <h2>Event Booking Confirmed!</h2>
+                                <p class="ec-success-sub">Your payment was successful</p>
+
+                                <div class="ec-confirm-box">
+                                    <div class="ec-confirm-row">
+                                        <div class="ec-confirm-item">
+                                            <span class="ec-summary-label">Booking Reference</span>
+                                            <span class="ec-summary-value">EVT-@bookingReference</span>
                                         </div>
-                                        <div class="col-6 text-end">
-                                            <small class="text-muted">Amount Paid</small>
-                                            <h5 class="mb-0 text-success">KES @totalAmount.ToString("N0")</h5>
+                                        <div class="ec-confirm-item right">
+                                            <span class="ec-summary-label">Amount Paid</span>
+                                            <span class="ec-summary-value highlight">KES @totalAmount.ToString("N0")</span>
                                         </div>
                                     </div>
-                                    <hr />
-                                    <div class="row">
-                                        <div class="col-6 text-start">
-                                            <small class="text-muted">Event Date</small>
-                                            <p class="mb-0">@eventDate.ToString("MMM dd, yyyy")</p>
+                                    <div class="ec-divider"></div>
+                                    <div class="ec-confirm-row">
+                                        <div class="ec-confirm-item">
+                                            <span class="ec-summary-label">Event Date</span>
+                                            <span class="ec-summary-value">@eventDate.ToString("MMM dd, yyyy")</span>
                                         </div>
-                                        <div class="col-6 text-end">
-                                            <small class="text-muted">Guests</small>
-                                            <p class="mb-0">@numberOfGuests people</p>
+                                        <div class="ec-confirm-item right">
+                                            <span class="ec-summary-label">Guests</span>
+                                            <span class="ec-summary-value">@numberOfGuests people</span>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div class="alert alert-info">
-                                <i class="bi bi-envelope"></i> A confirmation email has been sent to your email address
-                            </div>
+                                <div class="ec-email-notice">
+                                    <i class="bi bi-envelope"></i> A confirmation email has been sent to your email address
+                                </div>
 
-                            <div class="d-grid gap-2 mt-4">
-                                <button type="button" class="btn btn-primary btn-lg" @onclick="ViewBookings">
-                                    <i class="bi bi-eye"></i> View My Event Bookings
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary" @onclick="GoHome">
-                                    <i class="bi bi-house"></i> Back to Home
-                                </button>
+                                <div class="ec-success-actions">
+                                    <button type="button" class="ec-btn-primary" @onclick="ViewBookings">
+                                        <i class="bi bi-eye"></i> View My Event Bookings
+                                    </button>
+                                    <button type="button" class="ec-btn-secondary" @onclick="GoHome">
+                                        <i class="bi bi-house"></i> Back to Home
+                                    </button>
+                                </div>
                             </div>
                         </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- ═══ RIGHT: Sidebar ═══ -->
+        <div class="ec-sidebar">
+
+            <!-- Package Card -->
+            <div class="ec-side-card">
+                <div class="ec-side-head">
+                    <div class="ec-pkg-badge">PREMIUM</div>
+                    <h5 class="ec-side-title">@packageName</h5>
+                    <div class="ec-pkg-rating">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-half"></i>
+                        <span>4.8 (126 reviews)</span>
                     </div>
-                }
+                </div>
+                <div class="ec-side-body">
+                    <div class="ec-pkg-price">
+                        <span class="ec-pkg-amount">KES @totalAmount.ToString("N0")</span>
+                        <span class="ec-pkg-per">for @numberOfGuests guests</span>
+                    </div>
+                    <div class="ec-pkg-meta">
+                        <div class="ec-pkg-meta-item">
+                            <i class="bi bi-geo-alt-fill"></i> @venueName
+                        </div>
+                        <div class="ec-pkg-meta-item">
+                            <i class="bi bi-calendar-check"></i> @eventDate.ToString("ddd, MMM dd, yyyy")
+                        </div>
+                        <div class="ec-pkg-meta-item">
+                            <i class="bi bi-clock"></i> Full Day (10:00 AM – 11:00 PM)
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Need Help? -->
+            <div class="ec-side-card ec-help-card">
+                <div class="ec-help-icon"><i class="bi bi-headset"></i></div>
+                <div class="ec-help-title">Need Help?</div>
+                <div class="ec-help-desc">Our event specialists are ready to assist you</div>
+                <div class="ec-help-contacts">
+                    <a href="tel:+254700000000" class="ec-help-link"><i class="bi bi-telephone-fill"></i> +254 700 000 000</a>
+                    <a href="mailto:events@eventhotelbroker.com" class="ec-help-link"><i class="bi bi-envelope-fill"></i> events@eventhotelbroker.com</a>
+                    <a href="/chat" class="ec-help-link"><i class="bi bi-chat-dots-fill"></i> Live Chat</a>
+                </div>
+            </div>
+
+            <!-- Proceed to Payment -->
+            @if (currentStep == 1)
+            {
+                <button type="button" class="ec-btn-primary ec-btn-proceed" @onclick="ProceedToPayment">
+                    Proceed to Payment <i class="bi bi-arrow-right"></i>
+                </button>
             }
         </div>
     </div>
 </div>
 
-<style>
-    .step-circle {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto;
-        font-weight: bold;
-        color: #6c757d;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        transition: all 0.3s ease;
-    }
-
-    .step-circle.active {
-        background: linear-gradient(135deg, #198754 0%, #20c997 100%);
-        color: white;
-        box-shadow: 0 4px 12px rgba(25,135,84,0.3);
-        transform: scale(1.1);
-    }
-
-    .step-line {
-        height: 3px;
-        background: linear-gradient(90deg, #e9ecef 0%, #dee2e6 100%);
-        flex: 1;
-        margin: 0 10px;
-        border-radius: 2px;
-    }
-
-    .step-line.active {
-        background: linear-gradient(90deg, #198754 0%, #20c997 100%);
-    }
-
-    .payment-option {
-        border: 2px solid #e9ecef;
-        border-radius: 15px;
-        padding: 24px;
-        margin-bottom: 16px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        background: white;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-
-    .payment-option:hover {
-        border-color: #0d6efd;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-
-    .payment-option.selected {
-        border-color: #198754;
-        background: linear-gradient(135deg, #d1e7dd 0%, #c3e6cb 100%);
-        box-shadow: 0 4px 16px rgba(25,135,84,0.2);
-    }
-
-    .payment-icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 1.8rem;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-
-    .payment-details {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        padding: 24px;
-        border-radius: 12px;
-        border: 2px solid #dee2e6;
-        box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
-    }
-
-    .card {
-        border-radius: 15px;
-        border: none;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-    }
-
-    .card-header {
-        border-radius: 15px 15px 0 0 !important;
-        padding: 20px;
-        font-weight: 600;
-    }
-
-    .btn-primary, .btn-success {
-        border-radius: 10px;
-        padding: 12px 24px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-
-    .btn-primary:hover, .btn-success:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(0,0,0,0.2);
-    }
-
-    .form-control {
-        border-radius: 8px;
-        border: 2px solid #e9ecef;
-        padding: 12px 16px;
-        transition: all 0.3s ease;
-    }
-
-    .form-control:focus {
-        border-color: #0d6efd;
-        box-shadow: 0 0 0 0.2rem rgba(13,110,253,0.15);
-    }
-
-    .alert {
-        border-radius: 12px;
-        border: none;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    @@keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    .card {
-        animation: fadeIn 0.5s ease;
-    }
-</style>
-
 @code {
     private int currentStep = 1;
+    private string activeTab = "included";
 
     // Event details (dummy data)
     private string eventType = "Wedding";
@@ -506,6 +522,11 @@
     private void ProceedToPayment()
     {
         currentStep = 2;
+    }
+
+    private void SelectTab(string tab)
+    {
+        activeTab = tab;
     }
 
     private void SelectPayment(string method)

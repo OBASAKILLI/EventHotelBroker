@@ -5,286 +5,196 @@
 
 <PageTitle>Booking Details - EventHotelBroker</PageTitle>
 
-<link href="/css/design-system.css" rel="stylesheet" />
+<link href="/css/booking-details.css" rel="stylesheet" />
 
-<div class="container-fluid px-4 py-4">
+<div class="bkd">
     <Breadcrumb Items="@breadcrumbItems" />
 
-    <div class="row g-4">
-        <!-- Booking Information -->
+    <!-- Page Header -->
+    <div class="bkd-header">
+        <div class="bkd-header-left">
+            <span class="bkd-ref">Booking #HTL-@BookingId.ToString("D6")</span>
+            <span class="bkd-date">Booked on March 10, 2025</span>
+            <span class="bkd-status bkd-status-ok"><i class="bi bi-check-circle-fill"></i> Confirmed</span>
+        </div>
+        <div class="bkd-header-right">
+            <button type="button" class="bkd-btn bkd-btn-outline" @onclick="DownloadInvoice">
+                <i class="bi bi-download"></i> Invoice
+            </button>
+            <button type="button" class="bkd-btn bkd-btn-outline" @onclick="PrintBooking">
+                <i class="bi bi-printer"></i> Print
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- ── Left Column ── -->
         <div class="col-lg-8">
-            <!-- Status Card -->
-            <div class="card-system mb-4">
-                <div class="card-system-body">
-                    <div class="d-flex justify-content-between align-items-start mb-4">
+
+            <!-- Timeline -->
+            <div class="bkd-card">
+                <div class="bkd-card-head">
+                    <span class="bkd-card-title"><i class="bi bi-clock-history"></i> Booking Progress</span>
+                </div>
+                <div class="bkd-card-body">
+                    <div class="bkd-timeline">
+                        <div class="bkd-tl-item done">
+                            <div class="bkd-tl-dot"><i class="bi bi-check"></i></div>
+                            <div><span class="bkd-tl-label">Booking Confirmed</span><div class="bkd-tl-time">Mar 10, 2025 · 10:30 AM</div></div>
+                        </div>
+                        <div class="bkd-tl-item done">
+                            <div class="bkd-tl-dot"><i class="bi bi-check"></i></div>
+                            <div><span class="bkd-tl-label">Payment Received</span><div class="bkd-tl-time">Mar 10, 2025 · 10:32 AM</div></div>
+                        </div>
+                        <div class="bkd-tl-item active">
+                            <div class="bkd-tl-dot"><i class="bi bi-clock"></i></div>
+                            <div><span class="bkd-tl-label">Awaiting Check-in</span><div class="bkd-tl-time">Mar 15, 2025 · 2:00 PM</div></div>
+                        </div>
+                        <div class="bkd-tl-item">
+                            <div class="bkd-tl-dot"><i class="bi bi-circle"></i></div>
+                            <div><span class="bkd-tl-label">Check-out</span><div class="bkd-tl-time">Mar 17, 2025 · 11:00 AM</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hotel Info -->
+            <div class="bkd-card">
+                <div class="bkd-card-head">
+                    <span class="bkd-card-title"><i class="bi bi-building"></i> Hotel</span>
+                    <button type="button" class="bkd-btn bkd-btn-outline" @onclick="ViewHotel"><i class="bi bi-eye"></i> View</button>
+                </div>
+                <div class="bkd-card-body">
+                    <div class="bkd-hotel">
+                        <img src="https://via.placeholder.com/200x150" alt="Hotel" class="bkd-hotel-img" />
                         <div>
-                            <h3 class="mb-2">Booking #HTL-@BookingId.ToString("D6")</h3>
-                            <span class="badge-system badge-system-success" style="font-size: 1rem; padding: 0.5rem 1rem;">
-                                <i class="bi bi-check-circle me-2"></i>Confirmed
-                            </span>
-                        </div>
-                        <div class="text-end">
-                            <button type="button" class="btn-system btn-system-outline-secondary btn-system-sm" @onclick="DownloadInvoice">
-                                <i class="bi bi-download me-2"></i>Download Invoice
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Timeline -->
-                    <div class="booking-timeline">
-                        <div class="timeline-item completed">
-                            <div class="timeline-marker">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <h6>Booking Confirmed</h6>
-                                <small class="text-muted">March 10, 2025 - 10:30 AM</small>
-                            </div>
-                        </div>
-                        <div class="timeline-item completed">
-                            <div class="timeline-marker">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <h6>Payment Received</h6>
-                                <small class="text-muted">March 10, 2025 - 10:32 AM</small>
-                            </div>
-                        </div>
-                        <div class="timeline-item active">
-                            <div class="timeline-marker">
-                                <i class="bi bi-clock-fill"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <h6>Awaiting Check-in</h6>
-                                <small class="text-muted">March 15, 2025 - 2:00 PM</small>
-                            </div>
-                        </div>
-                        <div class="timeline-item">
-                            <div class="timeline-marker">
-                                <i class="bi bi-circle"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <h6>Check-out</h6>
-                                <small class="text-muted">March 17, 2025 - 11:00 AM</small>
+                            <div class="bkd-hotel-name">Grand Plaza Hotel</div>
+                            <div class="bkd-hotel-meta"><i class="bi bi-geo-alt-fill"></i> 123 Main Street, Nairobi, Kenya</div>
+                            <div class="bkd-hotel-meta"><i class="bi bi-telephone-fill"></i> +254 712 345 678</div>
+                            <div class="bkd-hotel-meta"><i class="bi bi-envelope-fill"></i> info@grandplaza.com</div>
+                            <div class="bkd-hotel-actions">
+                                <button type="button" class="bkd-btn bkd-btn-teal" @onclick="ContactHotel"><i class="bi bi-chat-dots"></i> Message</button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Hotel Details -->
-            <div class="card-system mb-4">
-                <div class="card-system-header">
-                    <h5 class="mb-0"><i class="bi bi-building me-2"></i>Hotel Information</h5>
+            <!-- Booking Details Grid -->
+            <div class="bkd-card">
+                <div class="bkd-card-head">
+                    <span class="bkd-card-title"><i class="bi bi-calendar-check"></i> Details</span>
                 </div>
-                <div class="card-system-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <img src="https://via.placeholder.com/300x200" alt="Hotel" class="img-fluid rounded" />
+                <div class="bkd-card-body">
+                    <div class="bkd-grid">
+                        <div class="bkd-detail">
+                            <div class="bkd-detail-label">Check-in</div>
+                            <div class="bkd-detail-value"><i class="bi bi-box-arrow-in-right"></i> Mar 15, 2025 · 2:00 PM</div>
                         </div>
-                        <div class="col-md-8">
-                            <h4 class="mb-3">Grand Plaza Hotel</h4>
-                            <p class="mb-2">
-                                <i class="bi bi-geo-alt text-primary me-2"></i>
-                                123 Main Street, Nairobi, Kenya
-                            </p>
-                            <p class="mb-2">
-                                <i class="bi bi-telephone text-primary me-2"></i>
-                                +254 712 345 678
-                            </p>
-                            <p class="mb-3">
-                                <i class="bi bi-envelope text-primary me-2"></i>
-                                info@grandplaza.com
-                            </p>
-                            <div class="d-flex gap-2">
-                                <button type="button" class="btn-system btn-system-outline-primary btn-system-sm" @onclick="ContactHotel">
-                                    <i class="bi bi-chat-dots me-2"></i>Message Hotel
-                                </button>
-                                <button type="button" class="btn-system btn-system-outline-secondary btn-system-sm" @onclick="ViewHotel">
-                                    <i class="bi bi-eye me-2"></i>View Details
-                                </button>
-                            </div>
+                        <div class="bkd-detail">
+                            <div class="bkd-detail-label">Check-out</div>
+                            <div class="bkd-detail-value"><i class="bi bi-box-arrow-right"></i> Mar 17, 2025 · 11:00 AM</div>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Booking Details -->
-            <div class="card-system mb-4">
-                <div class="card-system-header">
-                    <h5 class="mb-0"><i class="bi bi-calendar-check me-2"></i>Booking Details</h5>
-                </div>
-                <div class="card-system-body">
-                    <div class="row g-4">
-                        <div class="col-md-6">
-                            <div class="detail-item">
-                                <label>Check-in</label>
-                                <div class="detail-value">
-                                    <i class="bi bi-calendar-event text-primary me-2"></i>
-                                    March 15, 2025 (2:00 PM)
-                                </div>
-                            </div>
+                        <div class="bkd-detail">
+                            <div class="bkd-detail-label">Duration</div>
+                            <div class="bkd-detail-value"><i class="bi bi-moon"></i> 2 Nights</div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="detail-item">
-                                <label>Check-out</label>
-                                <div class="detail-value">
-                                    <i class="bi bi-calendar-event text-primary me-2"></i>
-                                    March 17, 2025 (11:00 AM)
-                                </div>
-                            </div>
+                        <div class="bkd-detail">
+                            <div class="bkd-detail-label">Room Type</div>
+                            <div class="bkd-detail-value"><i class="bi bi-door-open"></i> Deluxe Suite</div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="detail-item">
-                                <label>Room Type</label>
-                                <div class="detail-value">
-                                    <i class="bi bi-door-open text-primary me-2"></i>
-                                    Deluxe Suite
-                                </div>
-                            </div>
+                        <div class="bkd-detail">
+                            <div class="bkd-detail-label">Guests</div>
+                            <div class="bkd-detail-value"><i class="bi bi-people"></i> 2 Adults</div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="detail-item">
-                                <label>Guests</label>
-                                <div class="detail-value">
-                                    <i class="bi bi-people text-primary me-2"></i>
-                                    2 Adults
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="detail-item">
-                                <label>Number of Nights</label>
-                                <div class="detail-value">
-                                    <i class="bi bi-moon text-primary me-2"></i>
-                                    2 Nights
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="detail-item">
-                                <label>Total Amount</label>
-                                <div class="detail-value">
-                                    <i class="bi bi-cash text-success me-2"></i>
-                                    <strong>KES 30,000</strong>
-                                </div>
-                            </div>
+                        <div class="bkd-detail">
+                            <div class="bkd-detail-label">Total</div>
+                            <div class="bkd-detail-value"><strong>KES 30,000</strong></div>
                         </div>
                     </div>
 
                     @if (!string.IsNullOrEmpty(specialRequests))
                     {
-                        <div class="mt-4 p-3" style="background: #f8f9fa; border-radius: 0.5rem;">
-                            <label class="fw-bold mb-2">Special Requests:</label>
-                            <p class="mb-0">@specialRequests</p>
+                        <div class="bkd-note">
+                            <div class="bkd-note-label">Special Requests</div>
+                            <div class="bkd-note-text">@specialRequests</div>
                         </div>
                     }
                 </div>
             </div>
 
-            <!-- Actions -->
-            <div class="card-system">
-                <div class="card-system-header">
-                    <h5 class="mb-0"><i class="bi bi-gear me-2"></i>Manage Booking</h5>
+            <!-- Manage Booking -->
+            <div class="bkd-card">
+                <div class="bkd-card-head">
+                    <span class="bkd-card-title"><i class="bi bi-gear"></i> Manage</span>
                 </div>
-                <div class="card-system-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <button type="button" class="btn-system btn-system-primary w-100" @onclick="ShowModifyModal">
-                                <i class="bi bi-pencil-square me-2"></i>Modify Dates
-                            </button>
-                        </div>
-                        <div class="col-md-6">
-                            <button type="button" class="btn-system btn-system-outline-primary w-100" @onclick="AddSpecialRequest">
-                                <i class="bi bi-plus-circle me-2"></i>Add Special Request
-                            </button>
-                        </div>
-                        <div class="col-md-6">
-                            <button type="button" class="btn-system btn-system-outline-secondary w-100" @onclick="ContactSupport">
-                                <i class="bi bi-headset me-2"></i>Contact Support
-                            </button>
-                        </div>
-                        <div class="col-md-6">
-                            <button type="button" class="btn-system btn-system-danger w-100" @onclick="ShowCancelModal">
-                                <i class="bi bi-x-circle me-2"></i>Cancel Booking
-                            </button>
-                        </div>
+                <div class="bkd-card-body">
+                    <div class="bkd-actions">
+                        <button type="button" class="bkd-btn bkd-btn-primary" @onclick="ShowModifyModal"><i class="bi bi-pencil-square"></i> Modify Dates</button>
+                        <button type="button" class="bkd-btn bkd-btn-outline" @onclick="AddSpecialRequest"><i class="bi bi-plus-circle"></i> Add Request</button>
+                        <button type="button" class="bkd-btn bkd-btn-outline" @onclick="ContactSupport"><i class="bi bi-headset"></i> Support</button>
+                        <button type="button" class="bkd-btn bkd-btn-danger" @onclick="ShowCancelModal"><i class="bi bi-x-circle"></i> Cancel Booking</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Sidebar -->
+        <!-- ── Right Column ── -->
         <div class="col-lg-4">
+
             <!-- Payment Summary -->
-            <div class="card-system mb-4">
-                <div class="card-system-header">
-                    <h5 class="mb-0"><i class="bi bi-receipt me-2"></i>Payment Summary</h5>
+            <div class="bkd-card">
+                <div class="bkd-card-head">
+                    <span class="bkd-card-title"><i class="bi bi-receipt"></i> Payment</span>
                 </div>
-                <div class="card-system-body">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Room Rate (2 nights)</span>
-                        <span>KES 28,000</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Service Charge</span>
-                        <span>KES 1,500</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Tax (VAT 16%)</span>
-                        <span>KES 500</span>
-                    </div>
-                    <hr />
-                    <div class="d-flex justify-content-between">
-                        <strong>Total Paid</strong>
-                        <strong class="text-success">KES 30,000</strong>
-                    </div>
-                    <div class="mt-3 p-2" style="background: #d1fae5; border-radius: 0.5rem;">
-                        <small class="text-success">
-                            <i class="bi bi-check-circle me-1"></i>
-                            Payment completed via M-Pesa
-                        </small>
-                    </div>
+                <div class="bkd-card-body">
+                    <div class="bkd-pay-row"><span>Room Rate (2 nights)</span><span>KES 28,000</span></div>
+                    <div class="bkd-pay-row"><span>Service Charge</span><span>KES 1,500</span></div>
+                    <div class="bkd-pay-row"><span>Tax (VAT 16%)</span><span>KES 500</span></div>
+                    <hr class="bkd-pay-divider" />
+                    <div class="bkd-pay-total"><span>Total Paid</span><span class="bkd-total-amount">KES 30,000</span></div>
+                    <div class="bkd-paid-badge"><i class="bi bi-check-circle-fill"></i> Paid via M-Pesa</div>
                 </div>
             </div>
 
             <!-- Cancellation Policy -->
-            <div class="card-system mb-4">
-                <div class="card-system-header">
-                    <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Cancellation Policy</h5>
+            <div class="bkd-card">
+                <div class="bkd-card-head">
+                    <span class="bkd-card-title"><i class="bi bi-info-circle"></i> Policy</span>
                 </div>
-                <div class="card-system-body">
-                    <div class="alert-system alert-system-warning">
-                        <div class="alert-system-icon">
-                            <i class="bi bi-exclamation-triangle"></i>
-                        </div>
-                        <div class="alert-system-content">
-                            <div class="alert-system-title">Free Cancellation</div>
-                            <div class="alert-system-description">
-                                Cancel up to 48 hours before check-in for a full refund.
-                                After that, 50% cancellation fee applies.
-                            </div>
+                <div class="bkd-card-body">
+                    <div class="bkd-alert">
+                        <div class="bkd-alert-icon"><i class="bi bi-exclamation-triangle"></i></div>
+                        <div>
+                            <div class="bkd-alert-title">Free Cancellation</div>
+                            <div class="bkd-alert-text">Cancel up to 48 hours before check-in for a full refund. After that, 50% cancellation fee applies.</div>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Quick Actions -->
-            <div class="card-system">
-                <div class="card-system-header">
-                    <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>Quick Actions</h5>
+            <div class="bkd-card">
+                <div class="bkd-card-head">
+                    <span class="bkd-card-title"><i class="bi bi-lightning"></i> Quick Actions</span>
                 </div>
-                <div class="card-system-body">
-                    <div class="d-grid gap-2">
-                        <button type="button" class="btn-system btn-system-outline-primary" @onclick="PrintBooking">
-                            <i class="bi bi-printer me-2"></i>Print Booking
-                        </button>
-                        <button type="button" class="btn-system btn-system-outline-primary" @onclick="ShareBooking">
-                            <i class="bi bi-share me-2"></i>Share Booking
-                        </button>
-                        <button type="button" class="btn-system btn-system-outline-secondary" @onclick="ViewAllBookings">
-                            <i class="bi bi-list-check me-2"></i>View All Bookings
-                        </button>
+                <div class="bkd-card-body" style="padding: 0.5rem;">
+                    <div class="bkd-qa-stack">
+                        <div class="bkd-qa" @onclick="ShareBooking">
+                            <div class="bkd-qa-icon bkd-icon-teal"><i class="bi bi-share"></i></div>
+                            <span class="bkd-qa-text">Share Booking</span>
+                            <i class="bi bi-chevron-right bkd-qa-arrow"></i>
+                        </div>
+                        <div class="bkd-qa" @onclick="ViewAllBookings">
+                            <div class="bkd-qa-icon bkd-icon-bronze"><i class="bi bi-list-check"></i></div>
+                            <span class="bkd-qa-text">View All Bookings</span>
+                            <i class="bi bi-chevron-right bkd-qa-arrow"></i>
+                        </div>
+                        <div class="bkd-qa" @onclick="ContactSupport">
+                            <div class="bkd-qa-icon bkd-icon-terracotta"><i class="bi bi-headset"></i></div>
+                            <span class="bkd-qa-text">Contact Support</span>
+                            <i class="bi bi-chevron-right bkd-qa-arrow"></i>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -314,97 +224,7 @@
     OnConfirmed="@CancelBooking"
     OnCancelled="@(() => showCancelModal = false)" />
 
-<style>
-    .detail-item label {
-        display: block;
-        font-size: 0.875rem;
-        color: #6c757d;
-        margin-bottom: 0.5rem;
-    }
 
-    .detail-value {
-        font-size: 1rem;
-        font-weight: 500;
-    }
-
-    .booking-timeline {
-        position: relative;
-        padding-left: 2rem;
-    }
-
-    .timeline-item {
-        position: relative;
-        padding-bottom: 2rem;
-    }
-
-    .timeline-item:last-child {
-        padding-bottom: 0;
-    }
-
-    .timeline-item::before {
-        content: '';
-        position: absolute;
-        left: -1.5rem;
-        top: 2rem;
-        width: 2px;
-        height: calc(100% - 1rem);
-        background: #e9ecef;
-    }
-
-    .timeline-item:last-child::before {
-        display: none;
-    }
-
-    .timeline-item.completed::before {
-        background: #10b981;
-    }
-
-    .timeline-item.active::before {
-        background: linear-gradient(to bottom, #10b981 0%, #e9ecef 100%);
-    }
-
-    .timeline-marker {
-        position: absolute;
-        left: -2rem;
-        top: 0;
-        width: 2rem;
-        height: 2rem;
-        border-radius: 50%;
-        background: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1rem;
-        border: 2px solid #e9ecef;
-    }
-
-    .timeline-item.completed .timeline-marker {
-        background: #10b981;
-        color: white;
-        border-color: #10b981;
-    }
-
-    .timeline-item.active .timeline-marker {
-        background: #667eea;
-        color: white;
-        border-color: #667eea;
-        animation: pulse 2s infinite;
-    }
-
-    @@keyframes pulse {
-        0%, 100% {
-            box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7);
-        }
-        50% {
-            box-shadow: 0 0 0 10px rgba(102, 126, 234, 0);
-        }
-    }
-
-    .timeline-content h6 {
-        margin-bottom: 0.25rem;
-        font-weight: 600;
-    }
-</style>
 
 @code {
     [Parameter] public int BookingId { get; set; }
