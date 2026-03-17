@@ -2,6 +2,7 @@
 @using EventHotelBroker.Models
 @using EventHotelBroker.Services
 @inject IHotelService HotelService
+@inject NavigationManager Navigation
 
 <PageTitle>Search Hotels - EventHotelBroker</PageTitle>
 
@@ -20,68 +21,122 @@
         <div class="row g-4">
             <!-- Advanced Filters Sidebar -->
             <div class="col-lg-3">
-                <div class="filter-card">
-                    <div class="filter-header">
-                        <h5 class="filter-title">
+                <div class="filter-panel">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="mb-0" style="font-weight: 700;">
                             <i class="bi bi-funnel me-2"></i>Filters
                         </h5>
-                        <button type="button" class="filter-clear-btn" @onclick="ClearFilters">
-                            <i class="bi bi-x-circle"></i>
+                        <button type="button" class="btn-system-ghost btn-system-sm" @onclick="ClearFilters">
+                            <i class="bi bi-x-circle me-1"></i>Clear
                         </button>
                     </div>
-                    <div class="filter-body">
-                        <EditForm Model="searchFilters" OnSubmit="HandleSearch" FormName="searchForm" class="filter-form">
-                            <div class="filter-group">
-                                <label class="filter-label">
-                                    <i class="bi bi-search"></i> Keyword
-                                </label>
-                                <div class="filter-input-wrapper">
-                                    <InputText @bind-Value="searchFilters.Keyword" class="filter-input" id="keyword" 
-                                        placeholder="Search by name..." />
-                                </div>
-                            </div>
 
-                            <div class="filter-group">
-                                <label class="filter-label">
-                                    <i class="bi bi-geo-alt"></i> Location
-                                </label>
-                                <div class="filter-input-wrapper">
-                                    <InputText @bind-Value="searchFilters.City" class="filter-input" id="city" 
-                                        placeholder="City or region" />
-                                </div>
-                            </div>
+                    <!-- Search Keyword -->
+                    <div class="filter-section">
+                        <div class="filter-section-title">
+                            <i class="bi bi-search"></i> Search
+                        </div>
+                        <input type="text" class="form-control-system" @bind="searchFilters.Keyword" 
+                               placeholder="Search by name..." @bind:event="oninput" @bind:after="HandleSearch" />
+                    </div>
 
-                            <div class="filter-group">
-                                <label class="filter-label">
-                                    <i class="bi bi-people"></i> Capacity
-                                </label>
-                                <div class="filter-input-wrapper">
-                                    <InputNumber @bind-Value="searchFilters.MinCapacity" class="filter-input" id="minCapacity" 
-                                        placeholder="Min guests" />
-                                </div>
-                            </div>
+                    <!-- Location -->
+                    <div class="filter-section">
+                        <div class="filter-section-title">
+                            <i class="bi bi-geo-alt"></i> Location
+                        </div>
+                        <input type="text" class="form-control-system" @bind="searchFilters.City" 
+                               placeholder="City or region" @bind:event="oninput" @bind:after="HandleSearch" />
+                    </div>
 
-                            <div class="filter-group">
-                                <label class="filter-label">
-                                    <i class="bi bi-currency-dollar"></i> Max Price
-                                </label>
-                                <div class="filter-input-wrapper">
-                                    <InputNumber @bind-Value="searchFilters.MaxPrice" class="filter-input" id="maxPrice" 
-                                        placeholder="Price limit" />
-                                </div>
-                                @if (searchFilters.MaxPrice.HasValue)
-                                {
-                                    <small class="filter-hint">Up to KES @searchFilters.MaxPrice.Value.ToString("N0")</small>
-                                }
+                    <!-- Price Range -->
+                    <div class="filter-section">
+                        <div class="filter-section-title">
+                            <i class="bi bi-currency-dollar"></i> Price Range
+                        </div>
+                        <div class="filter-range">
+                            <input type="range" min="0" max="100000" step="1000" 
+                                   @bind="searchFilters.MaxPrice" @bind:event="oninput" 
+                                   @bind:after="HandleSearch" />
+                            <div class="filter-range-inputs">
+                                <input type="number" class="form-control-system" 
+                                       @bind="searchFilters.MinPrice" placeholder="Min" 
+                                       @bind:event="oninput" @bind:after="HandleSearch" />
+                                <span class="filter-range-separator">-</span>
+                                <input type="number" class="form-control-system" 
+                                       @bind="searchFilters.MaxPrice" placeholder="Max" 
+                                       @bind:event="oninput" @bind:after="HandleSearch" />
                             </div>
+                            <small class="text-system-secondary mt-2 d-block">
+                                KES @((searchFilters.MinPrice ?? 0).ToString("N0")) - @((searchFilters.MaxPrice ?? 100000).ToString("N0"))
+                            </small>
+                        </div>
+                    </div>
 
-                            <button type="submit" class="filter-apply-btn">
-                                <i class="bi bi-search me-2"></i>Apply Filters
-                            </button>
-                        </EditForm>
+                    <!-- Capacity Range -->
+                    <div class="filter-section">
+                        <div class="filter-section-title">
+                            <i class="bi bi-people"></i> Guest Capacity
+                        </div>
+                        <div class="filter-range">
+                            <input type="range" min="0" max="1000" step="10" 
+                                   @bind="searchFilters.MaxCapacity" @bind:event="oninput" 
+                                   @bind:after="HandleSearch" />
+                            <div class="filter-range-inputs">
+                                <input type="number" class="form-control-system" 
+                                       @bind="searchFilters.MinCapacity" placeholder="Min" 
+                                       @bind:event="oninput" @bind:after="HandleSearch" />
+                                <span class="filter-range-separator">-</span>
+                                <input type="number" class="form-control-system" 
+                                       @bind="searchFilters.MaxCapacity" placeholder="Max" 
+                                       @bind:event="oninput" @bind:after="HandleSearch" />
+                            </div>
+                            <small class="text-system-secondary mt-2 d-block">
+                                @((searchFilters.MinCapacity ?? 0)) - @((searchFilters.MaxCapacity ?? 1000)) guests
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Amenities -->
+                    <div class="filter-section">
+                        <div class="filter-section-title">
+                            <i class="bi bi-star"></i> Amenities
+                        </div>
+                        <div class="filter-checkbox-group">
+                            <label class="filter-checkbox-item">
+                                <input type="checkbox" @bind="searchFilters.HasWifi" @bind:after="HandleSearch" />
+                                <span class="filter-checkbox-label">WiFi</span>
+                                <span class="filter-checkbox-count">@GetAmenityCount("WiFi")</span>
+                            </label>
+                            <label class="filter-checkbox-item">
+                                <input type="checkbox" @bind="searchFilters.HasParking" @bind:after="HandleSearch" />
+                                <span class="filter-checkbox-label">Parking</span>
+                                <span class="filter-checkbox-count">@GetAmenityCount("Parking")</span>
+                            </label>
+                            <label class="filter-checkbox-item">
+                                <input type="checkbox" @bind="searchFilters.HasPool" @bind:after="HandleSearch" />
+                                <span class="filter-checkbox-label">Swimming Pool</span>
+                                <span class="filter-checkbox-count">@GetAmenityCount("Pool")</span>
+                            </label>
+                            <label class="filter-checkbox-item">
+                                <input type="checkbox" @bind="searchFilters.HasRestaurant" @bind:after="HandleSearch" />
+                                <span class="filter-checkbox-label">Restaurant</span>
+                                <span class="filter-checkbox-count">@GetAmenityCount("Restaurant")</span>
+                            </label>
+                            <label class="filter-checkbox-item">
+                                <input type="checkbox" @bind="searchFilters.HasGym" @bind:after="HandleSearch" />
+                                <span class="filter-checkbox-label">Gym/Fitness</span>
+                                <span class="filter-checkbox-count">@GetAmenityCount("Gym")</span>
+                            </label>
+                            <label class="filter-checkbox-item">
+                                <input type="checkbox" @bind="searchFilters.HasConferenceRoom" @bind:after="HandleSearch" />
+                                <span class="filter-checkbox-label">Conference Room</span>
+                                <span class="filter-checkbox-count">@GetAmenityCount("Conference")</span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
             <!-- Results Section -->
             <div class="col-lg-9">
@@ -89,19 +144,68 @@
                     <div class="results-info">
                         <h3 class="results-title">Available Hotels</h3>
                         <span class="results-count">@hotels.Count() properties found</span>
+                        
+                        <!-- Active Filter Chips -->
+                        @if (HasActiveFilters())
+                        {
+                            <div class="active-filters">
+                                @if (!string.IsNullOrEmpty(searchFilters.Keyword))
+                                {
+                                    <div class="filter-chip">
+                                        <span>Search: @searchFilters.Keyword</span>
+                                        <button class="filter-chip-remove" @onclick='() => RemoveFilter("keyword")'>&times;</button>
+                                    </div>
+                                }
+                                @if (!string.IsNullOrEmpty(searchFilters.City))
+                                {
+                                    <div class="filter-chip">
+                                        <span>Location: @searchFilters.City</span>
+                                        <button class="filter-chip-remove" @onclick='() => RemoveFilter("city")'>&times;</button>
+                                    </div>
+                                }
+                                @if (searchFilters.MinPrice.HasValue || searchFilters.MaxPrice.HasValue)
+                                {
+                                    <div class="filter-chip">
+                                        <span>Price: KES @((searchFilters.MinPrice ?? 0).ToString("N0")) - @((searchFilters.MaxPrice ?? 100000).ToString("N0"))</span>
+                                        <button class="filter-chip-remove" @onclick='() => RemoveFilter("price")'>&times;</button>
+                                    </div>
+                                }
+                                @if (searchFilters.MinCapacity.HasValue || searchFilters.MaxCapacity.HasValue)
+                                {
+                                    <div class="filter-chip">
+                                        <span>Capacity: @((searchFilters.MinCapacity ?? 0)) - @((searchFilters.MaxCapacity ?? 1000)) guests</span>
+                                        <button class="filter-chip-remove" @onclick='() => RemoveFilter("capacity")'>&times;</button>
+                                    </div>
+                                }
+                            </div>
+                        }
                     </div>
-                    <div class="results-sort">
-                        <button class="sort-btn">
-                            <i class="bi bi-sort-down me-2"></i>Sort by
+                    <div class="view-toggle">
+                        <button class="view-toggle-btn @(viewMode == "grid" ? "active" : "")" @onclick='() => viewMode = "grid"' title="Grid View">
+                            <i class="bi bi-grid-3x3"></i>
+                        </button>
+                        <button class="view-toggle-btn @(viewMode == "list" ? "active" : "")" @onclick='() => viewMode = "list"' title="List View">
+                            <i class="bi bi-list"></i>
                         </button>
                     </div>
                 </div>
 
                 @if (isLoading)
                 {
-                    <div class="loading-state">
-                        <div class="spinner-modern"></div>
-                        <p class="loading-text">Searching hotels...</p>
+                    <!-- Skeleton Loading -->
+                    <div class="@(viewMode == "grid" ? "hotel-grid" : "hotel-list")">
+                        @for (int i = 0; i < 6; i++)
+                        {
+                            <div class="skeleton-card">
+                                <div class="skeleton-image"></div>
+                                <div class="skeleton-content">
+                                    <div class="skeleton-line"></div>
+                                    <div class="skeleton-line short"></div>
+                                    <div class="skeleton-line"></div>
+                                    <div class="skeleton-line short"></div>
+                                </div>
+                            </div>
+                        }
                     </div>
                 }
                 else if (!hotels.Any())
@@ -117,11 +221,19 @@
                 }
                 else
                 {
-                    <div class="hotel-grid">
+                    <div class="@(viewMode == "grid" ? "hotel-grid" : "hotel-list")">
                         @foreach (var hotel in hotels)
                         {
-                            <div class="hotel-card">
+                            <div class="hotel-card @(viewMode == "list" ? "list-view" : "")" @onclick="() => NavigateToHotel(hotel.Id)">
                                 <div class="hotel-image">
+                                    <!-- Favorite Button -->
+                                    <button class="hotel-favorite @(favoriteHotels.Contains(hotel.Id) ? "active" : "")" 
+                                            @onclick="(e) => ToggleFavorite(hotel.Id, e)" 
+                                            @onclick:stopPropagation="true"
+                                            title="Add to favorites">
+                                        <i class="bi @(favoriteHotels.Contains(hotel.Id) ? "bi-heart-fill" : "bi-heart")"></i>
+                                    </button>
+                                    
                                     @if (hotel.Images?.Any() == true)
                                     {
                                         <img src="@hotel.Images.First().Url" alt="@hotel.Name" />
@@ -140,38 +252,35 @@
                                         </div>
                                     }
                                     <div class="hotel-overlay">
-                                        <a href="/hotels/@hotel.Id" class="hotel-view-btn">
+                                        <a href="/hotels/@hotel.Id" class="hotel-view-btn" @onclick:stopPropagation="true">
                                             <i class="bi bi-eye me-2"></i>View Details
                                         </a>
                                     </div>
                                 </div>
                                 <div class="hotel-content">
                                     <h5 class="hotel-name">@hotel.Name</h5>
-                                    <p class="hotel-location">
-                                        <i class="bi bi-geo-alt"></i> @hotel.City, @hotel.Country
-                                    </p>
-                                    
-                                    @if (!string.IsNullOrEmpty(hotel.Description))
-                                    {
-                                        <p class="hotel-description">
-                                            @(hotel.Description.Length > 80 ? hotel.Description.Substring(0, 80) + "..." : hotel.Description)
-                                        </p>
-                                    }
+                                    <span class="hotel-location"><i class="bi bi-geo-alt-fill"></i> @hotel.City, @hotel.Country</span>
 
-                                    <div class="hotel-meta">
-                                        <div class="hotel-capacity">
-                                            <i class="bi bi-people"></i>
-                                            <span>@hotel.Capacity guests</span>
+                                    <div class="hotel-meta-row">
+                                        <div class="hotel-rating">
+                                            <i class="bi bi-star-fill"></i>
+                                            <span class="hotel-rating-text">4.5</span>
                                         </div>
-                                    </div>
-                                    
-                                    <div class="hotel-footer">
-                                        <div class="hotel-price">
+                                        <span class="meta-dot"></span>
+                                        <div class="hotel-price-inline">
                                             <span class="price-amount">@hotel.Currency @hotel.PricePerNight.ToString("N0")</span>
                                             <span class="price-period">/night</span>
                                         </div>
-                                        <a href="/hotels/@hotel.Id" class="hotel-book-btn">
-                                            <i class="bi bi-arrow-right"></i>
+                                    </div>
+
+                                    @if (!string.IsNullOrEmpty(hotel.Description))
+                                    {
+                                        <p class="hotel-description">@hotel.Description</p>
+                                    }
+
+                                    <div class="hotel-footer">
+                                        <a href="/hotels/@hotel.Id" class="hotel-book-btn" @onclick:stopPropagation="true">
+                                            View <i class="bi bi-arrow-right"></i>
                                         </a>
                                     </div>
                                 </div>
@@ -190,6 +299,8 @@
 
     private IEnumerable<Hotel> hotels = new List<Hotel>();
     private bool isLoading = true;
+    private string viewMode = "grid"; // grid or list
+    private HashSet<int> favoriteHotels = new HashSet<int>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -241,11 +352,92 @@
         await LoadHotels();
     }
 
+    private bool HasActiveFilters()
+    {
+        return !string.IsNullOrEmpty(searchFilters.Keyword) ||
+               !string.IsNullOrEmpty(searchFilters.City) ||
+               searchFilters.MinPrice.HasValue ||
+               searchFilters.MaxPrice.HasValue ||
+               searchFilters.MinCapacity.HasValue ||
+               searchFilters.MaxCapacity.HasValue ||
+               searchFilters.HasWifi ||
+               searchFilters.HasParking ||
+               searchFilters.HasPool ||
+               searchFilters.HasRestaurant ||
+               searchFilters.HasGym ||
+               searchFilters.HasConferenceRoom;
+    }
+
+    private async Task RemoveFilter(string filterType)
+    {
+        switch (filterType)
+        {
+            case "keyword":
+                searchFilters.Keyword = null;
+                break;
+            case "city":
+                searchFilters.City = null;
+                break;
+            case "price":
+                searchFilters.MinPrice = null;
+                searchFilters.MaxPrice = null;
+                break;
+            case "capacity":
+                searchFilters.MinCapacity = null;
+                searchFilters.MaxCapacity = null;
+                break;
+        }
+        await HandleSearch();
+    }
+
+    private void ToggleFavorite(int hotelId, MouseEventArgs e)
+    {
+        if (favoriteHotels.Contains(hotelId))
+        {
+            favoriteHotels.Remove(hotelId);
+        }
+        else
+        {
+            favoriteHotels.Add(hotelId);
+        }
+    }
+
+    private void NavigateToHotel(int hotelId)
+    {
+        Navigation.NavigateTo($"/hotels/{hotelId}");
+    }
+
+    private int GetAmenityCount(string amenity)
+    {
+        // This would normally query the database for count
+        // For now, returning placeholder values
+        return amenity switch
+        {
+            "WiFi" => 45,
+            "Parking" => 38,
+            "Pool" => 22,
+            "Restaurant" => 31,
+            "Gym" => 18,
+            "Conference" => 27,
+            _ => 0
+        };
+    }
+
     public class SearchFilters
     {
         public string? Keyword { get; set; }
         public string? City { get; set; }
         public int? MinCapacity { get; set; }
+        public int? MaxCapacity { get; set; }
+        public decimal? MinPrice { get; set; }
         public decimal? MaxPrice { get; set; }
+        
+        // Amenities
+        public bool HasWifi { get; set; }
+        public bool HasParking { get; set; }
+        public bool HasPool { get; set; }
+        public bool HasRestaurant { get; set; }
+        public bool HasGym { get; set; }
+        public bool HasConferenceRoom { get; set; }
     }
 }

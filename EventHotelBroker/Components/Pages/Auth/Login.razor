@@ -5,13 +5,14 @@
 @rendermode InteractiveServer
 @inject NavigationManager Navigation
 @inject ToastService ToastService
+@inject IAuthService AuthService
 
 <PageTitle>Login - EventHotelBroker</PageTitle>
 
 <div class="auth-container">
     <!-- Back to Home Link -->
     <div class="text-center mb-3">
-        <a href="/" class="text-white text-decoration-none">
+        <a href="/" class="text-muted text-decoration-none">
             <i class="bi bi-arrow-left me-2"></i>Back to Home
         </a>
     </div>
@@ -48,8 +49,17 @@
                 </a>
             </div>
 
-            <button type="button" class="btn-system btn-system-primary btn-system-lg w-100 mb-3" @onclick="HandleLogin">
-                <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+            <button type="button" class="btn-system btn-system-primary btn-system-lg w-100 mb-3" @onclick="HandleLogin" disabled="@isLoggingIn">
+                @if (isLoggingIn)
+                {
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                    <span>Signing In...</span>
+                }
+                else
+                {
+                    <i class="bi bi-box-arrow-in-right me-2"></i>
+                    <span>Sign In</span>
+                }
             </button>
 
             <div class="text-center mb-3">
@@ -133,6 +143,7 @@
     private string email = "";
     private string password = "";
     private bool rememberMe = false;
+    private bool isLoggingIn = false;
 
     private async Task HandleLogin()
     {
@@ -142,11 +153,55 @@
             return;
         }
 
-        ToastService.ShowSuccess("Login Successful!", "Welcome back to EventHotelBroker");
-        
-        // Simulate login - redirect to dashboard
-        await Task.Delay(1000);
-        Navigation.NavigateTo("/user/dashboard");
+        isLoggingIn = true;
+
+        var (success, message, user) = await AuthService.LoginAsync(email, password);
+
+        if (success && user != null)
+        {
+            // Check if 2FA is enabled for this user
+            if (user.TwoFactorEnabled)
+            {
+                // Generate and send 2FA code
+                var codeSent = await AuthService.GenerateAndSendTwoFactorCodeAsync(user.Id);
+
+                if (codeSent)
+                {
+                    ToastService.ShowSuccess("Verification Code Sent", "Please check your email for the verification code");
+                    await Task.Delay(1000);
+                    Navigation.NavigateTo($"/verify-2fa?UserId={user.Id}");
+                }
+                else
+                {
+                    ToastService.ShowError("Error", "Failed to send verification code. Please try again.");
+                }
+            }
+            else
+            {
+                // No 2FA, redirect directly to dashboard
+                ToastService.ShowSuccess("Login Successful!", "Welcome back to EventHotelBroker");
+                await Task.Delay(1000);
+                
+                if (user.Role == "Admin")
+                {
+                    Navigation.NavigateTo("/admin/dashboard");
+                }
+                else if (user.Role == "HotelOwner")
+                {
+                    Navigation.NavigateTo("/owner/dashboard");
+                }
+                else
+                {
+                    Navigation.NavigateTo("/user/dashboard");
+                }
+            }
+        }
+        else
+        {
+            ToastService.ShowError("Login Failed", message);
+        }
+
+        isLoggingIn = false;
     }
 
     private void GoogleLogin()

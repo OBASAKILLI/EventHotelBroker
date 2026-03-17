@@ -7,51 +7,53 @@
 
 <PageTitle>Book Event - EventHotelBroker</PageTitle>
 
-<link href="/css/events-module.css" rel="stylesheet" />
+<link href="/css/book-event.css" rel="stylesheet" />
 
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="event-booking-form">
-                <div class="text-center mb-4">
-                    <h2 class="fw-bold">
-                        <i class="bi bi-calendar-event me-2" style="color: #667eea;"></i>
-                        Book Your Event
-                    </h2>
-                    <p class="text-muted">Fill in the details to request your event booking</p>
-                </div>
+<div class="be-shell">
+    <div class="be-header">
+        <div class="be-header-icon"><i class="bi bi-calendar-event"></i></div>
+        <h2>Book Your Event</h2>
+        <p>Fill in the details to request your event booking</p>
+    </div>
 
-                @if (successMessage != null)
-                {
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <i class="bi bi-check-circle me-2"></i>@successMessage
-                        <button type="button" class="btn-close" @onclick="() => successMessage = null"></button>
-                    </div>
-                }
+    @if (successMessage != null)
+    {
+        <div class="be-alert be-alert-success">
+            <i class="bi bi-check-circle"></i>
+            <span>@successMessage</span>
+            <button type="button" class="be-alert-close" @onclick="() => successMessage = null"><i class="bi bi-x"></i></button>
+        </div>
+    }
 
-                @if (errorMessage != null)
-                {
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <i class="bi bi-exclamation-triangle me-2"></i>@errorMessage
-                        <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
-                    </div>
-                }
+    @if (errorMessage != null)
+    {
+        <div class="be-alert be-alert-error">
+            <i class="bi bi-exclamation-triangle"></i>
+            <span>@errorMessage</span>
+            <button type="button" class="be-alert-close" @onclick="() => errorMessage = null"><i class="bi bi-x"></i></button>
+        </div>
+    }
 
+    <div class="be-layout">
+        <div class="be-card">
+            <div class="be-card-head">
+                <i class="bi bi-pencil-square"></i>
+                <h4 class="be-card-title">Event Details</h4>
+            </div>
+            <div class="be-card-body">
                 <EditForm Model="@booking" OnValidSubmit="HandleSubmit">
                     <DataAnnotationsValidator />
 
-                    <div class="row g-3">
-                        <!-- Event Name -->
-                        <div class="col-12">
-                            <label class="form-label">Event Name *</label>
-                            <InputText @bind-Value="booking.EventName" class="form-control" placeholder="e.g., John & Jane's Wedding" />
-                            <ValidationMessage For="@(() => booking.EventName)" />
+                    <div class="be-form-grid">
+                        <div class="be-form-group full">
+                            <label class="be-form-label">Event Name <span class="required">*</span></label>
+                            <InputText @bind-Value="booking.EventName" class="be-form-input" placeholder="e.g., John & Jane's Wedding" />
+                            <ValidationMessage For="@(() => booking.EventName)" class="be-validation-msg" />
                         </div>
 
-                        <!-- Event Type -->
-                        <div class="col-md-6">
-                            <label class="form-label">Event Type *</label>
-                            <InputSelect @bind-Value="booking.EventType" class="form-select">
+                        <div class="be-form-group">
+                            <label class="be-form-label">Event Type <span class="required">*</span></label>
+                            <InputSelect @bind-Value="booking.EventType" class="be-form-select">
                                 <option value="">Select Type</option>
                                 <option value="Wedding">Wedding</option>
                                 <option value="Corporate">Corporate Event</option>
@@ -60,91 +62,137 @@
                                 <option value="Party">Party</option>
                                 <option value="Other">Other</option>
                             </InputSelect>
-                            <ValidationMessage For="@(() => booking.EventType)" />
+                            <ValidationMessage For="@(() => booking.EventType)" class="be-validation-msg" />
                         </div>
 
-                        <!-- Expected Guests -->
-                        <div class="col-md-6">
-                            <label class="form-label">Expected Guests *</label>
-                            <InputNumber @bind-Value="booking.ExpectedGuests" class="form-control" placeholder="100" />
-                            <ValidationMessage For="@(() => booking.ExpectedGuests)" />
+                        <div class="be-form-group">
+                            <label class="be-form-label">Expected Guests <span class="required">*</span></label>
+                            <InputNumber @bind-Value="booking.ExpectedGuests" class="be-form-input" placeholder="100" />
+                            <ValidationMessage For="@(() => booking.ExpectedGuests)" class="be-validation-msg" />
                         </div>
 
-                        <!-- Event Date -->
-                        <div class="col-md-6">
-                            <label class="form-label">Event Date *</label>
-                            <InputDate @bind-Value="booking.EventDate" class="form-control" />
-                            <ValidationMessage For="@(() => booking.EventDate)" />
+                        <div class="be-form-group">
+                            <label class="be-form-label">Event Date <span class="required">*</span></label>
+                            <InputDate @bind-Value="booking.EventDate" class="be-form-input" />
+                            <ValidationMessage For="@(() => booking.EventDate)" class="be-validation-msg" />
                         </div>
 
-                        <!-- Event End Date -->
-                        <div class="col-md-6">
-                            <label class="form-label">Event End Date (Optional)</label>
-                            <InputDate @bind-Value="booking.EventEndDate" class="form-control" />
+                        <div class="be-form-group">
+                            <label class="be-form-label">End Date (Optional)</label>
+                            <InputDate @bind-Value="booking.EventEndDate" class="be-form-input" />
                         </div>
 
-                        <!-- Venue -->
-                        <div class="col-12">
-                            <label class="form-label">Venue/Location *</label>
-                            <InputText @bind-Value="booking.Venue" class="form-control" placeholder="Event venue address" />
-                            <ValidationMessage For="@(() => booking.Venue)" />
-                        </div>
-
-                        <!-- Contact Information -->
-                        <div class="col-12">
-                            <h5 class="mt-3 mb-3">Contact Information</h5>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label">Contact Name *</label>
-                            <InputText @bind-Value="booking.ContactName" class="form-control" placeholder="Full Name" />
-                            <ValidationMessage For="@(() => booking.ContactName)" />
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label">Contact Phone *</label>
-                            <InputText @bind-Value="booking.ContactPhone" class="form-control" placeholder="+1234567890" />
-                            <ValidationMessage For="@(() => booking.ContactPhone)" />
-                        </div>
-
-                        <div class="col-12">
-                            <label class="form-label">Contact Email</label>
-                            <InputText @bind-Value="booking.ContactEmail" class="form-control" type="email" placeholder="email@example.com" />
-                        </div>
-
-                        <!-- Special Requests -->
-                        <div class="col-12">
-                            <label class="form-label">Special Requests</label>
-                            <InputTextArea @bind-Value="booking.SpecialRequests" class="form-control" rows="4" placeholder="Any special requirements or notes..." />
-                        </div>
-
-                        <!-- Estimated Budget -->
-                        <div class="col-12">
-                            <div class="price-display">
-                                <div class="price-label">Estimated Total</div>
-                                <div class="price-amount">
-                                    <span class="price-currency">$</span>@estimatedTotal.ToString("N2")
-                                </div>
-                                <div class="price-period">Final price will be confirmed</div>
-                            </div>
-                        </div>
-
-                        <!-- Submit Button -->
-                        <div class="col-12 mt-4">
-                            <button type="button" class="btn btn-primary btn-lg w-100" @onclick="ProceedToCheckout">
-                                <i class="bi bi-credit-card me-2"></i>
-                                <span>Proceed to Payment</span>
-                            </button>
-                        </div>
-
-                        <div class="col-12 text-center">
-                            <small class="text-muted">
-                                <i class="bi bi-info-circle me-1"></i>
-                                Your booking request will be reviewed and confirmed within 24 hours
-                            </small>
+                        <div class="be-form-group full">
+                            <label class="be-form-label">Venue / Location <span class="required">*</span></label>
+                            <InputText @bind-Value="booking.Venue" class="be-form-input" placeholder="Event venue address" />
+                            <ValidationMessage For="@(() => booking.Venue)" class="be-validation-msg" />
                         </div>
                     </div>
+
+                    <div class="be-section-title"><i class="bi bi-person-lines-fill"></i> Contact Information</div>
+
+                    <div class="be-form-grid">
+                        <div class="be-form-group">
+                            <label class="be-form-label">Contact Name <span class="required">*</span></label>
+                            <InputText @bind-Value="booking.ContactName" class="be-form-input" placeholder="Full Name" />
+                            <ValidationMessage For="@(() => booking.ContactName)" class="be-validation-msg" />
+                        </div>
+
+                        <div class="be-form-group">
+                            <label class="be-form-label">Contact Phone <span class="required">*</span></label>
+                            <InputText @bind-Value="booking.ContactPhone" class="be-form-input" placeholder="+254712345678" />
+                            <ValidationMessage For="@(() => booking.ContactPhone)" class="be-validation-msg" />
+                        </div>
+
+                        <div class="be-form-group full">
+                            <label class="be-form-label">Contact Email</label>
+                            <InputText @bind-Value="booking.ContactEmail" class="be-form-input" type="email" placeholder="email@example.com" />
+                        </div>
+
+                        <div class="be-form-group full">
+                            <label class="be-form-label">Special Requests</label>
+                            <InputTextArea @bind-Value="booking.SpecialRequests" class="be-form-textarea" rows="3" placeholder="Any special requirements or notes..." />
+                        </div>
+                    </div>
+
                 </EditForm>
+            </div>
+        </div>
+
+        <!-- Summary Sidebar -->
+        <div class="be-summary">
+            <div class="be-summary-header">
+                <h5>Booking Summary</h5>
+                <p>Review your event details</p>
+            </div>
+            <div class="be-summary-body">
+                <div class="be-summary-item">
+                    <div class="be-summary-icon"><i class="bi bi-calendar-event"></i></div>
+                    <div>
+                        <div class="be-summary-label">Event</div>
+                        <div class="be-summary-value">@(string.IsNullOrEmpty(booking.EventName) ? "Not set" : booking.EventName)</div>
+                    </div>
+                </div>
+                <div class="be-summary-item">
+                    <div class="be-summary-icon"><i class="bi bi-tag"></i></div>
+                    <div>
+                        <div class="be-summary-label">Type</div>
+                        <div class="be-summary-value">@(string.IsNullOrEmpty(booking.EventType) ? "Not selected" : booking.EventType)</div>
+                    </div>
+                </div>
+                <div class="be-summary-item">
+                    <div class="be-summary-icon"><i class="bi bi-calendar3"></i></div>
+                    <div>
+                        <div class="be-summary-label">Date</div>
+                        <div class="be-summary-value">@booking.EventDate.ToString("MMM dd, yyyy")</div>
+                    </div>
+                </div>
+                <div class="be-summary-item">
+                    <div class="be-summary-icon"><i class="bi bi-people"></i></div>
+                    <div>
+                        <div class="be-summary-label">Guests</div>
+                        <div class="be-summary-value">@(booking.ExpectedGuests > 0 ? $"{booking.ExpectedGuests} guests" : "Not set")</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="be-summary-footer">
+                <div class="be-summary-total">
+                    <span>Estimated Total</span>
+                    <span>KES @estimatedTotal.ToString("N0")</span>
+                </div>
+            </div>
+
+            @if (PackageId.HasValue)
+            {
+                <div class="be-summary-body" style="border-top: 1px solid rgba(158,139,99,0.1);">
+                    <div class="be-section-title" style="margin-top:0;"><i class="bi bi-box-seam"></i> What's Included</div>
+                    <div class="be-included-list">
+                        <div class="be-included-item"><i class="bi bi-check-circle-fill"></i> Event setup & decoration</div>
+                        <div class="be-included-item"><i class="bi bi-check-circle-fill"></i> Equipment & furniture</div>
+                        <div class="be-included-item"><i class="bi bi-check-circle-fill"></i> On-site coordination</div>
+                        <div class="be-included-item"><i class="bi bi-check-circle-fill"></i> Cleanup after event</div>
+                    </div>
+                </div>
+            }
+
+            <div class="be-summary-body" style="border-top: 1px solid rgba(158,139,99,0.1);">
+                <div class="be-price-box">
+                    <div class="be-price-label">Estimated Total</div>
+                    <div class="be-price-amount">
+                        <span class="be-price-currency">KES</span> @estimatedTotal.ToString("N0")
+                    </div>
+                    <div class="be-price-note">Final price will be confirmed</div>
+                </div>
+
+                <button type="button" class="be-submit-btn" @onclick="ProceedToCheckout" disabled="@isSubmitting">
+                    <i class="bi bi-credit-card"></i> Proceed to Payment
+                </button>
+
+                <div class="be-hint">
+                    <i class="bi bi-info-circle"></i>
+                    Reviewed and confirmed within 24 hours
+                </div>
             </div>
         </div>
     </div>

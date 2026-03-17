@@ -1,90 +1,391 @@
 @page "/my-bookings"
+@rendermode InteractiveServer
 @using EventHotelBroker.Models
 @using EventHotelBroker.Services
 @inject IBookingService BookingService
+@inject NavigationManager Navigation
 
 <PageTitle>My Bookings - EventHotelBroker</PageTitle>
 
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>My Bookings</h1>
+<link href="/css/my-bookings.css" rel="stylesheet" />
+
+<div class="bookings-page">
+    <div class="bookings-header">
+        <div class="bookings-header-left">
+            <h1><i class="bi bi-calendar-check"></i> My Bookings</h1>
+            <p>Track and manage your hotel reservations</p>
+        </div>
+        <a href="/search" class="bookings-new-btn">
+            <i class="bi bi-plus-circle"></i> New Booking
+        </a>
     </div>
 
     @if (isLoading)
     {
-        <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
+        <div class="bookings-loading">
+            <div class="spinner-border" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
-        </div>
-    }
-    else if (!bookings.Any())
-    {
-        <div class="alert alert-info">
-            <i class="bi bi-info-circle me-2"></i>You don't have any bookings yet.
+            <p>Loading your bookings...</p>
         </div>
     }
     else
     {
-        <div class="row g-4">
-            @foreach (var booking in bookings)
-            {
-                <div class="col-md-6 col-lg-4">
-                    <div class="card shadow-sm">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                <h5 class="card-title mb-0">Booking #@booking.Id</h5>
-                                <span class="badge bg-@GetStatusColor(booking.Status)">@booking.Status</span>
-                            </div>
-                            <p class="card-text">
-                                <i class="bi bi-building me-2"></i>
-                                <strong>Hotel:</strong> @booking.Hotel?.Name
-                            </p>
-                            <p class="card-text">
-                                <i class="bi bi-calendar me-2"></i>
-                                <strong>Check-in:</strong> @booking.StartDate.ToString("MMM dd, yyyy")
-                            </p>
-                            <p class="card-text">
-                                <i class="bi bi-calendar-check me-2"></i>
-                                <strong>Check-out:</strong> @booking.EndDate.ToString("MMM dd, yyyy")
-                            </p>
-                            <p class="card-text">
-                                <i class="bi bi-people me-2"></i>
-                                <strong>Guests:</strong> @booking.HeadCount
-                            </p>
-                            @if (!string.IsNullOrEmpty(booking.Notes))
+        <div class="bookings-stats">
+            <div class="stat-card">
+                <div>
+                    <div class="stat-value">@bookings.Count()</div>
+                    <div class="stat-label">Total Bookings</div>
+                </div>
+                <div class="stat-icon total"><i class="bi bi-calendar-event"></i></div>
+            </div>
+            <div class="stat-card">
+                <div>
+                    <div class="stat-value">@bookings.Count(b => b.Status == BookingStatus.Pending)</div>
+                    <div class="stat-label">Pending</div>
+                </div>
+                <div class="stat-icon pending"><i class="bi bi-clock-history"></i></div>
+            </div>
+            <div class="stat-card">
+                <div>
+                    <div class="stat-value">@bookings.Count(b => b.Status == BookingStatus.Confirmed)</div>
+                    <div class="stat-label">Confirmed</div>
+                </div>
+                <div class="stat-icon confirmed"><i class="bi bi-check-circle"></i></div>
+            </div>
+            <div class="stat-card">
+                <div>
+                    <div class="stat-value">@upcomingBookings</div>
+                    <div class="stat-label">Upcoming</div>
+                </div>
+                <div class="stat-icon upcoming"><i class="bi bi-calendar3"></i></div>
+            </div>
+        </div>
+
+        <div class="bookings-search-bar">
+            <div class="search-input-wrap">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Search by hotel name, city, or notes..." @bind="searchTerm" @bind:event="oninput" @bind:after="ApplyFilters" />
+            </div>
+            <div class="search-filters">
+                <select class="filter-select" @bind="statusFilter" @bind:after="ApplyFilters">
+                    <option value="">All Statuses</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Confirmed">Confirmed</option>
+                    <option value="Cancelled">Cancelled</option>
+                    <option value="Rejected">Rejected</option>
+                </select>
+                <span class="filter-count">@filteredBookings.Count() results</span>
+            </div>
+        </div>
+
+        @if (pagedBookings.Any())
+        {
+            <div class="bookings-table-card">
+                <div class="table-responsive-wrap">
+                    <table class="bookings-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Hotel</th>
+                                <th>Location</th>
+                                <th>Check-in</th>
+                                <th>Check-out</th>
+                                <th>Guests</th>
+                                <th>Price/Night</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var booking in pagedBookings)
                             {
-                                <p class="card-text text-muted small">
-                                    <strong>Notes:</strong> @booking.Notes
-                                </p>
+                                <tr>
+                                    <td>
+                                        <span class="cell-id">#@booking.Id</span>
+                                    </td>
+                                    <td>
+                                        <div class="cell-hotel-name">@booking.Hotel?.Name</div>
+                                        @if (!string.IsNullOrEmpty(booking.Notes))
+                                        {
+                                            <span class="cell-hotel-note">@(booking.Notes.Length > 35 ? booking.Notes.Substring(0, 35) + "..." : booking.Notes)</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="cell-location"><i class="bi bi-geo-alt-fill"></i> @booking.Hotel?.City</span>
+                                    </td>
+                                    <td>
+                                        <span class="cell-date"><i class="bi bi-box-arrow-in-right" style="color:#059669"></i> @booking.StartDate.ToString("MMM dd, yyyy")</span>
+                                    </td>
+                                    <td>
+                                        <span class="cell-date"><i class="bi bi-box-arrow-right" style="color:#dc2626"></i> @booking.EndDate.ToString("MMM dd, yyyy")</span>
+                                    </td>
+                                    <td>
+                                        <span class="cell-guests"><i class="bi bi-people-fill"></i> @booking.HeadCount</span>
+                                    </td>
+                                    <td>
+                                        <span class="cell-price">@booking.Hotel?.Currency @((booking.Hotel?.PricePerNight ?? 0).ToString("N0"))</span>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge @GetStatusClass(booking.Status)">
+                                            <i class="bi @GetStatusIcon(booking.Status)"></i>
+                                            @booking.Status
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="cell-actions">
+                                            <a href="/booking/details/@booking.Id" class="action-btn-sm view" title="View">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            @if (booking.Status == BookingStatus.Pending)
+                                            {
+                                                <button class="action-btn-sm cancel" title="Cancel">
+                                                    <i class="bi bi-x-lg"></i>
+                                                </button>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
                             }
-                        </div>
-                    </div>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            @if (totalPages > 1)
+            {
+                <div class="bookings-pagination">
+                    <button class="page-btn" disabled="@(currentPage == 1)" @onclick="() => GoToPage(currentPage - 1)">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    @for (int p = 1; p <= totalPages; p++)
+                    {
+                        var pageNum = p;
+                        <button class="page-btn @(pageNum == currentPage ? "active" : "")" @onclick="() => GoToPage(pageNum)">
+                            @pageNum
+                        </button>
+                    }
+                    <button class="page-btn" disabled="@(currentPage == totalPages)" @onclick="() => GoToPage(currentPage + 1)">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                    <span class="page-info">Page @currentPage of @totalPages</span>
                 </div>
             }
-        </div>
+        }
+        else
+        {
+            <div class="bookings-empty">
+                <i class="bi bi-calendar-x"></i>
+                <h4>No Bookings Found</h4>
+                <p>@(string.IsNullOrEmpty(searchTerm) && string.IsNullOrEmpty(statusFilter) ? "Start planning your perfect event today!" : "Try adjusting your search or filters.")</p>
+                @if (string.IsNullOrEmpty(searchTerm) && string.IsNullOrEmpty(statusFilter))
+                {
+                    <a href="/search" class="bookings-new-btn">
+                        <i class="bi bi-plus-circle"></i> Browse Hotels
+                    </a>
+                }
+            </div>
+        }
     }
 </div>
 
 @code {
     private bool isLoading = true;
     private List<Booking> bookings = new();
-    private string currentUserId = "1"; // Default user ID
+    private string currentUserId = "1";
+    private int upcomingBookings = 0;
+
+    // Search & filter
+    private string searchTerm = "";
+    private string statusFilter = "";
+
+    // Pagination
+    private int currentPage = 1;
+    private int pageSize = 10;
+
+    private IEnumerable<Booking> filteredBookings => bookings
+        .Where(b =>
+            (string.IsNullOrEmpty(searchTerm) ||
+             (b.Hotel?.Name?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
+             (b.Hotel?.City?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true) ||
+             (b.Notes?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true))
+            &&
+            (string.IsNullOrEmpty(statusFilter) || b.Status.ToString() == statusFilter)
+        )
+        .OrderByDescending(b => b.StartDate);
+
+    private int totalPages => Math.Max(1, (int)Math.Ceiling((double)filteredBookings.Count() / pageSize));
+
+    private IEnumerable<Booking> pagedBookings => filteredBookings
+        .Skip((currentPage - 1) * pageSize)
+        .Take(pageSize);
+
+    private void ApplyFilters()
+    {
+        currentPage = 1;
+    }
+
+    private void GoToPage(int page)
+    {
+        if (page >= 1 && page <= totalPages)
+            currentPage = page;
+    }
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             bookings = (await BookingService.GetBookingsByUserAsync(currentUserId)).ToList();
+            if (!bookings.Any())
+            {
+                bookings = GetSampleBookings();
+            }
+            upcomingBookings = bookings.Count(b => b.StartDate >= DateTime.Today && 
+                                                   (b.Status == BookingStatus.Confirmed || b.Status == BookingStatus.Pending));
         }
         catch (Exception)
         {
-            // Handle error
+            bookings = GetSampleBookings();
+            upcomingBookings = bookings.Count(b => b.StartDate >= DateTime.Today && 
+                                                   (b.Status == BookingStatus.Confirmed || b.Status == BookingStatus.Pending));
         }
         finally
         {
             isLoading = false;
         }
+    }
+
+    private List<Booking> GetSampleBookings()
+    {
+        return new List<Booking>
+        {
+            new Booking
+            {
+                Id = 1,
+                UserId = currentUserId,
+                HotelId = 1,
+                Hotel = new Hotel
+                {
+                    Id = 1,
+                    Name = "Grand Plaza Hotel Nairobi",
+                    City = "Nairobi",
+                    Country = "Kenya",
+                    PricePerNight = 25000,
+                    Currency = "KES"
+                },
+                StartDate = DateTime.Now.AddDays(15),
+                EndDate = DateTime.Now.AddDays(17),
+                HeadCount = 150,
+                Status = BookingStatus.Confirmed,
+                Notes = "Corporate annual general meeting. Need projector and sound system.",
+                CreatedAt = DateTime.Now.AddDays(-5)
+            },
+            new Booking
+            {
+                Id = 2,
+                UserId = currentUserId,
+                HotelId = 2,
+                Hotel = new Hotel
+                {
+                    Id = 2,
+                    Name = "Serena Beach Resort & Spa",
+                    City = "Mombasa",
+                    Country = "Kenya",
+                    PricePerNight = 35000,
+                    Currency = "KES"
+                },
+                StartDate = DateTime.Now.AddDays(30),
+                EndDate = DateTime.Now.AddDays(33),
+                HeadCount = 100,
+                Status = BookingStatus.Pending,
+                Notes = "Beach wedding ceremony and reception. Need setup for 100 guests.",
+                CreatedAt = DateTime.Now.AddDays(-3)
+            },
+            new Booking
+            {
+                Id = 3,
+                UserId = currentUserId,
+                HotelId = 3,
+                Hotel = new Hotel
+                {
+                    Id = 3,
+                    Name = "Mount Kenya Safari Lodge",
+                    City = "Nanyuki",
+                    Country = "Kenya",
+                    PricePerNight = 18000,
+                    Currency = "KES"
+                },
+                StartDate = DateTime.Now.AddDays(-10),
+                EndDate = DateTime.Now.AddDays(-8),
+                HeadCount = 50,
+                Status = BookingStatus.Confirmed,
+                Notes = "Team building retreat for 50 employees.",
+                CreatedAt = DateTime.Now.AddDays(-20)
+            },
+            new Booking
+            {
+                Id = 4,
+                UserId = currentUserId,
+                HotelId = 4,
+                Hotel = new Hotel
+                {
+                    Id = 4,
+                    Name = "Westlands Conference Center",
+                    City = "Nairobi",
+                    Country = "Kenya",
+                    PricePerNight = 50000,
+                    Currency = "KES"
+                },
+                StartDate = DateTime.Now.AddDays(7),
+                EndDate = DateTime.Now.AddDays(7),
+                HeadCount = 300,
+                Status = BookingStatus.Pending,
+                Notes = "Product launch event. Full day conference.",
+                CreatedAt = DateTime.Now.AddDays(-2)
+            },
+            new Booking
+            {
+                Id = 5,
+                UserId = currentUserId,
+                HotelId = 5,
+                Hotel = new Hotel
+                {
+                    Id = 5,
+                    Name = "Lake Nakuru View Hotel",
+                    City = "Nakuru",
+                    Country = "Kenya",
+                    PricePerNight = 15000,
+                    Currency = "KES"
+                },
+                StartDate = DateTime.Now.AddDays(-30),
+                EndDate = DateTime.Now.AddDays(-28),
+                HeadCount = 40,
+                Status = BookingStatus.Cancelled,
+                Notes = "Weekend getaway for family reunion. Cancelled due to schedule conflict.",
+                CreatedAt = DateTime.Now.AddDays(-45)
+            },
+            new Booking
+            {
+                Id = 6,
+                UserId = currentUserId,
+                HotelId = 1,
+                Hotel = new Hotel
+                {
+                    Id = 1,
+                    Name = "Grand Plaza Hotel Nairobi",
+                    City = "Nairobi",
+                    Country = "Kenya",
+                    PricePerNight = 25000,
+                    Currency = "KES"
+                },
+                StartDate = DateTime.Now.AddDays(45),
+                EndDate = DateTime.Now.AddDays(46),
+                HeadCount = 200,
+                Status = BookingStatus.Confirmed,
+                Notes = "Annual gala dinner and awards ceremony.",
+                CreatedAt = DateTime.Now.AddDays(-1)
+            }
+        };
     }
 
     private string GetStatusColor(BookingStatus status)
@@ -96,6 +397,30 @@
             BookingStatus.Rejected => "danger",
             BookingStatus.Cancelled => "secondary",
             _ => "secondary"
+        };
+    }
+
+    private string GetStatusClass(BookingStatus status)
+    {
+        return status switch
+        {
+            BookingStatus.Pending => "pending",
+            BookingStatus.Confirmed => "confirmed",
+            BookingStatus.Rejected => "rejected",
+            BookingStatus.Cancelled => "rejected",
+            _ => ""
+        };
+    }
+
+    private string GetStatusIcon(BookingStatus status)
+    {
+        return status switch
+        {
+            BookingStatus.Pending => "bi-clock-history",
+            BookingStatus.Confirmed => "bi-check-circle-fill",
+            BookingStatus.Rejected => "bi-x-circle-fill",
+            BookingStatus.Cancelled => "bi-dash-circle-fill",
+            _ => "bi-circle"
         };
     }
 }

@@ -70,14 +70,29 @@
     --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     
-    /* Spacing */
-    --spacing-xs: 0.25rem;
-    --spacing-sm: 0.5rem;
-    --spacing-md: 1rem;
-    --spacing-lg: 1.5rem;
-    --spacing-xl: 2rem;
-    --spacing-2xl: 3rem;
-    --spacing-3xl: 4rem;
+    /* Spacing - Standardized 8px Scale */
+    --spacing-0: 0;
+    --spacing-1: 0.25rem;   /* 4px */
+    --spacing-2: 0.5rem;    /* 8px */
+    --spacing-3: 0.75rem;   /* 12px */
+    --spacing-4: 1rem;      /* 16px */
+    --spacing-5: 1.25rem;   /* 20px */
+    --spacing-6: 1.5rem;    /* 24px */
+    --spacing-8: 2rem;      /* 32px */
+    --spacing-10: 2.5rem;   /* 40px */
+    --spacing-12: 3rem;     /* 48px */
+    --spacing-16: 4rem;     /* 64px */
+    --spacing-20: 5rem;     /* 80px */
+    --spacing-24: 6rem;     /* 96px */
+    
+    /* Legacy spacing (for backward compatibility) */
+    --spacing-xs: var(--spacing-1);
+    --spacing-sm: var(--spacing-2);
+    --spacing-md: var(--spacing-4);
+    --spacing-lg: var(--spacing-6);
+    --spacing-xl: var(--spacing-8);
+    --spacing-2xl: var(--spacing-12);
+    --spacing-3xl: var(--spacing-16);
     
     /* Border Radius */
     --radius-sm: 0.375rem;
@@ -326,8 +341,8 @@
 
 .form-control-system {
     width: 100%;
-    padding: 0.625rem 1rem;
-    font-size: 0.875rem;
+    padding: 0.4375rem 0.75rem;
+    font-size: 0.8125rem;
     line-height: 1.5;
     color: var(--text-primary);
     background: var(--bg-primary);
@@ -338,8 +353,8 @@
 
 .form-control-system:focus {
     outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px var(--primary-lighter);
+    border-color: #9E8B63;
+    box-shadow: 0 0 0 3px rgba(158, 139, 99, 0.1);
 }
 
 .form-control-system:disabled {
@@ -826,4 +841,403 @@
         opacity: 1;
         transform: translateX(0);
     }
+}
+
+/* ============================================
+   13. STEP INDICATOR
+   ============================================ */
+
+.step-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-8);
+    position: relative;
+}
+
+.step-indicator::before {
+    content: '';
+    position: absolute;
+    top: 1.5rem;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--border-light);
+    z-index: 0;
+}
+
+.step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+    flex: 1;
+}
+
+.step-circle {
+    width: 3rem;
+    height: 3rem;
+    border-radius: var(--radius-full);
+    background: var(--bg-primary);
+    border: 3px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    margin-bottom: var(--spacing-2);
+    transition: all var(--transition-base);
+}
+
+.step-item.active .step-circle {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: var(--text-inverse);
+    box-shadow: 0 0 0 4px var(--primary-lighter);
+}
+
+.step-item.completed .step-circle {
+    border-color: var(--success);
+    background: var(--success);
+    color: var(--text-inverse);
+}
+
+.step-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-align: center;
+}
+
+.step-item.active .step-label {
+    color: var(--primary);
+}
+
+.step-item.completed .step-label {
+    color: var(--success);
+}
+
+/* ============================================
+   14. PRICE BREAKDOWN
+   ============================================ */
+
+.price-breakdown {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-6);
+    border: 1px solid var(--border-light);
+}
+
+.price-breakdown-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-4);
+    padding-bottom: var(--spacing-4);
+    border-bottom: 2px solid var(--border-light);
+}
+
+.price-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-3) 0;
+    font-size: 0.9375rem;
+}
+
+.price-item-label {
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.price-item-value {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.price-item.discount .price-item-value {
+    color: var(--success);
+}
+
+.price-divider {
+    height: 1px;
+    background: var(--border-light);
+    margin: var(--spacing-3) 0;
+}
+
+.price-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-4) 0;
+    margin-top: var(--spacing-3);
+    border-top: 2px solid var(--border-medium);
+}
+
+.price-total-label {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.price-total-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+/* ============================================
+   15. BOOKING SUMMARY SIDEBAR
+   ============================================ */
+
+.booking-summary {
+    position: sticky;
+    top: 2rem;
+    background: var(--bg-primary);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-light);
+    overflow: hidden;
+}
+
+.booking-summary-header {
+    padding: var(--spacing-6);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: var(--text-inverse);
+}
+
+.booking-summary-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: var(--spacing-1);
+}
+
+.booking-summary-subtitle {
+    font-size: 0.875rem;
+    opacity: 0.9;
+}
+
+.booking-summary-body {
+    padding: var(--spacing-6);
+}
+
+.booking-detail-item {
+    display: flex;
+    gap: var(--spacing-3);
+    margin-bottom: var(--spacing-4);
+}
+
+.booking-detail-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--radius-md);
+    background: var(--primary-lighter);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.booking-detail-content {
+    flex: 1;
+}
+
+.booking-detail-label {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--spacing-1);
+}
+
+.booking-detail-value {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.booking-summary-footer {
+    padding: var(--spacing-6);
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-light);
+}
+
+/* ============================================
+   16. THUMBNAIL GRID
+   ============================================ */
+
+.thumbnail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: var(--spacing-3);
+    margin-top: var(--spacing-4);
+}
+
+.thumbnail-item {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all var(--transition-base);
+}
+
+.thumbnail-item:hover {
+    border-color: var(--primary);
+    transform: scale(1.05);
+}
+
+.thumbnail-item.active {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-lighter);
+}
+
+.thumbnail-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.thumbnail-placeholder {
+    width: 100%;
+    height: 100%;
+    background: var(--gray-200);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gray-400);
+    font-size: 2rem;
+}
+
+/* ============================================
+   17. ADVANCED FILTERS
+   ============================================ */
+
+.filter-panel {
+    background: var(--bg-primary);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-6);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-light);
+}
+
+.filter-section {
+    margin-bottom: var(--spacing-6);
+}
+
+.filter-section:last-child {
+    margin-bottom: 0;
+}
+
+.filter-section-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #2A2A2A;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.filter-range {
+    padding: var(--spacing-4) 0;
+}
+
+.filter-range-inputs {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: var(--spacing-3);
+    align-items: center;
+    margin-top: var(--spacing-3);
+}
+
+.filter-range-separator {
+    color: var(--text-tertiary);
+    font-weight: 600;
+}
+
+.filter-checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+}
+
+.filter-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    cursor: pointer;
+}
+
+.filter-checkbox-item input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid rgba(158, 139, 99, 0.3);
+    cursor: pointer;
+    accent-color: #9E8B63;
+}
+
+.filter-checkbox-item input[type="checkbox"]:checked {
+    background: #9E8B63;
+    border-color: #9E8B63;
+}
+
+.filter-checkbox-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.filter-checkbox-count {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    background: var(--gray-100);
+    padding: 0.125rem 0.5rem;
+    border-radius: var(--radius-full);
+}
+
+.filter-actions {
+    display: flex;
+    gap: var(--spacing-3);
+    margin-top: var(--spacing-6);
+    padding-top: var(--spacing-6);
+    border-top: 1px solid var(--border-light);
+}
+
+/* Range Slider Styling */
+input[type="range"] {
+    width: 100%;
+    height: 6px;
+    border-radius: var(--radius-full);
+    background: var(--gray-200);
+    outline: none;
+    -webkit-appearance: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #9E8B63;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(158, 139, 99, 0.3);
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #9E8B63;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(158, 139, 99, 0.3);
+    border: none;
 }

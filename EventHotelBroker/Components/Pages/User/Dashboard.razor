@@ -9,25 +9,22 @@
 
 <PageTitle>My Dashboard - EventHotelBroker</PageTitle>
 
-<link href="/css/events-module.css" rel="stylesheet" />
 <link href="/css/design-system.css" rel="stylesheet" />
 
-<div class="container-fluid px-4 py-4">
-    <!-- Breadcrumb -->
+<div class="ud-shell">
     <Breadcrumb Items="@breadcrumbItems" />
 
     @if (isLoading)
     {
-        <!-- Loading Skeletons -->
-        <div class="row g-4 mb-4">
+        <div class="row g-3 mb-3">
             @for (int i = 0; i < 4; i++)
             {
                 <div class="col-lg-3 col-md-6">
-                    <LoadingSkeleton Type="LoadingSkeleton.SkeletonType.Custom" Height="120px" />
+                    <LoadingSkeleton Type="LoadingSkeleton.SkeletonType.Custom" Height="80px" />
                 </div>
             }
         </div>
-        <div class="row g-4">
+        <div class="row g-3">
             <div class="col-lg-8">
                 <LoadingSkeleton Type="LoadingSkeleton.SkeletonType.Card" />
             </div>
@@ -38,265 +35,556 @@
     }
     else
     {
-        <!-- Page Header -->
-        <div class="page-header mb-4">
-            <h1><i class="bi bi-speedometer2 me-3"></i>My Dashboard</h1>
-            <p>Welcome back! Here's an overview of your bookings and messages.</p>
+        <!-- Welcome Banner -->
+        <div class="ud-welcome">
+            <div class="ud-welcome-left">
+                <h1 class="ud-title">Welcome back!</h1>
+                <p class="ud-subtitle">@DateTime.Now.ToString("dddd, MMMM dd yyyy")</p>
+            </div>
+            <div class="ud-welcome-right">
+                <a href="/search" class="ud-btn ud-btn-primary"><i class="bi bi-plus-lg"></i> New Booking</a>
+                <a href="/events" class="ud-btn ud-btn-outline"><i class="bi bi-gift"></i> Book Event</a>
+            </div>
         </div>
 
         <!-- Statistics Cards -->
-        <div class="row g-4 mb-4">
+        <div class="row g-3 mb-3">
             <div class="col-lg-3 col-md-6">
-                <div class="stats-card">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <p class="stats-number">@hotelBookings.Count()</p>
-                            <p class="stats-label mb-0">Hotel Bookings</p>
-                        </div>
-                        <div class="stats-icon" style="background: var(--primary-gradient);">
-                            <i class="bi bi-building"></i>
-                        </div>
+                <div class="ud-stat">
+                    <div class="ud-stat-icon ud-icon-terracotta"><i class="bi bi-building"></i></div>
+                    <div>
+                        <div class="ud-stat-value">@hotelBookings.Count()</div>
+                        <div class="ud-stat-label">Hotel Bookings</div>
                     </div>
                 </div>
             </div>
             <div class="col-lg-3 col-md-6">
-                <div class="stats-card">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <p class="stats-number">@eventBookings.Count()</p>
-                            <p class="stats-label mb-0">Event Bookings</p>
-                        </div>
-                        <div class="stats-icon" style="background: var(--secondary-gradient);">
-                            <i class="bi bi-calendar-event"></i>
-                        </div>
+                <div class="ud-stat">
+                    <div class="ud-stat-icon ud-icon-olive"><i class="bi bi-calendar-event"></i></div>
+                    <div>
+                        <div class="ud-stat-value">@eventBookings.Count()</div>
+                        <div class="ud-stat-label">Event Bookings</div>
                     </div>
                 </div>
             </div>
             <div class="col-lg-3 col-md-6">
-                <div class="stats-card">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <p class="stats-number">@messages.Count(m => !m.IsRead)</p>
-                            <p class="stats-label mb-0">Unread Messages</p>
-                        </div>
-                        <div class="stats-icon" style="background: var(--info-gradient);">
-                            <i class="bi bi-envelope"></i>
-                        </div>
+                <div class="ud-stat">
+                    <div class="ud-stat-icon ud-icon-teal"><i class="bi bi-wallet2"></i></div>
+                    <div>
+                        <div class="ud-stat-value">$@GetTotalSpend().ToString("N0")</div>
+                        <div class="ud-stat-label">Total Spent</div>
                     </div>
                 </div>
             </div>
             <div class="col-lg-3 col-md-6">
-                <div class="stats-card">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <p class="stats-number">@GetPendingCount()</p>
-                            <p class="stats-label mb-0">Pending Approvals</p>
-                        </div>
-                        <div class="stats-icon" style="background: var(--warning-gradient);">
-                            <i class="bi bi-clock-history"></i>
-                        </div>
+                <div class="ud-stat">
+                    <div class="ud-stat-icon ud-icon-bronze"><i class="bi bi-clock-history"></i></div>
+                    <div>
+                        <div class="ud-stat-value">@GetPendingCount()</div>
+                        <div class="ud-stat-label">Pending</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Main Content -->
-        <div class="row g-4">
-            <!-- Left Column: Bookings -->
-            <div class="col-lg-8">
-                <!-- Hotel Bookings -->
-                <div class="modern-card mb-4">
-                    <div class="modern-card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0"><i class="bi bi-building me-2"></i>My Hotel Bookings</h5>
-                            <a href="/my-bookings" class="btn btn-sm btn-outline-primary">View All</a>
-                        </div>
+        <!-- Upcoming Booking Highlight -->
+        var nextBooking = GetNextUpcomingBooking();
+        @if (nextBooking != null)
+        {
+            <div class="ud-upcoming mb-3">
+                <div class="ud-upcoming-label"><i class="bi bi-lightning-fill"></i> UPCOMING</div>
+                <div class="ud-upcoming-body">
+                    <div class="ud-upcoming-info">
+                        <span class="ud-upcoming-name">@nextBooking.Hotel?.Name</span>
+                        <span class="ud-upcoming-meta">@nextBooking.StartDate.ToString("MMM dd") – @nextBooking.EndDate.ToString("MMM dd, yyyy") · @nextBooking.HeadCount guests</span>
                     </div>
-                    <div class="modern-card-body">
-                        @if (hotelBookings.Any())
-                        {
-                            <div class="list-group list-group-flush">
-                                @foreach (var booking in hotelBookings.Take(3))
-                                {
-                                    <div class="list-group-item px-0 py-3">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div class="flex-grow-1">
-                                                <h6 class="mb-2">@booking.Hotel?.Name</h6>
-                                                <div class="d-flex flex-wrap gap-3 text-muted small">
-                                                    <span><i class="bi bi-calendar me-1"></i>@booking.StartDate.ToString("MMM dd") - @booking.EndDate.ToString("MMM dd, yyyy")</span>
-                                                    <span><i class="bi bi-people me-1"></i>@booking.HeadCount guests</span>
-                                                    <span><i class="bi bi-moon me-1"></i>@((booking.EndDate - booking.StartDate).Days) nights</span>
-                                                </div>
-                                                <div class="mt-2">
-                                                    <span class="badge-modern @GetStatusBadgeClass(booking.Status)">
-                                                        @booking.Status
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div class="text-end">
-                                                <h5 class="mb-0 text-primary">$@CalculateBookingTotal(booking).ToString("N2")</h5>
-                                                <button class="btn btn-sm btn-outline-primary mt-2" @onclick="() => ViewHotelBooking(booking.Id)">
-                                                    <i class="bi bi-eye"></i> Details
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                }
-                            </div>
-                        }
-                        else
-                        {
-                            <EmptyState 
-                                Icon="building"
-                                Title="No hotel bookings yet"
-                                Description="Start exploring amazing hotels and make your first booking!"
-                                ActionText="Browse Hotels"
-                                ActionIcon="search"
-                                OnActionClick="@(() => Navigation.NavigateTo("/search"))" />
-                        }
+                    <div class="ud-upcoming-countdown">
+                        <span class="ud-countdown-value">@((nextBooking.StartDate - DateTime.Now).Days)</span>
+                        <span class="ud-countdown-label">days away</span>
                     </div>
                 </div>
+            </div>
+        }
 
-                <!-- Event Bookings -->
-                <div class="modern-card">
-                    <div class="modern-card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0"><i class="bi bi-calendar-event me-2"></i>My Event Bookings</h5>
-                            <a href="/my-event-bookings" class="btn btn-sm btn-outline-primary">View All</a>
-                        </div>
+        <!-- Main Row: 8:4 layout -->
+        <div class="row g-3">
+            <!-- Left Column: Tabbed Bookings -->
+            <div class="col-lg-8">
+                <div class="ud-card">
+                    <div class="ud-tab-bar">
+                        <button class="ud-tab @(activeTab == "hotels" ? "ud-tab-active" : "")" @onclick='() => activeTab = "hotels"'>
+                            <i class="bi bi-building"></i> Hotel Bookings
+                            <span class="ud-tab-count">@hotelBookings.Count()</span>
+                        </button>
+                        <button class="ud-tab @(activeTab == "events" ? "ud-tab-active" : "")" @onclick='() => activeTab = "events"'>
+                            <i class="bi bi-calendar-event"></i> Event Bookings
+                            <span class="ud-tab-count">@eventBookings.Count()</span>
+                        </button>
+                        <div class="ud-tab-spacer"></div>
+                        <a href="@(activeTab == "hotels" ? "/my-bookings" : "/my-event-bookings")" class="ud-link">View All <i class="bi bi-arrow-right"></i></a>
                     </div>
-                    <div class="modern-card-body">
-                        @if (eventBookings.Any())
+                    <div class="ud-card-body">
+                        @if (activeTab == "hotels")
                         {
-                            <div class="list-group list-group-flush">
-                                @foreach (var booking in eventBookings.Take(3))
+                            @if (hotelBookings.Any())
+                            {
+                                @foreach (var booking in hotelBookings.Take(5))
                                 {
-                                    <div class="list-group-item px-0 py-3">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div class="flex-grow-1">
-                                                <h6 class="mb-2">@booking.EventName</h6>
-                                                <span class="badge-modern badge-gradient-info mb-2">
-                                                    <i class="bi bi-tag me-1"></i>@booking.EventType
-                                                </span>
-                                                <div class="d-flex flex-wrap gap-3 text-muted small">
-                                                    <span><i class="bi bi-calendar me-1"></i>@booking.EventDate.ToString("MMM dd, yyyy")</span>
-                                                    <span><i class="bi bi-people me-1"></i>@booking.ExpectedGuests guests</span>
-                                                    <span><i class="bi bi-geo-alt me-1"></i>@booking.Venue</span>
-                                                </div>
-                                                <div class="mt-2">
-                                                    <span class="badge-modern @GetEventStatusBadgeClass(booking.Status)">
-                                                        @booking.Status
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div class="text-end">
-                                                <h5 class="mb-0 text-primary">$@booking.TotalAmount.ToString("N2")</h5>
-                                                @if (booking.DepositAmount.HasValue)
-                                                {
-                                                    <small class="text-muted">Deposit: $@booking.DepositAmount.Value.ToString("N2")</small>
-                                                }
-                                                <button class="btn btn-sm btn-outline-primary mt-2" @onclick="() => ViewEventBooking(booking.Id)">
-                                                    <i class="bi bi-eye"></i> Details
-                                                </button>
-                                            </div>
+                                    <div class="ud-row" @onclick="() => ViewHotelBooking(booking.Id)">
+                                        <div class="ud-row-left">
+                                            <span class="ud-row-name">@booking.Hotel?.Name</span>
+                                            <span class="ud-row-meta">@booking.StartDate.ToString("MMM dd") – @booking.EndDate.ToString("MMM dd") · @booking.HeadCount guests · @((booking.EndDate - booking.StartDate).Days) nights</span>
+                                            <span class="ud-badge ud-badge-@(booking.Status == BookingStatus.Confirmed ? "ok" : booking.Status == BookingStatus.Pending ? "warn" : "muted")">@booking.Status</span>
+                                        </div>
+                                        <div class="ud-row-right">
+                                            <span class="ud-row-amount">$@CalculateBookingTotal(booking).ToString("N0")</span>
+                                            <i class="bi bi-chevron-right ud-chevron"></i>
                                         </div>
                                     </div>
                                 }
-                            </div>
+                            }
+                            else
+                            {
+                                <EmptyState 
+                                    Icon="building"
+                                    Title="No hotel bookings yet"
+                                    Description="Start exploring amazing hotels and make your first booking!"
+                                    ActionText="Browse Hotels"
+                                    ActionIcon="search"
+                                    OnActionClick="@(() => Navigation.NavigateTo("/search"))" />
+                            }
                         }
                         else
                         {
-                            <EmptyState 
-                                Icon="calendar-event"
-                                Title="No event bookings yet"
-                                Description="Discover amazing event packages for your special occasions!"
-                                ActionText="Browse Event Packages"
-                                ActionIcon="gift"
-                                OnActionClick="@(() => Navigation.NavigateTo("/events"))" />
+                            @if (eventBookings.Any())
+                            {
+                                @foreach (var booking in eventBookings.Take(5))
+                                {
+                                    <div class="ud-row" @onclick="() => ViewEventBooking(booking.Id)">
+                                        <div class="ud-row-left">
+                                            <span class="ud-row-name">@booking.EventName</span>
+                                            <span class="ud-row-meta">@booking.EventDate.ToString("MMM dd, yyyy") · @booking.ExpectedGuests guests · @booking.Venue</span>
+                                            <span class="ud-badge ud-badge-@(booking.Status == EventBookingStatus.Confirmed ? "ok" : booking.Status == EventBookingStatus.Pending ? "warn" : "muted")">@booking.Status</span>
+                                        </div>
+                                        <div class="ud-row-right">
+                                            <span class="ud-row-amount">$@booking.TotalAmount.ToString("N0")</span>
+                                            <i class="bi bi-chevron-right ud-chevron"></i>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <EmptyState 
+                                    Icon="calendar-event"
+                                    Title="No event bookings yet"
+                                    Description="Discover amazing event packages for your special occasions!"
+                                    ActionText="Browse Event Packages"
+                                    ActionIcon="gift"
+                                    OnActionClick="@(() => Navigation.NavigateTo("/events"))" />
+                            }
                         }
                     </div>
                 </div>
             </div>
 
-            <!-- Right Column: Messages & Quick Actions -->
+            <!-- Right Column: Quick Action Cards -->
             <div class="col-lg-4">
-                <!-- Messages -->
-                <div class="modern-card mb-4">
-                    <div class="modern-card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0"><i class="bi bi-chat-dots me-2"></i>Messages</h5>
-                            <a href="/messages" class="btn btn-sm btn-outline-primary">View All</a>
-                        </div>
-                    </div>
-                    <div class="modern-card-body">
-                        @if (messages.Any())
-                        {
-                            <div class="messages-list">
-                                @foreach (var message in messages.Take(5))
-                                {
-                                    <div class="message-item @(message.IsRead ? "" : "unread")" @onclick="() => ViewMessage(message.Id)">
-                                        <div class="d-flex align-items-start gap-3">
-                                            <div class="message-avatar">
-                                                <i class="bi bi-person-circle"></i>
-                                            </div>
-                                            <div class="flex-grow-1">
-                                                <div class="d-flex justify-content-between align-items-start mb-1">
-                                                    <h6 class="mb-0">@message.SenderName</h6>
-                                                    @if (!message.IsRead)
-                                                    {
-                                                        <span class="badge bg-primary rounded-circle" style="width: 8px; height: 8px;"></span>
-                                                    }
-                                                </div>
-                                                <p class="message-subject mb-1">@message.Subject</p>
-                                                <p class="message-preview mb-1">@message.MessagePreview</p>
-                                                <small class="text-muted">
-                                                    <i class="bi bi-clock me-1"></i>@message.SentAt.ToString("MMM dd, h:mm tt")
-                                                </small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                }
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="text-center py-4">
-                                <i class="bi bi-envelope display-4 text-muted"></i>
-                                <p class="mt-3 text-muted mb-0">No messages yet</p>
-                            </div>
-                        }
-                    </div>
-                </div>
-
-                <!-- Quick Actions -->
-                <div class="modern-card">
-                    <div class="modern-card-header">
-                        <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>Quick Actions</h5>
-                    </div>
-                    <div class="modern-card-body">
-                        <div class="d-grid gap-2">
-                            <a href="/search" class="btn-modern btn-gradient-primary">
-                                <i class="bi bi-building me-2"></i>Book a Hotel
-                            </a>
-                            <a href="/events" class="btn-modern btn-gradient-accent">
-                                <i class="bi bi-gift me-2"></i>Book Event Package
-                            </a>
-                            <a href="/messages" class="btn btn-outline-primary">
-                                <i class="bi bi-envelope me-2"></i>View Messages
-                            </a>
-                            <a href="/my-bookings" class="btn btn-outline-secondary">
-                                <i class="bi bi-calendar-check me-2"></i>My Bookings
-                            </a>
-                        </div>
-                    </div>
+                <div class="ud-qaction-stack">
+                    <a href="/search" class="ud-qaction">
+                        <div class="ud-qaction-icon ud-icon-terracotta"><i class="bi bi-search"></i></div>
+                        <span class="ud-qaction-text">Search Hotels</span>
+                        <i class="bi bi-arrow-right ud-qaction-arrow"></i>
+                    </a>
+                    <a href="/events" class="ud-qaction">
+                        <div class="ud-qaction-icon ud-icon-olive"><i class="bi bi-gift"></i></div>
+                        <span class="ud-qaction-text">Event Packages</span>
+                        <i class="bi bi-arrow-right ud-qaction-arrow"></i>
+                    </a>
+                    <a href="/my-bookings" class="ud-qaction">
+                        <div class="ud-qaction-icon ud-icon-teal"><i class="bi bi-calendar-check"></i></div>
+                        <span class="ud-qaction-text">My Bookings</span>
+                        <i class="bi bi-arrow-right ud-qaction-arrow"></i>
+                    </a>
+                    <a href="/my-event-bookings" class="ud-qaction">
+                        <div class="ud-qaction-icon ud-icon-bronze"><i class="bi bi-calendar2-event"></i></div>
+                        <span class="ud-qaction-text">Event Bookings</span>
+                        <i class="bi bi-arrow-right ud-qaction-arrow"></i>
+                    </a>
                 </div>
             </div>
         </div>
     }
 </div>
 
+<style>
+    /* ── Shell ── */
+    .ud-shell {
+        padding: 1.25rem 1.5rem;
+        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        color: #2A2A2A;
+        background: #f5f3ef;
+        min-height: 100%;
+    }
+
+    /* ── Welcome Banner ── */
+    .ud-welcome {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.25rem;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+    .ud-title {
+        font-size: 1.375rem;
+        font-weight: 700;
+        letter-spacing: -0.025em;
+        color: #2A2A2A;
+        margin: 0 0 0.125rem;
+    }
+    .ud-subtitle {
+        font-size: 0.75rem;
+        color: #9E8B63;
+        margin: 0;
+        font-weight: 500;
+    }
+    .ud-welcome-right {
+        display: flex;
+        gap: 0.5rem;
+    }
+    .ud-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.15s ease;
+        cursor: pointer;
+        border: none;
+    }
+    .ud-btn-primary {
+        background: #2A2A2A;
+        color: #fff;
+    }
+    .ud-btn-primary:hover {
+        background: #9E8B63;
+        color: #fff;
+        text-decoration: none;
+    }
+    .ud-btn-outline {
+        background: #fff;
+        color: #2A2A2A;
+        border: 1px solid rgba(158, 139, 99, 0.2);
+    }
+    .ud-btn-outline:hover {
+        background: rgba(158, 139, 99, 0.06);
+        color: #2A2A2A;
+        text-decoration: none;
+    }
+
+    /* ── Upcoming Booking ── */
+    .ud-upcoming {
+        background: #2A2A2A;
+        border-radius: 14px;
+        padding: 1rem 1.25rem;
+        color: #fff;
+    }
+    .ud-upcoming-label {
+        font-size: 0.625rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #C87941;
+        margin-bottom: 0.5rem;
+    }
+    .ud-upcoming-body {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+    .ud-upcoming-name {
+        display: block;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #fff;
+    }
+    .ud-upcoming-meta {
+        display: block;
+        font-size: 0.75rem;
+        color: rgba(255,255,255,0.6);
+        margin-top: 0.125rem;
+    }
+    .ud-upcoming-countdown {
+        text-align: center;
+        flex-shrink: 0;
+    }
+    .ud-countdown-value {
+        display: block;
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: #C87941;
+        line-height: 1;
+    }
+    .ud-countdown-label {
+        display: block;
+        font-size: 0.625rem;
+        color: rgba(255,255,255,0.5);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-top: 0.125rem;
+    }
+
+    /* ── Stat Cards ── */
+    .ud-stat {
+        background: #fff;
+        border: 1px solid rgba(158, 139, 99, 0.12);
+        border-radius: 14px;
+        padding: 0.875rem 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        transition: all 0.2s ease;
+    }
+    .ud-stat:hover {
+        box-shadow: 0 4px 16px rgba(42, 42, 42, 0.06);
+        border-color: rgba(158, 139, 99, 0.25);
+    }
+    .ud-stat-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: rgba(158, 139, 99, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        color: #9E8B63;
+        flex-shrink: 0;
+    }
+    .ud-icon-terracotta { background: rgba(200, 121, 65, 0.1); color: #C87941; }
+    .ud-icon-olive { background: rgba(128, 128, 48, 0.1); color: #6B7028; }
+    .ud-icon-teal { background: rgba(72, 140, 130, 0.1); color: #488C82; }
+    .ud-icon-bronze { background: rgba(158, 139, 99, 0.1); color: #9E8B63; }
+    .ud-stat-value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: #2A2A2A;
+        line-height: 1;
+    }
+    .ud-stat-label {
+        font-size: 0.6875rem;
+        color: #8a8177;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        margin-top: 0.125rem;
+    }
+
+    /* ── Cards ── */
+    .ud-card {
+        background: #fff;
+        border: 1px solid rgba(158, 139, 99, 0.12);
+        border-radius: 14px;
+        overflow: hidden;
+    }
+    .ud-card-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid rgba(158, 139, 99, 0.1);
+    }
+    .ud-card-title {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: #2A2A2A;
+    }
+    .ud-link {
+        font-size: 0.6875rem;
+        font-weight: 600;
+        color: #C87941;
+        text-decoration: none;
+        letter-spacing: 0.01em;
+    }
+    .ud-link:hover { text-decoration: underline; color: #a8612f; }
+    .ud-card-body { padding: 0; }
+
+    /* ── Tab Bar ── */
+    .ud-tab-bar {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        padding: 0 1rem;
+        border-bottom: 1px solid rgba(158, 139, 99, 0.1);
+    }
+    .ud-tab {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.75rem 0.875rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: #8a8177;
+        background: none;
+        border: none;
+        border-bottom: 2px solid transparent;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        white-space: nowrap;
+    }
+    .ud-tab:hover { color: #2A2A2A; }
+    .ud-tab-active {
+        color: #2A2A2A;
+        font-weight: 600;
+        border-bottom-color: #C87941;
+    }
+    .ud-tab-count {
+        font-size: 0.625rem;
+        font-weight: 600;
+        background: rgba(158, 139, 99, 0.1);
+        color: #8a8177;
+        padding: 0.0625rem 0.375rem;
+        border-radius: 10px;
+        min-width: 1.25rem;
+        text-align: center;
+    }
+    .ud-tab-active .ud-tab-count {
+        background: #C87941;
+        color: #fff;
+    }
+    .ud-tab-spacer { flex: 1; }
+
+    /* ── Booking Rows ── */
+    .ud-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid rgba(158, 139, 99, 0.08);
+        cursor: pointer;
+        transition: background 0.15s ease;
+    }
+    .ud-row:last-child { border-bottom: none; }
+    .ud-row:hover { background: rgba(158, 139, 99, 0.04); }
+    .ud-row:active { background: rgba(158, 139, 99, 0.08); }
+    .ud-row-left {
+        display: flex;
+        flex-direction: column;
+        gap: 0.125rem;
+        min-width: 0;
+        flex: 1;
+    }
+    .ud-row-name {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: #2A2A2A;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .ud-row-meta {
+        font-size: 0.6875rem;
+        color: #8a8177;
+        font-weight: 400;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .ud-row-right {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-shrink: 0;
+        margin-left: 0.75rem;
+    }
+    .ud-row-amount {
+        font-size: 0.8125rem;
+        font-weight: 700;
+        color: #2A2A2A;
+    }
+    .ud-chevron {
+        font-size: 0.625rem;
+        color: #c4b99a;
+    }
+
+    /* ── Badges ── */
+    .ud-badge {
+        display: inline-block;
+        font-size: 0.5625rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding: 0.125rem 0.4rem;
+        border-radius: 4px;
+        margin-top: 0.1875rem;
+        width: fit-content;
+    }
+    .ud-badge-ok { background: rgba(72, 140, 130, 0.1); color: #488C82; }
+    .ud-badge-warn { background: rgba(200, 121, 65, 0.1); color: #C87941; }
+    .ud-badge-muted { background: rgba(42, 42, 42, 0.06); color: #8a8177; }
+
+    /* ── Quick Action Cards ── */
+    .ud-qaction-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 0.625rem;
+    }
+    .ud-qaction {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: #fff;
+        border: 1px solid rgba(158, 139, 99, 0.08);
+        border-radius: 14px;
+        padding: 0.875rem 1rem;
+        text-decoration: none;
+        color: #2A2A2A;
+        transition: all 0.15s ease;
+        box-shadow: 0 2px 8px rgba(42, 42, 42, 0.04);
+    }
+    .ud-qaction:hover {
+        box-shadow: 0 6px 20px rgba(42, 42, 42, 0.08);
+        border-color: rgba(158, 139, 99, 0.2);
+        color: #2A2A2A;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+    .ud-qaction-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+    .ud-qaction-text {
+        flex: 1;
+        font-size: 0.8125rem;
+        font-weight: 600;
+    }
+    .ud-qaction-arrow {
+        font-size: 0.75rem;
+        color: #c4b99a;
+        transition: transform 0.15s ease;
+    }
+    .ud-qaction:hover .ud-qaction-arrow {
+        transform: translateX(2px);
+        color: #9E8B63;
+    }
+</style>
+
 @code {
     private bool isLoading = true;
+    private string activeTab = "hotels";
     private List<Booking> hotelBookings = new();
     private List<EventBooking> eventBookings = new();
     private List<UserMessage> messages = new();
@@ -402,8 +690,6 @@
             // Load messages (sample data)
             messages = GetSampleMessages();
             
-            // Show success toast
-            ToastService.ShowSuccess("Welcome back!", "Your dashboard has been loaded successfully");
         }
         catch (Exception)
         {
@@ -471,6 +757,21 @@
     {
         return hotelBookings.Count(b => b.Status == BookingStatus.Pending) +
                eventBookings.Count(b => b.Status == EventBookingStatus.Pending);
+    }
+
+    private decimal GetTotalSpend()
+    {
+        var hotelTotal = hotelBookings.Sum(b => CalculateBookingTotal(b));
+        var eventTotal = eventBookings.Sum(b => b.TotalAmount);
+        return hotelTotal + eventTotal;
+    }
+
+    private Booking? GetNextUpcomingBooking()
+    {
+        return hotelBookings
+            .Where(b => b.StartDate > DateTime.Now)
+            .OrderBy(b => b.StartDate)
+            .FirstOrDefault();
     }
 
     private string GetStatusBadgeClass(BookingStatus status)

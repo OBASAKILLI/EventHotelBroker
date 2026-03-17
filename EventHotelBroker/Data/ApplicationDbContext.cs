@@ -11,6 +11,7 @@ public class ApplicationDbContext : DbContext
     }
 
     public DbSet<ApplicationUser> AspNetUsers { get; set; }
+    public DbSet<ApplicationUser> Users { get; set; }
     public DbSet<Hotel> Hotels { get; set; }
     public DbSet<HotelImage> HotelImages { get; set; }
     public DbSet<Service> Services { get; set; }

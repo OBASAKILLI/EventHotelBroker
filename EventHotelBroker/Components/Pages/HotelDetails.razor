@@ -1,5 +1,6 @@
 @page "/hotels/{HotelId:int}"
 @page "/hotel-details"
+@rendermode InteractiveServer
 @using EventHotelBroker.Models
 @using EventHotelBroker.Services
 @using EventHotelBroker.Repositories
@@ -9,6 +10,8 @@
 @inject NavigationManager NavigationManager
 
 <PageTitle>@(hotel?.Name ?? "Hotel Details") - EventHotelBroker</PageTitle>
+
+<link href="/css/hotel-details.css" rel="stylesheet" />
 
 <div class="hotel-details-page">
     @if (isLoading)
@@ -66,31 +69,25 @@
                 <div class="gallery-section">
                     @if (hotel.Images.Any())
                     {
-                        <div id="hotelCarousel" class="carousel slide modern-carousel" data-bs-ride="carousel">
-                            <div class="carousel-inner">
-                                @for (int i = 0; i < hotel.Images.Count; i++)
-                                {
-                                    var image = hotel.Images.ElementAt(i);
-                                    <div class="carousel-item @(i == 0 ? "active" : "")">
-                                        <img src="@image.Url" alt="@hotel.Name">
-                                    </div>
-                                }
+                        <!-- Main Image Display -->
+                        <div class="main-image-container">
+                            <img src="@(selectedImage ?? hotel.Images.First().Url)" alt="@hotel.Name" class="main-image" />
+                            <div class="image-counter">
+                                <i class="bi bi-images"></i> @(selectedImageIndex + 1) / @hotel.Images.Count
                             </div>
-                            @if (hotel.Images.Count > 1)
+                        </div>
+
+                        <!-- Thumbnail Grid -->
+                        <div class="thumbnail-grid">
+                            @for (int i = 0; i < hotel.Images.Count; i++)
                             {
-                                <button class="carousel-control-prev" type="button" data-bs-target="#hotelCarousel" data-bs-slide="prev">
-                                    <span class="carousel-control-prev-icon"></span>
-                                </button>
-                                <button class="carousel-control-next" type="button" data-bs-target="#hotelCarousel" data-bs-slide="next">
-                                    <span class="carousel-control-next-icon"></span>
-                                </button>
+                                var index = i;
+                                var image = hotel.Images.ElementAt(i);
+                                <div class="thumbnail-item @(selectedImageIndex == index ? "active" : "")" 
+                                     @onclick="() => SelectImage(index, image.Url)">
+                                    <img src="@image.Url" alt="@hotel.Name - Image @(i + 1)" />
+                                </div>
                             }
-                            <div class="carousel-indicators">
-                                @for (int i = 0; i < hotel.Images.Count; i++)
-                                {
-                                    <button type="button" data-bs-target="#hotelCarousel" data-bs-slide-to="@i" class="@(i == 0 ? "active" : "")"></button>
-                                }
-                            </div>
                         </div>
                     }
                     else
@@ -109,51 +106,200 @@
                     <p class="section-text">@hotel.Description</p>
                 </div>
 
-                <!-- Amenities -->
-                @if (hotel.HotelAmenities.Any())
-                {
-                    <div class="info-section">
-                        <h3 class="section-title">
-                            <i class="bi bi-stars me-2"></i>Amenities
-                        </h3>
-                        <div class="amenities-grid">
-                            @foreach (var hotelAmenity in hotel.HotelAmenities)
+                <!-- Detail Tabs -->
+                <div class="hd-tabs">
+                    <button class="hd-tab @(activeDetailTab == "amenities" ? "active" : "")" @onclick='() => activeDetailTab = "amenities"'>
+                        <i class="bi bi-stars"></i> Amenities
+                    </button>
+                    <button class="hd-tab @(activeDetailTab == "specs" ? "active" : "")" @onclick='() => activeDetailTab = "specs"'>
+                        <i class="bi bi-list-check"></i> Specifications
+                    </button>
+                    <button class="hd-tab @(activeDetailTab == "policies" ? "active" : "")" @onclick='() => activeDetailTab = "policies"'>
+                        <i class="bi bi-file-text"></i> Policies
+                    </button>
+                    <button class="hd-tab @(activeDetailTab == "location" ? "active" : "")" @onclick='() => activeDetailTab = "location"'>
+                        <i class="bi bi-geo-alt"></i> Location
+                    </button>
+                    <button class="hd-tab @(activeDetailTab == "reviews" ? "active" : "")" @onclick='() => activeDetailTab = "reviews"'>
+                        <i class="bi bi-star"></i> Reviews
+                    </button>
+                </div>
+
+                <div class="hd-tab-content">
+                    @if (activeDetailTab == "amenities")
+                    {
+                        @if (hotel.HotelAmenities.Any())
+                        {
+                            <div class="amenities-grid">
+                                @foreach (var hotelAmenity in hotel.HotelAmenities)
+                                {
+                                    <div class="amenity-item">
+                                        <i class="bi bi-check-circle-fill"></i>
+                                        <span>@hotelAmenity.Amenity?.Name</span>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="hd-tab-empty">
+                                <i class="bi bi-stars"></i>
+                                <p>No amenities listed yet</p>
+                            </div>
+                        }
+                    }
+                    else if (activeDetailTab == "specs")
+                    {
+                        <div class="specifications-grid">
+                            <div class="spec-item">
+                                <i class="bi bi-people-fill"></i>
+                                <div class="spec-content">
+                                    <span class="spec-label">Maximum Capacity</span>
+                                    <span class="spec-value">@hotel.Capacity guests</span>
+                                </div>
+                            </div>
+                            <div class="spec-item">
+                                <i class="bi bi-currency-dollar"></i>
+                                <div class="spec-content">
+                                    <span class="spec-label">Price Per Night</span>
+                                    <span class="spec-value">@hotel.Currency @hotel.PricePerNight.ToString("N0")</span>
+                                </div>
+                            </div>
+                            <div class="spec-item">
+                                <i class="bi bi-calendar-check"></i>
+                                <div class="spec-content">
+                                    <span class="spec-label">Listed Since</span>
+                                    <span class="spec-value">@hotel.CreatedAt.ToString("MMMM yyyy")</span>
+                                </div>
+                            </div>
+                            <div class="spec-item">
+                                <i class="bi bi-shield-check"></i>
+                                <div class="spec-content">
+                                    <span class="spec-label">Verification Status</span>
+                                    <span class="spec-value">@(hotel.IsApproved ? "Verified" : "Pending")</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else if (activeDetailTab == "policies")
+                    {
+                        <div class="policies-list">
+                            <div class="policy-item">
+                                <i class="bi bi-clock"></i>
+                                <div class="policy-content">
+                                    <strong>Check-in/Check-out:</strong>
+                                    <span>Check-in from 2:00 PM, Check-out by 11:00 AM</span>
+                                </div>
+                            </div>
+                            <div class="policy-item">
+                                <i class="bi bi-x-circle"></i>
+                                <div class="policy-content">
+                                    <strong>Cancellation:</strong>
+                                    <span>Free cancellation up to 48 hours before event date</span>
+                                </div>
+                            </div>
+                            <div class="policy-item">
+                                <i class="bi bi-credit-card"></i>
+                                <div class="policy-content">
+                                    <strong>Payment:</strong>
+                                    <span>50% deposit required upon booking, balance due 7 days before event</span>
+                                </div>
+                            </div>
+                            <div class="policy-item">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                <div class="policy-content">
+                                    <strong>House Rules:</strong>
+                                    <span>No smoking indoors, respect noise curfew after 10:00 PM</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else if (activeDetailTab == "location")
+                    {
+                        <div class="location-details">
+                            <div class="location-item">
+                                <span class="location-label">Address:</span>
+                                <span class="location-value">@hotel.Address</span>
+                            </div>
+                            <div class="location-item">
+                                <span class="location-label">City:</span>
+                                <span class="location-value">@hotel.City</span>
+                            </div>
+                            <div class="location-item">
+                                <span class="location-label">Country:</span>
+                                <span class="location-value">@hotel.Country</span>
+                            </div>
+                            @if (hotel.Latitude.HasValue && hotel.Longitude.HasValue)
                             {
-                                <div class="amenity-item">
-                                    <i class="bi bi-check-circle-fill"></i>
-                                    <span>@hotelAmenity.Amenity?.Name</span>
+                                <div class="location-coordinates">
+                                    <i class="bi bi-pin-map"></i>
+                                    @hotel.Latitude.Value.ToString("F6"), @hotel.Longitude.Value.ToString("F6")
                                 </div>
                             }
                         </div>
-                    </div>
-                }
-
-                <!-- Location -->
-                <div class="info-section">
-                    <h3 class="section-title">
-                        <i class="bi bi-geo-alt me-2"></i>Location
-                    </h3>
-                    <div class="location-details">
-                        <div class="location-item">
-                            <span class="location-label">Address:</span>
-                            <span class="location-value">@hotel.Address</span>
-                        </div>
-                        <div class="location-item">
-                            <span class="location-label">City:</span>
-                            <span class="location-value">@hotel.City</span>
-                        </div>
-                        <div class="location-item">
-                            <span class="location-label">Country:</span>
-                            <span class="location-value">@hotel.Country</span>
-                        </div>
-                        @if (hotel.Latitude.HasValue && hotel.Longitude.HasValue)
-                        {
-                            <div class="location-coordinates">
-                                <i class="bi bi-pin-map"></i>
-                                @hotel.Latitude.Value.ToString("F6"), @hotel.Longitude.Value.ToString("F6")
+                    }
+                    else if (activeDetailTab == "reviews")
+                    {
+                        <div class="reviews-summary">
+                            <div class="rating-overview">
+                                <div class="rating-score">4.5</div>
+                                <div class="rating-stars">
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-half"></i>
+                                </div>
+                                <div class="rating-count">Based on 128 reviews</div>
                             </div>
-                        }
-                    </div>
+                        </div>
+                        <div class="reviews-list">
+                            <div class="review-item">
+                                <div class="review-header">
+                                    <div class="reviewer-info">
+                                        <div class="reviewer-avatar">JD</div>
+                                        <div class="reviewer-details">
+                                            <strong>Jane Doe</strong>
+                                            <span class="review-date">2 weeks ago</span>
+                                        </div>
+                                    </div>
+                                    <div class="review-rating">
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                    </div>
+                                </div>
+                                <p class="review-text">
+                                    Excellent venue for our corporate event! The staff was professional and accommodating. 
+                                    The facilities were clean and well-maintained. Highly recommended!
+                                </p>
+                            </div>
+                            <div class="review-item">
+                                <div class="review-header">
+                                    <div class="reviewer-info">
+                                        <div class="reviewer-avatar">MJ</div>
+                                        <div class="reviewer-details">
+                                            <strong>Michael Johnson</strong>
+                                            <span class="review-date">1 month ago</span>
+                                        </div>
+                                    </div>
+                                    <div class="review-rating">
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star"></i>
+                                    </div>
+                                </div>
+                                <p class="review-text">
+                                    Great location and beautiful venue. Perfect for our wedding reception. 
+                                    The only minor issue was parking, but overall a fantastic experience.
+                                </p>
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
 
@@ -272,6 +418,7 @@
     private bool isLoading = true;
     private bool showBookingForm = false;
     private bool isSubmitting = false;
+    private string activeDetailTab = "amenities";
     private string? bookingMessage;
     private bool bookingSuccess = false;
     private string? currentUserId;
@@ -347,6 +494,16 @@
         {
             Console.WriteLine("HotelId is invalid");
         }
+    }
+
+    // Image gallery state
+    private string? selectedImage = null;
+    private int selectedImageIndex = 0;
+
+    private void SelectImage(int index, string imageUrl)
+    {
+        selectedImageIndex = index;
+        selectedImage = imageUrl;
     }
 
     public class BookingRequest

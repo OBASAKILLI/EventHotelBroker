@@ -5,6 +5,11 @@
 <ToastContainer />
 
 <div class="modern-layout">
+    <!-- Modern Sidebar (before app bar so ~ selector works for collapsed) -->
+    <aside class="modern-sidebar @(sidebarCollapsed ? "collapsed" : "")">
+        <NavMenu />
+    </aside>
+
     <!-- Modern App Bar -->
     <header class="modern-app-bar">
         <div class="app-bar-content">
@@ -12,8 +17,7 @@
                 <i class="bi bi-list"></i>
             </button>
             <div class="app-bar-brand">
-                <i class="bi bi-building-fill me-2"></i>
-                <span class="brand-text">EventHotelBroker</span>
+                <span class="brand-text">Safari Vents</span>
             </div>
             <div class="app-bar-actions">
                 <a href="/chat" class="app-bar-btn" title="Messages">
@@ -37,11 +41,6 @@
         </div>
     </header>
 
-    <!-- Modern Sidebar -->
-    <aside class="modern-sidebar @(sidebarCollapsed ? "collapsed" : "")">
-        <NavMenu />
-    </aside>
-
     <!-- Main Content -->
     <main class="modern-main-content">
         <div class="content-wrapper">
@@ -61,42 +60,43 @@
         position: fixed;
         bottom: 2rem;
         right: 2rem;
-        width: 60px;
-        height: 60px;
+        width: 52px;
+        height: 52px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #2A2A2A;
         color: white;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.5rem;
-        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+        font-size: 1.25rem;
+        box-shadow: 0 4px 16px rgba(42, 42, 42, 0.3);
         z-index: 1000;
-        transition: all 0.3s;
+        transition: all 0.2s;
         text-decoration: none;
     }
 
     .floating-chat-btn:hover {
-        transform: scale(1.1);
-        box-shadow: 0 12px 32px rgba(102, 126, 234, 0.6);
+        transform: scale(1.08);
+        box-shadow: 0 6px 20px rgba(42, 42, 42, 0.4);
+        background: #9E8B63;
         color: white;
     }
 
     .chat-badge {
         position: absolute;
-        top: -5px;
-        right: -5px;
-        background: #ef4444;
+        top: -4px;
+        right: -4px;
+        background: #9E8B63;
         color: white;
-        width: 24px;
-        height: 24px;
+        width: 20px;
+        height: 20px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 0.75rem;
+        font-size: 0.65rem;
         font-weight: 600;
-        border: 3px solid white;
+        border: 2px solid white;
     }
 </style>
 

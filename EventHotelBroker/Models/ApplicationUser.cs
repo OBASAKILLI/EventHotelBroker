@@ -13,6 +13,12 @@ public class ApplicationUser
     public string? RegistrationNumber { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
+    
+    // 2FA Properties
+    public bool TwoFactorEnabled { get; set; } = true;
+    public string? TwoFactorCode { get; set; }
+    public DateTime? TwoFactorCodeExpiry { get; set; }
+    public string? PasswordHash { get; set; }
 
     // Navigation properties
     public virtual ICollection<Hotel> Hotels { get; set; } = new List<Hotel>();

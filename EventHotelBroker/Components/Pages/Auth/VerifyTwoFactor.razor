@@ -1,0 +1,681 @@
+@page "/verify-2fa"
+@using EventHotelBroker.Components.Layout
+@using EventHotelBroker.Services
+@layout AuthLayout
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+@inject ToastService ToastService
+@inject IAuthService AuthService
+
+<PageTitle>Two-Factor Authentication - EventHotelBroker</PageTitle>
+
+<div class="auth-container">
+    <!-- Back to Login Link -->
+    <div class="back-link mb-4">
+        <a href="/login" class="back-btn">
+            <i class="bi bi-arrow-left me-2"></i>Back to Login
+        </a>
+    </div>
+
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="auth-logo">
+                <div class="logo-circle">
+                    <i class="bi bi-shield-lock-fill"></i>
+                </div>
+                <div class="logo-pulse"></div>
+            </div>
+            <h2 class="auth-title">Two-Factor Authentication</h2>
+            <p class="auth-subtitle">Secure your account with an extra layer of protection</p>
+        </div>
+
+        <div class="auth-body">
+            @if (!string.IsNullOrEmpty(userEmail))
+            {
+                <div class="email-notice">
+                    <div class="notice-icon">
+                        <i class="bi bi-envelope-check-fill"></i>
+                    </div>
+                    <div class="notice-content">
+                        <strong>Code Sent!</strong>
+                        <p>We've sent a verification code to <span class="email-mask">@MaskEmail(userEmail)</span></p>
+                    </div>
+                </div>
+            }
+
+            <div class="code-input-section">
+                <label class="code-label">Enter Verification Code</label>
+                <div class="code-input-wrapper">
+                    <input type="text" 
+                           class="code-input" 
+                           @bind="verificationCode" 
+                           placeholder="• • • • • •"
+                           maxlength="6"
+                           @onkeypress="HandleKeyPress"
+                           autocomplete="off" />
+                    @if (!string.IsNullOrEmpty(verificationCode))
+                    {
+                        <div class="input-check">
+                            <i class="bi bi-check-circle-fill"></i>
+                        </div>
+                    }
+                </div>
+                <small class="input-hint">Enter the 6-digit code from your email</small>
+            </div>
+
+            <button type="button" 
+                    class="verify-btn" 
+                    @onclick="VerifyCode"
+                    disabled="@isVerifying">
+                @if (isVerifying)
+                {
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                    <span>Verifying...</span>
+                }
+                else
+                {
+                    <i class="bi bi-shield-check me-2"></i>
+                    <span>Verify & Continue</span>
+                }
+            </button>
+
+            <div class="resend-section">
+                <span class="resend-text">Didn't receive the code?</span>
+                @if (canResend)
+                {
+                    <button type="button" class="resend-btn" @onclick="ResendCode">
+                        <i class="bi bi-arrow-clockwise me-1"></i>
+                        Resend Code
+                    </button>
+                }
+                else
+                {
+                    <span class="countdown-text">
+                        <i class="bi bi-hourglass-split me-1"></i>
+                        Resend in <strong>@resendCountdown</strong>s
+                    </span>
+                }
+            </div>
+
+            @if (showTimer)
+            {
+                <div class="expiry-timer">
+                    <i class="bi bi-clock-history me-2"></i>
+                    <span>Code expires in <strong>@expiryCountdown</strong></span>
+                </div>
+            }
+
+            <div class="security-note">
+                <i class="bi bi-info-circle me-2"></i>
+                <span>For your security, never share this code with anyone</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .auth-container {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .auth-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+        pointer-events: none;
+    }
+
+    .back-link {
+        position: relative;
+        z-index: 1;
+    }
+
+    .back-btn {
+        color: white;
+        text-decoration: none;
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .back-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateX(-5px);
+        color: white;
+    }
+
+    .auth-card {
+        background: white;
+        border-radius: 24px;
+        box-shadow: 0 30px 80px rgba(0,0,0,0.3);
+        max-width: 480px;
+        width: 100%;
+        overflow: hidden;
+        position: relative;
+        z-index: 1;
+        animation: slideUp 0.5s ease;
+    }
+
+    @@keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .auth-header {
+        text-align: center;
+        padding: 3rem 2rem 2rem;
+        background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+        position: relative;
+    }
+
+    .auth-logo {
+        position: relative;
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 1.5rem;
+    }
+
+    .logo-circle {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 3rem;
+        position: relative;
+        z-index: 2;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    }
+
+    .logo-pulse {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        opacity: 0.3;
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+            opacity: 0.3;
+        }
+        50% {
+            transform: scale(1.1);
+            opacity: 0;
+        }
+    }
+
+    .auth-title {
+        margin-bottom: 0.5rem;
+        font-weight: 800;
+        font-size: 1.75rem;
+        color: #1f2937;
+    }
+
+    .auth-subtitle {
+        color: #6b7280;
+        margin-bottom: 0;
+        font-size: 0.9375rem;
+    }
+
+    .auth-body {
+        padding: 2.5rem;
+    }
+
+    .email-notice {
+        display: flex;
+        gap: 1rem;
+        padding: 1.25rem;
+        background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+        border-radius: 16px;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+
+    .notice-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .notice-content {
+        flex: 1;
+    }
+
+    .notice-content strong {
+        display: block;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+        font-size: 1rem;
+    }
+
+    .notice-content p {
+        margin: 0;
+        color: #4b5563;
+        font-size: 0.875rem;
+        line-height: 1.5;
+    }
+
+    .email-mask {
+        color: #2563eb;
+        font-weight: 600;
+    }
+
+    .code-input-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .code-label {
+        display: block;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.75rem;
+        font-size: 0.9375rem;
+    }
+
+    .code-input-wrapper {
+        position: relative;
+    }
+
+    .code-input {
+        width: 100%;
+        padding: 1.25rem;
+        font-size: 2rem;
+        font-weight: 700;
+        letter-spacing: 1rem;
+        text-align: center;
+        border: 2px solid #e5e7eb;
+        border-radius: 16px;
+        transition: all 0.3s ease;
+        background: #f9fafb;
+    }
+
+    .code-input:focus {
+        outline: none;
+        border-color: #667eea;
+        background: white;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    }
+
+    .input-check {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #10b981;
+        font-size: 1.5rem;
+        animation: checkIn 0.3s ease;
+    }
+
+    @@keyframes checkIn {
+        from {
+            opacity: 0;
+            transform: translateY(-50%) scale(0.5);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(-50%) scale(1);
+        }
+    }
+
+    .input-hint {
+        display: block;
+        margin-top: 0.5rem;
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+
+    .verify-btn {
+        width: 100%;
+        padding: 1rem 2rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .verify-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    }
+
+    .verify-btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+    .resend-section {
+        text-align: center;
+        padding: 1rem;
+        background: #f9fafb;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+    }
+
+    .resend-text {
+        color: #6b7280;
+        font-size: 0.875rem;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .resend-btn {
+        background: none;
+        border: none;
+        color: #667eea;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        font-size: 0.9375rem;
+    }
+
+    .resend-btn:hover {
+        background: rgba(102, 126, 234, 0.1);
+    }
+
+    .countdown-text {
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+
+    .countdown-text strong {
+        color: #667eea;
+        font-weight: 700;
+    }
+
+    .expiry-timer {
+        text-align: center;
+        padding: 0.75rem;
+        background: #fef3c7;
+        border-radius: 12px;
+        color: #92400e;
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+        border: 1px solid #fde68a;
+    }
+
+    .expiry-timer strong {
+        font-weight: 700;
+        color: #78350f;
+    }
+
+    .security-note {
+        text-align: center;
+        padding: 1rem;
+        background: #f0fdf4;
+        border-radius: 12px;
+        color: #166534;
+        font-size: 0.875rem;
+        border: 1px solid #bbf7d0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .spinner-border-sm {
+        width: 1rem;
+        height: 1rem;
+        border-width: 0.15em;
+    }
+
+    @@media (max-width: 576px) {
+        .auth-container {
+            padding: 1rem;
+        }
+
+        .auth-card {
+            border-radius: 20px;
+        }
+
+        .auth-body {
+            padding: 1.5rem;
+        }
+
+        .code-input {
+            font-size: 1.5rem;
+            letter-spacing: 0.5rem;
+        }
+    }
+</style>
+
+@code {
+    [SupplyParameterFromQuery]
+    public string? UserId { get; set; }
+
+    private string verificationCode = "";
+    private string userEmail = "";
+    private bool isVerifying = false;
+    private bool canResend = false;
+    private int resendCountdown = 60;
+    private bool showTimer = true;
+    private string expiryCountdown = "10:00";
+    private System.Threading.Timer? resendTimer;
+    private System.Threading.Timer? expiryTimer;
+    private DateTime? codeExpiry;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrEmpty(UserId))
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
+        var user = await AuthService.GetUserByIdAsync(UserId);
+        if (user == null)
+        {
+            ToastService.ShowError("Error", "User not found");
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
+        userEmail = user.Email ?? "";
+        codeExpiry = user.TwoFactorCodeExpiry;
+
+        StartResendTimer();
+        StartExpiryTimer();
+    }
+
+    private void StartResendTimer()
+    {
+        resendTimer = new System.Threading.Timer(async _ =>
+        {
+            if (resendCountdown > 0)
+            {
+                resendCountdown--;
+                await InvokeAsync(StateHasChanged);
+            }
+            else
+            {
+                canResend = true;
+                resendTimer?.Dispose();
+                await InvokeAsync(StateHasChanged);
+            }
+        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+    }
+
+    private void StartExpiryTimer()
+    {
+        expiryTimer = new System.Threading.Timer(async _ =>
+        {
+            if (codeExpiry.HasValue)
+            {
+                var remaining = codeExpiry.Value - DateTime.UtcNow;
+                if (remaining.TotalSeconds > 0)
+                {
+                    expiryCountdown = $"{remaining.Minutes:D2}:{remaining.Seconds:D2}";
+                    await InvokeAsync(StateHasChanged);
+                }
+                else
+                {
+                    showTimer = false;
+                    expiryTimer?.Dispose();
+                    await InvokeAsync(StateHasChanged);
+                }
+            }
+        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+    }
+
+    private async Task VerifyCode()
+    {
+        if (string.IsNullOrEmpty(verificationCode) || verificationCode.Length != 6)
+        {
+            ToastService.ShowWarning("Invalid Code", "Please enter a 6-digit verification code");
+            return;
+        }
+
+        if (string.IsNullOrEmpty(UserId))
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
+        isVerifying = true;
+
+        var (success, message) = await AuthService.VerifyTwoFactorCodeAsync(UserId, verificationCode);
+
+        isVerifying = false;
+
+        if (success)
+        {
+            ToastService.ShowSuccess("Verification Successful!", "You are now logged in");
+            await Task.Delay(1000);
+            
+            // Get user role and redirect accordingly
+            var user = await AuthService.GetUserByIdAsync(UserId);
+            if (user?.Role == "Admin")
+            {
+                Navigation.NavigateTo("/admin/dashboard");
+            }
+            else if (user?.Role == "HotelOwner")
+            {
+                Navigation.NavigateTo("/owner/dashboard");
+            }
+            else
+            {
+                Navigation.NavigateTo("/user/dashboard");
+            }
+        }
+        else
+        {
+            ToastService.ShowError("Verification Failed", message);
+            verificationCode = "";
+        }
+    }
+
+    private async Task ResendCode()
+    {
+        if (string.IsNullOrEmpty(UserId))
+        {
+            return;
+        }
+
+        canResend = false;
+        resendCountdown = 60;
+
+        var success = await AuthService.GenerateAndSendTwoFactorCodeAsync(UserId);
+
+        if (success)
+        {
+            ToastService.ShowSuccess("Code Sent", "A new verification code has been sent to your email");
+            
+            // Refresh user to get new expiry time
+            var user = await AuthService.GetUserByIdAsync(UserId);
+            codeExpiry = user?.TwoFactorCodeExpiry;
+            
+            StartResendTimer();
+            showTimer = true;
+            StartExpiryTimer();
+        }
+        else
+        {
+            ToastService.ShowError("Error", "Failed to resend code. Please try again.");
+            canResend = true;
+        }
+    }
+
+    private void HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            _ = VerifyCode();
+        }
+    }
+
+    private string MaskEmail(string email)
+    {
+        if (string.IsNullOrEmpty(email) || !email.Contains("@"))
+        {
+            return email;
+        }
+
+        var parts = email.Split('@');
+        var localPart = parts[0];
+        var domain = parts[1];
+
+        if (localPart.Length <= 2)
+        {
+            return $"{localPart[0]}***@{domain}";
+        }
+
+        return $"{localPart[0]}***{localPart[^1]}@{domain}";
+    }
+
+    public void Dispose()
+    {
+        resendTimer?.Dispose();
+        expiryTimer?.Dispose();
+    }
+}
