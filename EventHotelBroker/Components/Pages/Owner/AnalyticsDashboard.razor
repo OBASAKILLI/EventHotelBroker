@@ -5,133 +5,98 @@
 
 <PageTitle>Analytics Dashboard - EventHotelBroker</PageTitle>
 
-<link href="/css/design-system.css" rel="stylesheet" />
+<link href="/css/owner-analytics.css?v=1" rel="stylesheet" />
 
-<div class="container-fluid px-4 py-4">
+<div class="oa">
     <Breadcrumb Items="@breadcrumbItems" />
 
     <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="oa-header">
         <div>
-            <h2 class="mb-1">
-                <i class="bi bi-graph-up me-2 text-primary"></i>
-                Analytics Dashboard
-            </h2>
-            <p class="text-muted mb-0">Track your performance and revenue</p>
+            <h1 class="oa-header-title"><i class="bi bi-graph-up"></i> Analytics Dashboard</h1>
+            <p class="oa-header-sub">Track your performance and revenue</p>
         </div>
-        <div class="d-flex gap-2">
-            <select class="form-control-system" style="width: auto;" @bind="selectedPeriod">
+        <div class="oa-header-actions">
+            <select class="oa-select" @bind="selectedPeriod">
                 <option value="7">Last 7 Days</option>
                 <option value="30">Last 30 Days</option>
                 <option value="90">Last 3 Months</option>
                 <option value="365">Last Year</option>
             </select>
-            <button type="button" class="btn-system btn-system-primary" @onclick="ExportReport">
-                <i class="bi bi-download me-2"></i>Export Report
+            <button type="button" class="oa-btn oa-btn-primary" @onclick="ExportReport">
+                <i class="bi bi-download"></i> Export
             </button>
         </div>
     </div>
 
-    <!-- Key Metrics -->
-    <div class="row g-4 mb-4">
-        <div class="col-lg-3 col-md-6">
-            <div class="metric-card">
-                <div class="metric-icon revenue">
-                    <i class="bi bi-cash-stack"></i>
-                </div>
-                <div class="metric-content">
-                    <h6 class="metric-label">Total Revenue</h6>
-                    <h3 class="metric-value">KES 2.5M</h3>
-                    <div class="metric-change positive">
-                        <i class="bi bi-arrow-up"></i> 12.5% from last month
-                    </div>
-                </div>
+    <!-- Metric Cards -->
+    <div class="oa-metrics">
+        <div class="oa-metric">
+            <div class="oa-metric-icon oa-icon-teal"><i class="bi bi-cash-stack"></i></div>
+            <div>
+                <div class="oa-metric-label">Total Revenue</div>
+                <div class="oa-metric-value">KES 2.5M</div>
+                <div class="oa-metric-change up"><i class="bi bi-arrow-up"></i> 12.5% from last month</div>
             </div>
         </div>
-
-        <div class="col-lg-3 col-md-6">
-            <div class="metric-card">
-                <div class="metric-icon bookings">
-                    <i class="bi bi-calendar-check"></i>
-                </div>
-                <div class="metric-content">
-                    <h6 class="metric-label">Total Bookings</h6>
-                    <h3 class="metric-value">145</h3>
-                    <div class="metric-change positive">
-                        <i class="bi bi-arrow-up"></i> 8.3% from last month
-                    </div>
-                </div>
+        <div class="oa-metric">
+            <div class="oa-metric-icon oa-icon-terracotta"><i class="bi bi-calendar-check"></i></div>
+            <div>
+                <div class="oa-metric-label">Total Bookings</div>
+                <div class="oa-metric-value">145</div>
+                <div class="oa-metric-change up"><i class="bi bi-arrow-up"></i> 8.3% from last month</div>
             </div>
         </div>
-
-        <div class="col-lg-3 col-md-6">
-            <div class="metric-card">
-                <div class="metric-icon occupancy">
-                    <i class="bi bi-pie-chart"></i>
-                </div>
-                <div class="metric-content">
-                    <h6 class="metric-label">Occupancy Rate</h6>
-                    <h3 class="metric-value">78%</h3>
-                    <div class="metric-change positive">
-                        <i class="bi bi-arrow-up"></i> 5.2% from last month
-                    </div>
-                </div>
+        <div class="oa-metric">
+            <div class="oa-metric-icon oa-icon-bronze"><i class="bi bi-pie-chart"></i></div>
+            <div>
+                <div class="oa-metric-label">Occupancy Rate</div>
+                <div class="oa-metric-value">78%</div>
+                <div class="oa-metric-change up"><i class="bi bi-arrow-up"></i> 5.2% from last month</div>
             </div>
         </div>
-
-        <div class="col-lg-3 col-md-6">
-            <div class="metric-card">
-                <div class="metric-icon avg-booking">
-                    <i class="bi bi-wallet2"></i>
-                </div>
-                <div class="metric-content">
-                    <h6 class="metric-label">Avg Booking Value</h6>
-                    <h3 class="metric-value">KES 17.2K</h3>
-                    <div class="metric-change negative">
-                        <i class="bi bi-arrow-down"></i> 2.1% from last month
-                    </div>
-                </div>
+        <div class="oa-metric">
+            <div class="oa-metric-icon oa-icon-charcoal"><i class="bi bi-wallet2"></i></div>
+            <div>
+                <div class="oa-metric-label">Avg Booking Value</div>
+                <div class="oa-metric-value">KES 17.2K</div>
+                <div class="oa-metric-change down"><i class="bi bi-arrow-down"></i> 2.1% from last month</div>
             </div>
         </div>
     </div>
 
-    <div class="row g-4">
+    <div class="row g-3">
         <!-- Revenue Chart -->
         <div class="col-lg-8">
-            <div class="card-system">
-                <div class="card-system-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Revenue Trend</h5>
-                        <div class="btn-group" role="group">
-                            <button type="button" class="btn-system btn-system-sm @(chartView == "daily" ? "btn-system-primary" : "btn-system-outline-secondary")" @onclick='() => chartView = "daily"'>Daily</button>
-                            <button type="button" class="btn-system btn-system-sm @(chartView == "weekly" ? "btn-system-primary" : "btn-system-outline-secondary")" @onclick='() => chartView = "weekly"'>Weekly</button>
-                            <button type="button" class="btn-system btn-system-sm @(chartView == "monthly" ? "btn-system-primary" : "btn-system-outline-secondary")" @onclick='() => chartView = "monthly"'>Monthly</button>
-                        </div>
+            <div class="oa-card">
+                <div class="oa-card-header">
+                    <h5 class="oa-card-title"><i class="bi bi-graph-up"></i> Revenue Trend</h5>
+                    <div class="oa-chart-toggle">
+                        <button type="button" class="oa-btn oa-btn-ghost @(chartView == "daily" ? "active" : "")" @onclick='() => chartView = "daily"'>Daily</button>
+                        <button type="button" class="oa-btn oa-btn-ghost @(chartView == "weekly" ? "active" : "")" @onclick='() => chartView = "weekly"'>Weekly</button>
+                        <button type="button" class="oa-btn oa-btn-ghost @(chartView == "monthly" ? "active" : "")" @onclick='() => chartView = "monthly"'>Monthly</button>
                     </div>
                 </div>
-                <div class="card-system-body">
-                    <div class="chart-placeholder">
-                        <canvas id="revenueChart" style="height: 300px;"></canvas>
-                        <div class="chart-mock">
-                            <svg viewBox="0 0 800 300" style="width: 100%; height: 300px;">
-                                <defs>
-                                    <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                                        <stop offset="0%" style="stop-color:#667eea;stop-opacity:0.3" />
-                                        <stop offset="100%" style="stop-color:#667eea;stop-opacity:0" />
-                                    </linearGradient>
-                                </defs>
-                                <polyline points="0,250 100,200 200,180 300,220 400,150 500,170 600,120 700,140 800,100" 
-                                          fill="url(#gradient)" stroke="#667eea" stroke-width="3"/>
-                                <circle cx="100" cy="200" r="5" fill="#667eea"/>
-                                <circle cx="200" cy="180" r="5" fill="#667eea"/>
-                                <circle cx="300" cy="220" r="5" fill="#667eea"/>
-                                <circle cx="400" cy="150" r="5" fill="#667eea"/>
-                                <circle cx="500" cy="170" r="5" fill="#667eea"/>
-                                <circle cx="600" cy="120" r="5" fill="#667eea"/>
-                                <circle cx="700" cy="140" r="5" fill="#667eea"/>
-                                <circle cx="800" cy="100" r="5" fill="#667eea"/>
-                            </svg>
-                        </div>
+                <div class="oa-card-body">
+                    <div class="oa-chart">
+                        <svg viewBox="0 0 800 220" style="width: 100%; height: 220px;">
+                            <defs>
+                                <linearGradient id="oaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#C87941;stop-opacity:0.2" />
+                                    <stop offset="100%" style="stop-color:#C87941;stop-opacity:0" />
+                                </linearGradient>
+                            </defs>
+                            <polyline points="0,180 100,145 200,130 300,155 400,105 500,118 600,82 700,96 800,65"
+                                      fill="url(#oaGrad)" stroke="#C87941" stroke-width="2.5" fill-opacity="1"/>
+                            <circle cx="100" cy="145" r="3.5" fill="#C87941"/>
+                            <circle cx="200" cy="130" r="3.5" fill="#C87941"/>
+                            <circle cx="300" cy="155" r="3.5" fill="#C87941"/>
+                            <circle cx="400" cy="105" r="3.5" fill="#C87941"/>
+                            <circle cx="500" cy="118" r="3.5" fill="#C87941"/>
+                            <circle cx="600" cy="82" r="3.5" fill="#C87941"/>
+                            <circle cx="700" cy="96" r="3.5" fill="#C87941"/>
+                            <circle cx="800" cy="65" r="3.5" fill="#C87941"/>
+                        </svg>
                     </div>
                 </div>
             </div>
@@ -139,37 +104,37 @@
 
         <!-- Booking Sources -->
         <div class="col-lg-4">
-            <div class="card-system">
-                <div class="card-system-header">
-                    <h5 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Booking Sources</h5>
+            <div class="oa-card">
+                <div class="oa-card-header">
+                    <h5 class="oa-card-title"><i class="bi bi-pie-chart"></i> Booking Sources</h5>
                 </div>
-                <div class="card-system-body">
-                    <div class="chart-placeholder">
-                        <svg viewBox="0 0 200 200" style="width: 100%; height: 200px;">
-                            <circle cx="100" cy="100" r="80" fill="none" stroke="#e5e7eb" stroke-width="40"/>
-                            <circle cx="100" cy="100" r="80" fill="none" stroke="#667eea" stroke-width="40"
+                <div class="oa-card-body">
+                    <div class="oa-chart" style="text-align:center;">
+                        <svg viewBox="0 0 200 200" style="width: 140px; height: 140px;">
+                            <circle cx="100" cy="100" r="80" fill="none" stroke="rgba(158,139,99,0.08)" stroke-width="30"/>
+                            <circle cx="100" cy="100" r="80" fill="none" stroke="#C87941" stroke-width="30"
                                     stroke-dasharray="251.2 502.4" transform="rotate(-90 100 100)"/>
-                            <circle cx="100" cy="100" r="80" fill="none" stroke="#10b981" stroke-width="40"
+                            <circle cx="100" cy="100" r="80" fill="none" stroke="#488C82" stroke-width="30"
                                     stroke-dasharray="125.6 502.4" stroke-dashoffset="-251.2" transform="rotate(-90 100 100)"/>
-                            <circle cx="100" cy="100" r="80" fill="none" stroke="#f59e0b" stroke-width="40"
+                            <circle cx="100" cy="100" r="80" fill="none" stroke="#9E8B63" stroke-width="30"
                                     stroke-dasharray="62.8 502.4" stroke-dashoffset="-376.8" transform="rotate(-90 100 100)"/>
                         </svg>
                     </div>
-                    <div class="source-legend mt-3">
-                        <div class="source-item">
-                            <span class="source-color" style="background: #667eea;"></span>
-                            <span class="source-label">Direct</span>
-                            <span class="source-value">50%</span>
+                    <div class="oa-legend">
+                        <div class="oa-legend-item">
+                            <span class="oa-legend-dot" style="background:#C87941;"></span>
+                            <span class="oa-legend-label">Direct</span>
+                            <span class="oa-legend-value">50%</span>
                         </div>
-                        <div class="source-item">
-                            <span class="source-color" style="background: #10b981;"></span>
-                            <span class="source-label">Platform</span>
-                            <span class="source-value">30%</span>
+                        <div class="oa-legend-item">
+                            <span class="oa-legend-dot" style="background:#488C82;"></span>
+                            <span class="oa-legend-label">Platform</span>
+                            <span class="oa-legend-value">30%</span>
                         </div>
-                        <div class="source-item">
-                            <span class="source-color" style="background: #f59e0b;"></span>
-                            <span class="source-label">Referral</span>
-                            <span class="source-value">20%</span>
+                        <div class="oa-legend-item">
+                            <span class="oa-legend-dot" style="background:#9E8B63;"></span>
+                            <span class="oa-legend-label">Referral</span>
+                            <span class="oa-legend-value">20%</span>
                         </div>
                     </div>
                 </div>
@@ -178,27 +143,27 @@
 
         <!-- Top Performing Hotels -->
         <div class="col-lg-6">
-            <div class="card-system">
-                <div class="card-system-header">
-                    <h5 class="mb-0"><i class="bi bi-trophy me-2"></i>Top Performing Hotels</h5>
+            <div class="oa-card">
+                <div class="oa-card-header">
+                    <h5 class="oa-card-title"><i class="bi bi-trophy"></i> Top Performing Hotels</h5>
                 </div>
-                <div class="card-system-body">
+                <div class="oa-card-body">
                     @foreach (var hotel in topHotels)
                     {
-                        <div class="performance-item">
-                            <div class="d-flex align-items-center gap-3 mb-2">
-                                <div class="performance-rank">@hotel.Rank</div>
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-0">@hotel.Name</h6>
-                                    <small class="text-muted">@hotel.Bookings bookings</small>
+                        <div class="oa-perf-item">
+                            <div class="oa-perf-row">
+                                <div class="oa-perf-rank">@hotel.Rank</div>
+                                <div style="flex:1;">
+                                    <h6 class="oa-perf-name">@hotel.Name</h6>
+                                    <span class="oa-perf-bookings">@hotel.Bookings bookings</span>
                                 </div>
-                                <div class="text-end">
-                                    <div class="fw-bold text-success">KES @hotel.Revenue.ToString("N0")</div>
-                                    <small class="text-muted">@hotel.OccupancyRate% occupied</small>
+                                <div class="oa-perf-right">
+                                    <div class="oa-perf-revenue">KES @hotel.Revenue.ToString("N0")</div>
+                                    <span class="oa-perf-occ">@hotel.OccupancyRate% occupied</span>
                                 </div>
                             </div>
-                            <div class="progress" style="height: 6px;">
-                                <div class="progress-bar bg-success" style="width: @hotel.OccupancyRate%"></div>
+                            <div class="oa-progress">
+                                <div class="oa-progress-bar" style="width: @hotel.OccupancyRate%"></div>
                             </div>
                         </div>
                     }
@@ -208,20 +173,20 @@
 
         <!-- Recent Activity -->
         <div class="col-lg-6">
-            <div class="card-system">
-                <div class="card-system-header">
-                    <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Recent Activity</h5>
+            <div class="oa-card">
+                <div class="oa-card-header">
+                    <h5 class="oa-card-title"><i class="bi bi-clock-history"></i> Recent Activity</h5>
                 </div>
-                <div class="card-system-body">
+                <div class="oa-card-body">
                     @foreach (var activity in recentActivities)
                     {
-                        <div class="activity-item">
-                            <div class="activity-icon @activity.Type">
+                        <div class="oa-activity">
+                            <div class="oa-activity-icon @activity.Type">
                                 <i class="bi bi-@activity.Icon"></i>
                             </div>
-                            <div class="activity-content">
-                                <p class="mb-0">@activity.Message</p>
-                                <small class="text-muted">@activity.Time</small>
+                            <div>
+                                <p class="oa-activity-msg">@activity.Message</p>
+                                <span class="oa-activity-time">@activity.Time</span>
                             </div>
                         </div>
                     }
@@ -230,178 +195,6 @@
         </div>
     </div>
 </div>
-
-<style>
-    .metric-card {
-        background: white;
-        border-radius: 1rem;
-        padding: 1.5rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        display: flex;
-        gap: 1rem;
-        transition: all 0.3s;
-    }
-
-    .metric-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 16px rgba(0,0,0,0.12);
-    }
-
-    .metric-icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 0.75rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.75rem;
-        color: white;
-    }
-
-    .metric-icon.revenue {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    }
-
-    .metric-icon.bookings {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-
-    .metric-icon.occupancy {
-        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    }
-
-    .metric-icon.avg-booking {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    }
-
-    .metric-content {
-        flex: 1;
-    }
-
-    .metric-label {
-        color: #6c757d;
-        font-size: 0.875rem;
-        margin-bottom: 0.5rem;
-    }
-
-    .metric-value {
-        font-size: 1.75rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-    }
-
-    .metric-change {
-        font-size: 0.8125rem;
-        font-weight: 500;
-    }
-
-    .metric-change.positive {
-        color: #10b981;
-    }
-
-    .metric-change.negative {
-        color: #ef4444;
-    }
-
-    .chart-placeholder {
-        position: relative;
-        min-height: 300px;
-    }
-
-    .chart-mock {
-        padding: 1rem 0;
-    }
-
-    .source-legend {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    .source-item {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-
-    .source-color {
-        width: 16px;
-        height: 16px;
-        border-radius: 0.25rem;
-    }
-
-    .source-label {
-        flex: 1;
-    }
-
-    .source-value {
-        font-weight: 600;
-    }
-
-    .performance-item {
-        padding: 1rem 0;
-        border-bottom: 1px solid #e5e7eb;
-    }
-
-    .performance-item:last-child {
-        border-bottom: none;
-    }
-
-    .performance-rank {
-        width: 40px;
-        height: 40px;
-        border-radius: 0.5rem;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        font-size: 1.25rem;
-    }
-
-    .activity-item {
-        display: flex;
-        gap: 1rem;
-        padding: 1rem 0;
-        border-bottom: 1px solid #e5e7eb;
-    }
-
-    .activity-item:last-child {
-        border-bottom: none;
-    }
-
-    .activity-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 0.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 1.25rem;
-    }
-
-    .activity-icon.booking {
-        background: #667eea;
-    }
-
-    .activity-icon.payment {
-        background: #10b981;
-    }
-
-    .activity-icon.cancellation {
-        background: #ef4444;
-    }
-
-    .activity-icon.review {
-        background: #f59e0b;
-    }
-
-    .activity-content {
-        flex: 1;
-    }
-</style>
 
 @code {
     private List<BreadcrumbItem> breadcrumbItems = new()

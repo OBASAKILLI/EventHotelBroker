@@ -1,4 +1,5 @@
 @page "/owner/event-equipments"
+@rendermode InteractiveServer
 @using EventHotelBroker.Models
 @using EventHotelBroker.Services
 @inject IEventService EventService
@@ -6,86 +7,61 @@
 
 <PageTitle>My Event Equipments - Owner</PageTitle>
 
-<link href="/css/events-module.css" rel="stylesheet" />
+<link href="/css/event-equipments.css?v=1" rel="stylesheet" />
 
-<div class="container-fluid px-4 py-4 animate-fade-in">
-    <div class="page-header mb-4">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h1><i class="bi bi-box-seam me-3"></i>My Event Equipments</h1>
-                <p>Manage your event equipment inventory</p>
-            </div>
-            <button class="btn-modern btn-gradient-primary" @onclick="ShowCreateModal">
-                <i class="bi bi-plus-circle me-2"></i>Add Equipment
-            </button>
+<div class="ee">
+    <Breadcrumb Items="@breadcrumbItems" />
+
+    <!-- Header -->
+    <div class="ee-header">
+        <div>
+            <h1 class="ee-header-title"><i class="bi bi-box-seam"></i> My Event Equipments</h1>
+            <p class="ee-header-sub">Manage your event equipment inventory</p>
         </div>
+        <button class="ee-btn ee-btn-primary" @onclick="ShowCreateModal">
+            <i class="bi bi-plus-lg"></i> Add Equipment
+        </button>
     </div>
 
     @if (isLoading)
     {
-        <div class="modern-card">
-            <div class="text-center py-5">
-                <div class="spinner-border spinner-modern text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <p class="mt-3 text-muted">Loading your equipments...</p>
+        <div class="ee-card">
+            <div class="ee-loading">
+                <i class="bi bi-arrow-repeat"></i>
+                <p>Loading your equipments...</p>
             </div>
         </div>
     }
     else
     {
-        <!-- Statistics -->
-        <div class="row g-4 mb-4">
-            <div class="col-md-3">
-                <div class="stats-card">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <p class="stats-number">@equipments.Count()</p>
-                            <p class="stats-label mb-0">Total Equipment</p>
-                        </div>
-                        <div class="stats-icon" style="background: var(--primary-gradient);">
-                            <i class="bi bi-box-seam"></i>
-                        </div>
-                    </div>
+        <!-- Stats Row -->
+        <div class="ee-stats">
+            <div class="ee-stat">
+                <div class="ee-stat-icon ee-icon-terracotta"><i class="bi bi-box-seam"></i></div>
+                <div>
+                    <div class="ee-stat-value">@equipments.Count()</div>
+                    <div class="ee-stat-label">Total Equipment</div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="stats-card">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <p class="stats-number">@equipments.Count(e => e.IsApproved)</p>
-                            <p class="stats-label mb-0">Approved</p>
-                        </div>
-                        <div class="stats-icon" style="background: var(--success-gradient);">
-                            <i class="bi bi-check-circle"></i>
-                        </div>
-                    </div>
+            <div class="ee-stat">
+                <div class="ee-stat-icon ee-icon-teal"><i class="bi bi-check-circle"></i></div>
+                <div>
+                    <div class="ee-stat-value">@equipments.Count(e => e.IsApproved)</div>
+                    <div class="ee-stat-label">Approved</div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="stats-card">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <p class="stats-number">@equipments.Count(e => !e.IsApproved)</p>
-                            <p class="stats-label mb-0">Pending</p>
-                        </div>
-                        <div class="stats-icon" style="background: var(--warning-gradient);">
-                            <i class="bi bi-clock-history"></i>
-                        </div>
-                    </div>
+            <div class="ee-stat">
+                <div class="ee-stat-icon ee-icon-bronze"><i class="bi bi-clock-history"></i></div>
+                <div>
+                    <div class="ee-stat-value">@equipments.Count(e => !e.IsApproved)</div>
+                    <div class="ee-stat-label">Pending</div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="stats-card">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <p class="stats-number">@equipments.Sum(e => e.AvailableQuantity)</p>
-                            <p class="stats-label mb-0">Total Units</p>
-                        </div>
-                        <div class="stats-icon" style="background: var(--info-gradient);">
-                            <i class="bi bi-stack"></i>
-                        </div>
-                    </div>
+            <div class="ee-stat">
+                <div class="ee-stat-icon ee-icon-charcoal"><i class="bi bi-stack"></i></div>
+                <div>
+                    <div class="ee-stat-value">@equipments.Sum(e => e.AvailableQuantity)</div>
+                    <div class="ee-stat-label">Total Units</div>
                 </div>
             </div>
         </div>
@@ -93,61 +69,65 @@
         <!-- Equipment Grid -->
         @if (equipments.Any())
         {
-            <div class="equipment-grid">
-                @foreach (var equipment in equipments)
-                {
-                    <div class="equipment-item">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div class="equipment-icon @equipment.Category.ToLower().Replace(" ", "")">
-                                <i class="bi @GetCategoryIcon(equipment.Category)"></i>
+            <div class="ee-card">
+                <div class="ee-card-header">
+                    <div class="ee-card-title"><i class="bi bi-grid-3x3-gap"></i> Equipment Inventory</div>
+                    <span class="ee-card-count">@equipments.Count() items</span>
+                </div>
+                <div class="ee-grid">
+                    @foreach (var equipment in equipments)
+                    {
+                        <div class="ee-item">
+                            <div class="ee-item-top">
+                                <div class="ee-item-icon ee-icon-terracotta">
+                                    <i class="bi @GetCategoryIcon(equipment.Category)"></i>
+                                </div>
+                                @if (equipment.IsApproved)
+                                {
+                                    <span class="ee-badge ee-badge-approved"><i class="bi bi-check-circle-fill"></i> Approved</span>
+                                }
+                                else
+                                {
+                                    <span class="ee-badge ee-badge-pending"><i class="bi bi-clock"></i> Pending</span>
+                                }
                             </div>
-                            @if (equipment.IsApproved)
-                            {
-                                <span class="badge bg-success">Approved</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-warning">Pending</span>
-                            }
-                        </div>
-                        
-                        <h5 class="mb-2">@equipment.Name</h5>
-                        <span class="badge-modern badge-gradient-info mb-2">@equipment.Category</span>
-                        <p class="text-muted small mb-3">@equipment.Description.Substring(0, Math.Min(80, equipment.Description.Length))...</p>
-                        
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div>
-                                <h4 class="mb-0 text-primary">$@equipment.PricePerUnit.ToString("N2")</h4>
-                                <small class="text-muted">per @equipment.Unit</small>
-                            </div>
-                            <div>
-                                <span class="badge @(equipment.IsAvailable ? "bg-success" : "bg-danger")">
+
+                            <h5 class="ee-item-name">@equipment.Name</h5>
+                            <span class="ee-badge-category">@equipment.Category</span>
+                            <p class="ee-item-desc">@equipment.Description</p>
+
+                            <div class="ee-item-meta">
+                                <div>
+                                    <span class="ee-price">$@equipment.PricePerUnit.ToString("N2")</span>
+                                    <span class="ee-price-unit"> / @equipment.Unit</span>
+                                </div>
+                                <span class="ee-qty @(equipment.IsAvailable ? "ee-qty-available" : "ee-qty-unavailable")">
                                     @equipment.AvailableQuantity units
                                 </span>
                             </div>
-                        </div>
 
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-outline-primary btn-sm flex-fill" @onclick="() => EditEquipment(equipment.Id)">
-                                <i class="bi bi-pencil"></i> Edit
-                            </button>
-                            <button class="btn btn-outline-danger btn-sm" @onclick="() => DeleteEquipment(equipment.Id)">
-                                <i class="bi bi-trash"></i>
-                            </button>
+                            <div class="ee-item-actions">
+                                <button class="ee-btn ee-btn-sm ee-btn-edit" @onclick="() => EditEquipment(equipment.Id)">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </button>
+                                <button class="ee-btn ee-btn-sm ee-btn-delete" @onclick="() => DeleteEquipment(equipment.Id)">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                }
+                    }
+                </div>
             </div>
         }
         else
         {
-            <div class="modern-card">
-                <div class="text-center py-5">
-                    <i class="bi bi-inbox display-1 text-muted"></i>
-                    <h4 class="mt-3">No Equipment Added Yet</h4>
-                    <p class="text-muted mb-4">Start adding your event equipment to reach more customers</p>
-                    <button class="btn-modern btn-gradient-primary" @onclick="ShowCreateModal">
-                        <i class="bi bi-plus-circle me-2"></i>Add Your First Equipment
+            <div class="ee-card">
+                <div class="ee-empty">
+                    <div class="ee-empty-icon"><i class="bi bi-inbox"></i></div>
+                    <div class="ee-empty-title">No Equipment Added Yet</div>
+                    <p class="ee-empty-text">Start adding your event equipment to reach more customers</p>
+                    <button class="ee-btn ee-btn-primary" @onclick="ShowCreateModal">
+                        <i class="bi bi-plus-lg"></i> Add Your First Equipment
                     </button>
                 </div>
             </div>
@@ -159,6 +139,13 @@
     private bool isLoading = true;
     private List<EventEquipment> equipments = new();
     private string currentProviderId = "temp-provider-id"; // In production, get from auth context
+
+    private List<BreadcrumbItem> breadcrumbItems = new()
+    {
+        new BreadcrumbItem { Text = "Home", Url = "/" },
+        new BreadcrumbItem { Text = "Owner Dashboard", Url = "/owner/dashboard" },
+        new BreadcrumbItem { Text = "Event Equipments", IsActive = true }
+    };
 
     protected override async Task OnInitializedAsync()
     {

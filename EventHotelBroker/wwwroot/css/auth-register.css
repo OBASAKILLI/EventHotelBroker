@@ -1,0 +1,112 @@
+/* ============================================
+   Auth Register — Safari Vents Compact
+   Prefix: rg-
+   ============================================ */
+
+.rg-page {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f5f3ef 0%, #ebe6dd 50%, #e2ddd3 100%);
+}
+
+/* ── Back link ── */
+.rg-back {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    font-size: 0.6875rem; font-weight: 500; color: #9E8B63;
+    text-decoration: none; margin-bottom: 1rem; transition: color 0.15s ease;
+}
+.rg-back:hover { color: #C87941; }
+.rg-back i { font-size: 0.625rem; }
+
+/* ── Card ── */
+.rg-card {
+    background: #fff; border: 1px solid rgba(158,139,99,0.12);
+    border-radius: 16px; box-shadow: 0 12px 40px rgba(42,42,42,0.08);
+    max-width: 420px; width: 100%; overflow: hidden; margin: 1rem 0;
+}
+
+/* ── Header ── */
+.rg-header {
+    text-align: center; padding: 1.75rem 1.5rem 1.125rem;
+    background: linear-gradient(135deg, #2A2A2A 0%, #3d3d3d 100%);
+}
+.rg-logo {
+    width: 50px; height: 50px; margin: 0 auto 0.75rem;
+    background: linear-gradient(135deg, #C87941 0%, #9E8B63 100%);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 1.375rem; box-shadow: 0 4px 16px rgba(200,121,65,0.25);
+}
+.rg-title { font-size: 1.0625rem; font-weight: 800; color: #fff; margin: 0 0 0.2rem 0; letter-spacing: -0.02em; }
+.rg-subtitle { font-size: 0.6875rem; color: rgba(255,255,255,0.5); margin: 0; }
+
+/* ── Body ── */
+.rg-body { padding: 1.25rem 1.5rem; }
+
+/* ── Form ── */
+.rg-field { margin-bottom: 0.75rem; }
+.rg-label { display: block; font-size: 0.5625rem; font-weight: 600; color: #5a5450; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.25rem; }
+.rg-input, .rg-select {
+    width: 100%; padding: 0.45rem 0.625rem; font-size: 0.6875rem; font-family: inherit;
+    border: 1px solid rgba(158,139,99,0.2); border-radius: 8px;
+    background: #faf9f7; color: #2A2A2A; outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.rg-input::placeholder { color: #b5a98a; }
+.rg-input:focus, .rg-select:focus { border-color: #C87941; box-shadow: 0 0 0 2px rgba(200,121,65,0.1); background: #fff; }
+.rg-select { cursor: pointer; }
+
+/* ── Row (2-col) ── */
+.rg-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+
+/* ── Terms ── */
+.rg-terms { display: flex; align-items: flex-start; gap: 0.4rem; margin-bottom: 1rem; }
+.rg-terms input[type="checkbox"] { width: 14px; height: 14px; accent-color: #C87941; cursor: pointer; margin-top: 1px; flex-shrink: 0; }
+.rg-terms-label { font-size: 0.5625rem; color: #5a5450; line-height: 1.4; }
+.rg-terms-label a { color: #C87941; font-weight: 600; text-decoration: none; }
+.rg-terms-label a:hover { color: #a86535; }
+
+/* ── Buttons ── */
+.rg-btn {
+    display: flex; align-items: center; justify-content: center; gap: 0.375rem;
+    width: 100%; font-size: 0.75rem; font-weight: 700; font-family: inherit;
+    padding: 0.5rem 1rem; border-radius: 10px; border: none; cursor: pointer;
+    transition: all 0.15s ease; text-decoration: none;
+}
+.rg-btn-primary { background: linear-gradient(135deg, #C87941 0%, #9E8B63 100%); color: #fff; box-shadow: 0 4px 12px rgba(200,121,65,0.2); }
+.rg-btn-primary:hover { box-shadow: 0 6px 18px rgba(200,121,65,0.3); transform: translateY(-1px); }
+.rg-btn-primary:active { transform: translateY(0); }
+
+/* ── Divider ── */
+.rg-divider { display: flex; align-items: center; gap: 0.625rem; margin: 0.875rem 0; }
+.rg-divider::before, .rg-divider::after { content: ''; flex: 1; height: 1px; background: rgba(158,139,99,0.15); }
+.rg-divider-text { font-size: 0.5625rem; color: #8a8177; white-space: nowrap; }
+
+/* ── Social ── */
+.rg-socials { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem; }
+.rg-btn-social {
+    display: flex; align-items: center; justify-content: center; gap: 0.375rem;
+    padding: 0.4rem 0.625rem; font-size: 0.6875rem; font-weight: 600; font-family: inherit;
+    border: 1px solid rgba(158,139,99,0.18); border-radius: 8px;
+    background: #faf9f7; color: #5a5450; cursor: pointer;
+    transition: all 0.15s ease;
+}
+.rg-btn-social:hover { background: #fff; border-color: rgba(158,139,99,0.3); color: #2A2A2A; }
+.rg-btn-social i { font-size: 0.75rem; }
+
+/* ── Footer link ── */
+.rg-footer { text-align: center; font-size: 0.6875rem; color: #8a8177; }
+.rg-footer a { color: #C87941; font-weight: 700; text-decoration: none; transition: color 0.15s ease; }
+.rg-footer a:hover { color: #a86535; }
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+    .rg-page { padding: 1rem; }
+    .rg-card { border-radius: 12px; }
+    .rg-header { padding: 1.25rem 1rem 0.875rem; }
+    .rg-body { padding: 1rem; }
+    .rg-row { grid-template-columns: 1fr; }
+}

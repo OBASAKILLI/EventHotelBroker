@@ -1,4 +1,5 @@
 @page "/owner/create-package"
+@rendermode InteractiveServer
 @using EventHotelBroker.Models
 @using EventHotelBroker.Services
 @inject IEventService EventService
@@ -7,221 +8,228 @@
 
 <PageTitle>Create Event Package - Owner</PageTitle>
 
-<link href="/css/events-module.css" rel="stylesheet" />
+<link href="/css/create-package.css?v=1" rel="stylesheet" />
 
-<div class="container-fluid px-4 py-4 animate-fade-in">
-    <div class="page-header mb-4">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h1><i class="bi bi-plus-circle me-3"></i>Create Event Package</h1>
-                <p>Bundle equipment into attractive packages for customers</p>
-            </div>
-            <button class="btn btn-outline-secondary" @onclick="Cancel">
-                <i class="bi bi-x-circle me-2"></i>Cancel
-            </button>
+<div class="cp">
+    <Breadcrumb Items="@breadcrumbItems" />
+
+    <!-- Header -->
+    <div class="cp-header">
+        <div>
+            <h1 class="cp-header-title"><i class="bi bi-gift"></i> Create Event Package</h1>
+            <p class="cp-header-sub">Bundle equipment into attractive packages for customers</p>
         </div>
+        <button class="cp-btn cp-btn-cancel" @onclick="Cancel">
+            <i class="bi bi-x-lg"></i> Cancel
+        </button>
     </div>
 
-    <div class="row">
-        <div class="col-lg-8 mx-auto">
-            <div class="modern-card">
-                <div class="modern-card-body">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <div class="cp-card">
+                <div class="cp-card-body">
                     <EditForm Model="@package" OnValidSubmit="@HandleSubmit">
                         <DataAnnotationsValidator />
-                        <ValidationSummary class="alert alert-danger" />
+                        <ValidationSummary class="validation-errors" />
 
                         <!-- Package Information -->
-                        <div class="mb-4">
-                            <h5 class="mb-3"><i class="bi bi-gift me-2"></i>Package Information</h5>
-                            
-                            <div class="mb-3">
-                                <label class="form-label">Package Name <span class="text-danger">*</span></label>
-                                <InputText @bind-Value="package.Name" class="form-control" 
-                                    placeholder="e.g., Premium Wedding Package" />
-                                <ValidationMessage For="@(() => package.Name)" />
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Package Type <span class="text-danger">*</span></label>
-                                <InputSelect @bind-Value="package.PackageType" class="form-select">
-                                    <option value="">-- Select Type --</option>
-                                    <option value="Wedding">Wedding</option>
-                                    <option value="Corporate">Corporate Event</option>
-                                    <option value="Birthday">Birthday Party</option>
-                                    <option value="Conference">Conference</option>
-                                    <option value="Party">Party</option>
-                                    <option value="Festival">Festival</option>
-                                    <option value="Exhibition">Exhibition</option>
-                                    <option value="Custom">Custom Event</option>
-                                </InputSelect>
-                                <ValidationMessage For="@(() => package.PackageType)" />
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Description <span class="text-danger">*</span></label>
-                                <InputTextArea @bind-Value="package.Description" class="form-control" rows="4" 
-                                    placeholder="Describe what's included in this package and what makes it special..." />
-                                <ValidationMessage For="@(() => package.Description)" />
-                            </div>
+                        <div class="cp-section">
+                            <div class="cp-section-icon cp-icon-terracotta"><i class="bi bi-gift"></i></div>
+                            <h5 class="cp-section-title">Package Information</h5>
                         </div>
 
+                        <div class="cp-field">
+                            <label class="cp-label">Package Name <span class="req">*</span></label>
+                            <InputText @bind-Value="package.Name" class="cp-input" placeholder="e.g., Premium Wedding Package" />
+                            <ValidationMessage For="@(() => package.Name)" />
+                        </div>
+
+                        <div class="cp-field">
+                            <label class="cp-label">Package Type <span class="req">*</span></label>
+                            <InputSelect @bind-Value="package.PackageType" class="cp-select">
+                                <option value="">-- Select Type --</option>
+                                <option value="Wedding">Wedding</option>
+                                <option value="Corporate">Corporate Event</option>
+                                <option value="Birthday">Birthday Party</option>
+                                <option value="Conference">Conference</option>
+                                <option value="Party">Party</option>
+                                <option value="Festival">Festival</option>
+                                <option value="Exhibition">Exhibition</option>
+                                <option value="Custom">Custom Event</option>
+                            </InputSelect>
+                            <ValidationMessage For="@(() => package.PackageType)" />
+                        </div>
+
+                        <div class="cp-field">
+                            <label class="cp-label">Description <span class="req">*</span></label>
+                            <InputTextArea @bind-Value="package.Description" class="cp-input" rows="3"
+                                placeholder="Describe what's included in this package and what makes it special..." />
+                            <ValidationMessage For="@(() => package.Description)" />
+                        </div>
+
+                        <hr class="cp-divider" />
+
                         <!-- Pricing -->
-                        <div class="mb-4">
-                            <h5 class="mb-3"><i class="bi bi-currency-dollar me-2"></i>Pricing</h5>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Total Price <span class="text-danger">*</span></label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">$</span>
-                                        <InputNumber @bind-Value="package.TotalPrice" class="form-control" 
-                                            placeholder="0.00" step="0.01" />
+                        <div class="cp-section">
+                            <div class="cp-section-icon cp-icon-teal"><i class="bi bi-currency-dollar"></i></div>
+                            <h5 class="cp-section-title">Pricing</h5>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="cp-field">
+                                    <label class="cp-label">Total Price <span class="req">*</span></label>
+                                    <div class="cp-input-group">
+                                        <span class="cp-input-prefix">$</span>
+                                        <InputNumber @bind-Value="package.TotalPrice" class="cp-input" placeholder="0.00" step="0.01" />
                                     </div>
                                     <ValidationMessage For="@(() => package.TotalPrice)" />
                                 </div>
-
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Discounted Price</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">$</span>
-                                        <InputNumber @bind-Value="package.DiscountedPrice" class="form-control" 
-                                            placeholder="0.00" step="0.01" />
+                            </div>
+                            <div class="col-md-6">
+                                <div class="cp-field">
+                                    <label class="cp-label">Discounted Price</label>
+                                    <div class="cp-input-group">
+                                        <span class="cp-input-prefix">$</span>
+                                        <InputNumber @bind-Value="package.DiscountedPrice" class="cp-input" placeholder="0.00" step="0.01" />
                                     </div>
-                                    <small class="text-muted">Optional: Offer a special discounted price</small>
+                                    <span class="cp-hint">Optional: Offer a special discounted price</span>
                                 </div>
                             </div>
-
-                            @if (package.DiscountedPrice.HasValue && package.TotalPrice > 0)
-                            {
-                                var savings = package.TotalPrice - package.DiscountedPrice.Value;
-                                var percentage = (savings / package.TotalPrice) * 100;
-                                <div class="alert alert-success">
-                                    <i class="bi bi-tag me-2"></i>
-                                    Customers save <strong>$@savings.ToString("N2")</strong> (@percentage.ToString("N0")% off)
-                                </div>
-                            }
                         </div>
 
+                        @if (package.DiscountedPrice.HasValue && package.TotalPrice > 0)
+                        {
+                            var savings = package.TotalPrice - package.DiscountedPrice.Value;
+                            var percentage = (savings / package.TotalPrice) * 100;
+                            <div class="cp-savings">
+                                <i class="bi bi-tag-fill"></i>
+                                Customers save <strong>$@savings.ToString("N2")</strong> (@percentage.ToString("N0")% off)
+                            </div>
+                        }
+
+                        <hr class="cp-divider" />
+
                         <!-- Guest Capacity -->
-                        <div class="mb-4">
-                            <h5 class="mb-3"><i class="bi bi-people me-2"></i>Guest Capacity</h5>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Minimum Guests <span class="text-danger">*</span></label>
-                                    <InputNumber @bind-Value="package.MinGuests" class="form-control" 
-                                        placeholder="0" min="1" />
+                        <div class="cp-section">
+                            <div class="cp-section-icon cp-icon-bronze"><i class="bi bi-people"></i></div>
+                            <h5 class="cp-section-title">Guest Capacity</h5>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="cp-field">
+                                    <label class="cp-label">Minimum Guests <span class="req">*</span></label>
+                                    <InputNumber @bind-Value="package.MinGuests" class="cp-input" placeholder="0" min="1" />
                                     <ValidationMessage For="@(() => package.MinGuests)" />
                                 </div>
-
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Maximum Guests <span class="text-danger">*</span></label>
-                                    <InputNumber @bind-Value="package.MaxGuests" class="form-control" 
-                                        placeholder="0" min="1" />
+                            </div>
+                            <div class="col-md-6">
+                                <div class="cp-field">
+                                    <label class="cp-label">Maximum Guests <span class="req">*</span></label>
+                                    <InputNumber @bind-Value="package.MaxGuests" class="cp-input" placeholder="0" min="1" />
                                     <ValidationMessage For="@(() => package.MaxGuests)" />
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Features -->
-                        <div class="mb-4">
-                            <h5 class="mb-3"><i class="bi bi-list-check me-2"></i>Package Features</h5>
-                            
-                            <div class="mb-3">
-                                <label class="form-label">Features (one per line)</label>
-                                <textarea @bind="featuresText" class="form-control" rows="6" 
-                                    placeholder="Enter each feature on a new line, e.g.:&#10;White Wedding Tent 20x30&#10;300 Chiavari Chairs&#10;Professional Sound System&#10;LED Uplighting&#10;Floral Centerpieces"></textarea>
-                                <small class="text-muted">List all items and services included in this package</small>
-                            </div>
+                        <hr class="cp-divider" />
 
-                            @if (!string.IsNullOrWhiteSpace(featuresText))
-                            {
-                                var features = featuresText.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-                                <div class="alert alert-info">
-                                    <strong>Preview:</strong>
-                                    <ul class="mb-0 mt-2">
-                                        @foreach (var feature in features)
-                                        {
-                                            <li>@feature.Trim()</li>
-                                        }
-                                    </ul>
-                                </div>
-                            }
+                        <!-- Features -->
+                        <div class="cp-section">
+                            <div class="cp-section-icon cp-icon-olive"><i class="bi bi-list-check"></i></div>
+                            <h5 class="cp-section-title">Package Features</h5>
                         </div>
+
+                        <div class="cp-field">
+                            <label class="cp-label">Features (one per line)</label>
+                            <textarea @bind="featuresText" class="cp-input" rows="5"
+                                placeholder="Enter each feature on a new line, e.g.:&#10;White Wedding Tent 20x30&#10;300 Chiavari Chairs&#10;Professional Sound System&#10;LED Uplighting&#10;Floral Centerpieces"></textarea>
+                            <span class="cp-hint">List all items and services included in this package</span>
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(featuresText))
+                        {
+                            var features = featuresText.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                            <div class="cp-preview">
+                                <div class="cp-preview-title">Preview</div>
+                                <ul class="cp-preview-list">
+                                    @foreach (var feature in features)
+                                    {
+                                        <li>@feature.Trim()</li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+
+                        <hr class="cp-divider" />
 
                         <!-- Package Settings -->
-                        <div class="mb-4">
-                            <h5 class="mb-3"><i class="bi bi-gear me-2"></i>Package Settings</h5>
-                            
-                            <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <div class="form-check form-switch">
-                                        <InputCheckbox @bind-Value="package.IsActive" class="form-check-input" id="isActive" />
-                                        <label class="form-check-label" for="isActive">
-                                            <strong>Active</strong>
-                                            <br><small class="text-muted">Available for booking</small>
-                                        </label>
-                                    </div>
+                        <div class="cp-section">
+                            <div class="cp-section-icon cp-icon-charcoal"><i class="bi bi-gear"></i></div>
+                            <h5 class="cp-section-title">Package Settings</h5>
+                        </div>
+
+                        <div class="cp-toggles">
+                            <div class="cp-toggle-item">
+                                <InputCheckbox @bind-Value="package.IsActive" id="isActive" />
+                                <div>
+                                    <div class="cp-toggle-label">Active</div>
+                                    <div class="cp-toggle-hint">Available for booking</div>
                                 </div>
-                                <div class="col-md-4 mb-3">
-                                    <div class="form-check form-switch">
-                                        <InputCheckbox @bind-Value="package.IsFeatured" class="form-check-input" id="isFeatured" />
-                                        <label class="form-check-label" for="isFeatured">
-                                            <strong>Featured</strong>
-                                            <br><small class="text-muted">Highlight this package</small>
-                                        </label>
-                                    </div>
+                            </div>
+                            <div class="cp-toggle-item">
+                                <InputCheckbox @bind-Value="package.IsFeatured" id="isFeatured" />
+                                <div>
+                                    <div class="cp-toggle-label">Featured</div>
+                                    <div class="cp-toggle-hint">Highlight this package</div>
                                 </div>
-                                <div class="col-md-4 mb-3">
-                                    <div class="form-check form-switch">
-                                        <InputCheckbox @bind-Value="package.IsCustomizable" class="form-check-input" id="isCustomizable" />
-                                        <label class="form-check-label" for="isCustomizable">
-                                            <strong>Customizable</strong>
-                                            <br><small class="text-muted">Allow modifications</small>
-                                        </label>
-                                    </div>
+                            </div>
+                            <div class="cp-toggle-item">
+                                <InputCheckbox @bind-Value="package.IsCustomizable" id="isCustomizable" />
+                                <div>
+                                    <div class="cp-toggle-label">Customizable</div>
+                                    <div class="cp-toggle-hint">Allow modifications</div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Image URL (Optional) -->
-                        <div class="mb-4">
-                            <h5 class="mb-3"><i class="bi bi-image me-2"></i>Package Image</h5>
-                            
-                            <div class="mb-3">
-                                <label class="form-label">Image URL</label>
-                                <InputText @bind-Value="package.ImageUrl" class="form-control" 
-                                    placeholder="https://example.com/package-image.jpg" />
-                                <small class="text-muted">Optional: Add a URL to an image representing this package</small>
-                            </div>
+                        <hr class="cp-divider" />
 
-                            @if (!string.IsNullOrEmpty(package.ImageUrl))
-                            {
-                                <div class="mb-3">
-                                    <label class="form-label">Image Preview</label>
-                                    <div class="border rounded p-2">
-                                        <img src="@package.ImageUrl" alt="Package preview" class="img-fluid" 
-                                            style="max-height: 200px;" @onerror="HandleImageError" />
-                                    </div>
-                                </div>
-                            }
+                        <!-- Image URL -->
+                        <div class="cp-section">
+                            <div class="cp-section-icon cp-icon-terracotta"><i class="bi bi-image"></i></div>
+                            <h5 class="cp-section-title">Package Image</h5>
                         </div>
 
-                        <!-- Submit Buttons -->
-                        <div class="d-flex gap-3 justify-content-end">
-                            <button type="button" class="btn btn-outline-secondary" @onclick="Cancel">
-                                <i class="bi bi-x-circle me-2"></i>Cancel
+                        <div class="cp-field">
+                            <label class="cp-label">Image URL</label>
+                            <InputText @bind-Value="package.ImageUrl" class="cp-input" placeholder="https://example.com/package-image.jpg" />
+                            <span class="cp-hint">Optional: Add a URL to an image representing this package</span>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(package.ImageUrl))
+                        {
+                            <div class="cp-img-preview">
+                                <img src="@package.ImageUrl" alt="Package preview" @onerror="HandleImageError" />
+                            </div>
+                        }
+
+                        <!-- Footer -->
+                        <div class="cp-footer">
+                            <button type="button" class="cp-btn cp-btn-muted" @onclick="Cancel">
+                                <i class="bi bi-x-lg"></i> Cancel
                             </button>
-                            <button type="submit" class="btn-modern btn-gradient-accent" disabled="@isSubmitting">
+                            <button type="submit" class="cp-btn cp-btn-submit" disabled="@isSubmitting">
                                 @if (isSubmitting)
                                 {
-                                    <span class="spinner-border spinner-border-sm me-2"></span>
-                                    <text>Creating...</text>
+                                    <span class="cp-spinner"></span>
+                                    <span>Creating...</span>
                                 }
                                 else
                                 {
-                                    <i class="bi bi-check-circle me-2"></i>
-                                    <text>Create Package</text>
+                                    <i class="bi bi-check-lg"></i>
+                                    <span>Create Package</span>
                                 }
                             </button>
                         </div>
@@ -230,16 +238,14 @@
             </div>
 
             <!-- Tips Card -->
-            <div class="modern-card mt-4">
-                <div class="modern-card-body">
-                    <h6 class="mb-3"><i class="bi bi-lightbulb me-2"></i>Package Creation Tips</h6>
-                    <ul class="mb-0">
-                        <li><strong>Bundle Wisely:</strong> Combine complementary items that customers typically need together.</li>
-                        <li><strong>Competitive Pricing:</strong> Offer packages at a discount compared to individual item prices.</li>
-                        <li><strong>Clear Descriptions:</strong> List exactly what's included to avoid confusion.</li>
-                        <li><strong>Target Audience:</strong> Create packages for specific event types (weddings, corporate, etc.).</li>
-                        <li><strong>Approval Required:</strong> Your package will need admin approval before going live.</li>
-                    </ul>
+            <div class="cp-card">
+                <div class="cp-card-body" style="padding: 0.875rem 1rem;">
+                    <div class="cp-tips-title"><i class="bi bi-lightbulb"></i> Package Creation Tips</div>
+                    <div class="cp-tip"><i class="bi bi-check-circle-fill"></i><span><strong>Bundle Wisely:</strong> Combine complementary items that customers typically need together.</span></div>
+                    <div class="cp-tip"><i class="bi bi-check-circle-fill"></i><span><strong>Competitive Pricing:</strong> Offer packages at a discount compared to individual item prices.</span></div>
+                    <div class="cp-tip"><i class="bi bi-check-circle-fill"></i><span><strong>Clear Descriptions:</strong> List exactly what's included to avoid confusion.</span></div>
+                    <div class="cp-tip"><i class="bi bi-check-circle-fill"></i><span><strong>Target Audience:</strong> Create packages for specific event types (weddings, corporate, etc.).</span></div>
+                    <div class="cp-tip"><i class="bi bi-check-circle-fill"></i><span><strong>Approval Required:</strong> Your package will need admin approval before going live.</span></div>
                 </div>
             </div>
         </div>
@@ -251,6 +257,13 @@
     private string featuresText = string.Empty;
     private bool isSubmitting = false;
     private string currentProviderId = "temp-provider-id"; // In production, get from auth context
+
+    private List<BreadcrumbItem> breadcrumbItems = new()
+    {
+        new BreadcrumbItem { Text = "Home", Url = "/" },
+        new BreadcrumbItem { Text = "Owner Dashboard", Url = "/owner/dashboard" },
+        new BreadcrumbItem { Text = "Create Package", IsActive = true }
+    };
 
     protected override void OnInitialized()
     {

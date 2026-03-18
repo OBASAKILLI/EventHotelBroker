@@ -1,0 +1,306 @@
+/* ============================================
+   Owner Analytics — Safari Vents Compact
+   Prefix: oa-
+   ============================================ */
+
+/* ── Page Shell ── */
+.oa {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    color: #2A2A2A;
+    background: #f5f3ef;
+    min-height: 100vh;
+    padding: 1.25rem 1.5rem;
+}
+
+/* ── Page Header ── */
+.oa-header {
+    background: linear-gradient(135deg, #2A2A2A 0%, #3d3d3d 100%);
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+.oa-header-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.02em;
+    margin: 0 0 0.125rem 0;
+}
+.oa-header-sub {
+    font-size: 0.6875rem;
+    color: rgba(255,255,255,0.55);
+    margin: 0;
+}
+.oa-header-actions { display: flex; align-items: center; gap: 0.5rem; }
+
+/* ── Buttons ── */
+.oa-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    padding: 0.4rem 0.75rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.oa-btn-primary { background: #C87941; color: #fff; }
+.oa-btn-primary:hover { background: #b36a35; color: #fff; }
+.oa-btn-outline {
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.8);
+    border: 1px solid rgba(255,255,255,0.15);
+}
+.oa-btn-outline:hover { background: rgba(255,255,255,0.18); color: #fff; }
+.oa-btn-ghost {
+    background: rgba(42,42,42,0.04);
+    color: #5a5450;
+    border: 1px solid rgba(158,139,99,0.15);
+}
+.oa-btn-ghost:hover { border-color: #9E8B63; color: #2A2A2A; }
+.oa-btn-ghost.active {
+    background: #C87941;
+    color: #fff;
+    border-color: #C87941;
+}
+
+/* ── Period Select ── */
+.oa-select {
+    padding: 0.35rem 0.625rem;
+    font-size: 0.6875rem;
+    font-family: inherit;
+    font-weight: 600;
+    color: rgba(255,255,255,0.8);
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
+    outline: none;
+    cursor: pointer;
+}
+.oa-select option { color: #2A2A2A; background: #fff; }
+.oa-select:focus { border-color: rgba(255,255,255,0.4); }
+
+/* ── Metric Cards ── */
+.oa-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.625rem;
+    margin-bottom: 1rem;
+}
+.oa-metric {
+    background: #fff;
+    border: 1px solid rgba(158,139,99,0.12);
+    border-radius: 12px;
+    padding: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: border-color 0.15s ease;
+}
+.oa-metric:hover { border-color: rgba(158,139,99,0.25); }
+.oa-metric-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    flex-shrink: 0;
+}
+.oa-metric-label {
+    font-size: 0.5625rem;
+    color: #8a8177;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.125rem;
+}
+.oa-metric-value {
+    font-size: 1.125rem;
+    font-weight: 800;
+    color: #2A2A2A;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 0.1875rem;
+}
+.oa-metric-change {
+    font-size: 0.5625rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.1875rem;
+}
+.oa-metric-change.up { color: #488C82; }
+.oa-metric-change.down { color: #c8503c; }
+.oa-icon-teal { background: rgba(72,140,130,0.1); color: #488C82; }
+.oa-icon-terracotta { background: rgba(200,121,65,0.1); color: #C87941; }
+.oa-icon-bronze { background: rgba(158,139,99,0.1); color: #9E8B63; }
+.oa-icon-charcoal { background: rgba(42,42,42,0.06); color: #2A2A2A; }
+
+/* ── Card Shell ── */
+.oa-card {
+    background: #fff;
+    border: 1px solid rgba(158,139,99,0.12);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+}
+.oa-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(158,139,99,0.08);
+}
+.oa-card-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #2A2A2A;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin: 0;
+}
+.oa-card-title i { color: #9E8B63; font-size: 0.8125rem; }
+.oa-card-body { padding: 1rem; }
+
+/* ── Chart Toggle ── */
+.oa-chart-toggle { display: flex; gap: 0.25rem; }
+.oa-chart-toggle .oa-btn { font-size: 0.5625rem; padding: 0.25rem 0.5rem; }
+
+/* ── Chart Area ── */
+.oa-chart { position: relative; }
+.oa-chart svg { display: block; }
+
+/* ── Source Legend ── */
+.oa-legend { display: flex; flex-direction: column; gap: 0.5rem; padding-top: 0.625rem; }
+.oa-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.6875rem;
+}
+.oa-legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+.oa-legend-label { flex: 1; color: #5a5450; }
+.oa-legend-value { font-weight: 700; color: #2A2A2A; }
+
+/* ── Performance List (Top Hotels) ── */
+.oa-perf-item {
+    padding: 0.625rem 0;
+    border-bottom: 1px solid rgba(158,139,99,0.08);
+}
+.oa-perf-item:last-child { border-bottom: none; }
+.oa-perf-row {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    margin-bottom: 0.375rem;
+}
+.oa-perf-rank {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #C87941 0%, #9E8B63 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.6875rem;
+    flex-shrink: 0;
+}
+.oa-perf-name {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #2A2A2A;
+    margin: 0;
+}
+.oa-perf-bookings {
+    font-size: 0.5625rem;
+    color: #8a8177;
+}
+.oa-perf-right { text-align: right; margin-left: auto; }
+.oa-perf-revenue {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #488C82;
+}
+.oa-perf-occ {
+    font-size: 0.5625rem;
+    color: #8a8177;
+}
+
+/* Progress Bar */
+.oa-progress {
+    height: 4px;
+    background: rgba(158,139,99,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+}
+.oa-progress-bar {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #488C82, #6B7028);
+    transition: width 0.3s ease;
+}
+
+/* ── Activity Feed ── */
+.oa-activity {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(158,139,99,0.08);
+    display: flex;
+    gap: 0.625rem;
+    align-items: flex-start;
+}
+.oa-activity:last-child { border-bottom: none; }
+.oa-activity-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6875rem;
+    flex-shrink: 0;
+}
+.oa-activity-icon.booking { background: rgba(200,121,65,0.1); color: #C87941; }
+.oa-activity-icon.payment { background: rgba(72,140,130,0.1); color: #488C82; }
+.oa-activity-icon.cancellation { background: rgba(200,80,60,0.08); color: #c8503c; }
+.oa-activity-icon.review { background: rgba(158,139,99,0.1); color: #9E8B63; }
+.oa-activity-msg {
+    font-size: 0.6875rem;
+    color: #2A2A2A;
+    margin: 0;
+    line-height: 1.4;
+}
+.oa-activity-time {
+    font-size: 0.5625rem;
+    color: #8a8177;
+}
+
+/* ── Responsive ── */
+@media (max-width: 992px) {
+    .oa-metrics { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+    .oa { padding: 0.75rem; }
+    .oa-header { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+    .oa-metrics { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 576px) {
+    .oa-metrics { grid-template-columns: 1fr; }
+}

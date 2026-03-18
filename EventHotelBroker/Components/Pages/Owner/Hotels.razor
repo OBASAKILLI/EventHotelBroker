@@ -1,4 +1,5 @@
 @page "/owner/hotels"
+@rendermode InteractiveServer
 @using EventHotelBroker.Models
 @using EventHotelBroker.Services
 @inject IHotelService HotelService
@@ -6,79 +7,145 @@
 
 <PageTitle>My Hotels - EventHotelBroker</PageTitle>
 
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>My Hotels</h1>
-        <a href="/owner/create-hotel" class="btn btn-primary">
-            <i class="bi bi-plus-lg me-2"></i>Add New Hotel
+<link href="/css/owner-hotels.css?v=1" rel="stylesheet" />
+
+<div class="oh">
+    <Breadcrumb Items="@breadcrumbItems" />
+
+    <!-- Header -->
+    <div class="oh-header">
+        <div>
+            <h1 class="oh-header-title"><i class="bi bi-building"></i> My Hotels</h1>
+            <p class="oh-header-sub">Manage your hotel properties</p>
+        </div>
+        <a href="/owner/create-hotel" class="oh-btn oh-btn-add">
+            <i class="bi bi-plus-lg"></i> Add New Hotel
         </a>
+    </div>
+
+    <!-- Stats -->
+    <div class="oh-stats">
+        <div class="oh-stat">
+            <div>
+                <div class="oh-stat-value">@hotels.Count</div>
+                <div class="oh-stat-label">Total Hotels</div>
+            </div>
+            <div class="oh-stat-icon oh-icon-terracotta"><i class="bi bi-building"></i></div>
+        </div>
+        <div class="oh-stat">
+            <div>
+                <div class="oh-stat-value">@hotels.Count(h => h.IsApproved)</div>
+                <div class="oh-stat-label">Approved</div>
+            </div>
+            <div class="oh-stat-icon oh-icon-teal"><i class="bi bi-check-circle"></i></div>
+        </div>
+        <div class="oh-stat">
+            <div>
+                <div class="oh-stat-value">@hotels.Count(h => !h.IsApproved && h.IsPublished)</div>
+                <div class="oh-stat-label">Pending</div>
+            </div>
+            <div class="oh-stat-icon oh-icon-bronze"><i class="bi bi-clock-history"></i></div>
+        </div>
+        <div class="oh-stat">
+            <div>
+                <div class="oh-stat-value">@hotels.Count(h => !h.IsApproved && !h.IsPublished)</div>
+                <div class="oh-stat-label">Drafts</div>
+            </div>
+            <div class="oh-stat-icon oh-icon-charcoal"><i class="bi bi-pencil-square"></i></div>
+        </div>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="oh-search-bar">
+        <div class="oh-search-wrap">
+            <i class="bi bi-search"></i>
+            <input type="text" class="oh-search-input" placeholder="Search by name, city, or country..." @bind="searchTerm" @bind:event="oninput" />
+        </div>
+        <select class="oh-filter-select" @bind="statusFilter" @bind:event="onchange">
+            <option value="">All Status</option>
+            <option value="approved">Approved</option>
+            <option value="pending">Pending</option>
+            <option value="draft">Draft</option>
+        </select>
+        <span class="oh-search-count">@filteredHotels.Count() of @hotels.Count</span>
     </div>
 
     @if (isLoading)
     {
-        <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
+        <div class="oh-loading">
+            <div class="oh-spinner"></div>
+            <div class="oh-loading-text">Loading hotels...</div>
         </div>
     }
     else if (!hotels.Any())
     {
-        <div class="text-center py-5">
-            <i class="bi bi-building text-muted" style="font-size: 4rem;"></i>
-            <h3 class="mt-3">No Hotels Yet</h3>
-            <p class="text-muted">Start by adding your first hotel property.</p>
-            <a href="/owner/create-hotel" class="btn btn-primary">Add Your First Hotel</a>
+        <div class="oh-empty">
+            <div class="oh-empty-icon"><i class="bi bi-building"></i></div>
+            <div class="oh-empty-title">No Hotels Yet</div>
+            <div class="oh-empty-text">Start by adding your first hotel property.</div>
+            <a href="/owner/create-hotel" class="oh-btn oh-btn-add">
+                <i class="bi bi-plus-lg"></i> Add Your First Hotel
+            </a>
+        </div>
+    }
+    else if (!filteredHotels.Any())
+    {
+        <div class="oh-empty">
+            <div class="oh-empty-icon"><i class="bi bi-search"></i></div>
+            <div class="oh-empty-title">No Results</div>
+            <div class="oh-empty-text">No hotels match your search criteria.</div>
         </div>
     }
     else
     {
-        <div class="row g-4">
-            @foreach (var hotel in hotels)
+        <div class="oh-grid">
+            @foreach (var hotel in filteredHotels)
             {
-                <div class="col-md-6 col-lg-4">
-                    <div class="card shadow-sm h-100">
+                <div class="oh-card">
+                    <div class="oh-card-img">
                         @if (hotel.Images?.Any() == true)
                         {
-                            <img src="@hotel.Images.First().Url" class="card-img-top" alt="@hotel.Name" style="height: 200px; object-fit: cover;">
+                            <img src="@hotel.Images.First().Url" alt="@hotel.Name" />
                         }
                         else
                         {
-                            <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
-                                <i class="bi bi-building" style="font-size: 3rem;"></i>
-                            </div>
+                            <div class="oh-card-img-placeholder"><i class="bi bi-building"></i></div>
                         }
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h5 class="card-title mb-0">@hotel.Name</h5>
-                                @if (hotel.IsApproved)
-                                {
-                                    <span class="badge bg-success">Approved</span>
-                                }
-                                else if (hotel.IsPublished)
-                                {
-                                    <span class="badge bg-warning">Pending</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary">Draft</span>
-                                }
-                            </div>
-                            <p class="card-text text-muted">
-                                <i class="bi bi-geo-alt"></i> @hotel.City, @hotel.Country
-                            </p>
-                            <p class="card-text">
-                                <strong>Capacity:</strong> @hotel.Capacity guests<br />
-                                <strong>Price:</strong> @hotel.Currency @hotel.PricePerNight.ToString("N0")/night
-                            </p>
-                            <div class="d-grid gap-2">
-                                <button class="btn btn-outline-primary btn-sm" @onclick="() => ViewHotel(hotel.Id)">
-                                    <i class="bi bi-eye me-1"></i>View Details
-                                </button>
-                                <button class="btn btn-outline-secondary btn-sm" @onclick="() => EditHotel(hotel.Id)">
-                                    <i class="bi bi-pencil me-1"></i>Edit
-                                </button>
-                            </div>
+                    </div>
+                    <div class="oh-card-body">
+                        <div class="oh-card-top">
+                            <h6 class="oh-card-name">@hotel.Name</h6>
+                            @if (hotel.IsApproved)
+                            {
+                                <span class="oh-badge oh-badge-approved"><i class="bi bi-check-circle"></i> Approved</span>
+                            }
+                            else if (hotel.IsPublished)
+                            {
+                                <span class="oh-badge oh-badge-pending"><i class="bi bi-clock-history"></i> Pending</span>
+                            }
+                            else
+                            {
+                                <span class="oh-badge oh-badge-draft"><i class="bi bi-pencil-square"></i> Draft</span>
+                            }
+                        </div>
+                        <div class="oh-card-loc"><i class="bi bi-geo-alt"></i> @hotel.City, @hotel.Country</div>
+
+                        <div class="oh-card-details">
+                            <span class="oh-detail"><i class="bi bi-people"></i> @hotel.Capacity guests</span>
+                            <span class="oh-detail"><i class="bi bi-currency-exchange"></i> @hotel.Currency</span>
+                        </div>
+
+                        <div class="oh-card-price">
+                            @hotel.Currency @hotel.PricePerNight.ToString("N0") <span class="oh-card-price-sub">/ night</span>
+                        </div>
+
+                        <div class="oh-card-actions">
+                            <button class="oh-btn oh-btn-view" @onclick="() => ViewHotel(hotel.Id)">
+                                <i class="bi bi-eye"></i> View
+                            </button>
+                            <button class="oh-btn oh-btn-edit" @onclick="() => EditHotel(hotel.Id)">
+                                <i class="bi bi-pencil"></i> Edit
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -91,6 +158,38 @@
     private bool isLoading = true;
     private List<Hotel> hotels = new();
     private string currentUserId = "1"; // Default owner ID
+    private string searchTerm = "";
+    private string statusFilter = "";
+
+    private List<BreadcrumbItem> breadcrumbItems = new()
+    {
+        new BreadcrumbItem { Text = "Home", Url = "/" },
+        new BreadcrumbItem { Text = "Owner Dashboard", Url = "/owner/dashboard" },
+        new BreadcrumbItem { Text = "My Hotels", IsActive = true }
+    };
+
+    private IEnumerable<Hotel> filteredHotels => hotels.Where(h =>
+    {
+        if (!string.IsNullOrEmpty(statusFilter))
+        {
+            var match = statusFilter switch
+            {
+                "approved" => h.IsApproved,
+                "pending" => !h.IsApproved && h.IsPublished,
+                "draft" => !h.IsApproved && !h.IsPublished,
+                _ => true
+            };
+            if (!match) return false;
+        }
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var term = searchTerm.Trim().ToLower();
+            return (h.Name?.ToLower().Contains(term) ?? false)
+                || (h.City?.ToLower().Contains(term) ?? false)
+                || (h.Country?.ToLower().Contains(term) ?? false);
+        }
+        return true;
+    });
 
     protected override async Task OnInitializedAsync()
     {

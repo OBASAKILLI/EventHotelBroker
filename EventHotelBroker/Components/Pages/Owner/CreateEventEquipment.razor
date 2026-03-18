@@ -1,4 +1,5 @@
 @page "/owner/create-equipment"
+@rendermode InteractiveServer
 @using EventHotelBroker.Models
 @using EventHotelBroker.Services
 @inject IEventService EventService
@@ -7,90 +8,97 @@
 
 <PageTitle>Add Event Equipment - Owner</PageTitle>
 
-<link href="/css/events-module.css" rel="stylesheet" />
+<link href="/css/create-equipment.css?v=1" rel="stylesheet" />
 
-<div class="container-fluid px-4 py-4 animate-fade-in">
-    <div class="page-header mb-4">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h1><i class="bi bi-plus-circle me-3"></i>Add Event Equipment</h1>
-                <p>Add new equipment to your inventory</p>
-            </div>
-            <button class="btn btn-outline-secondary" @onclick="Cancel">
-                <i class="bi bi-x-circle me-2"></i>Cancel
-            </button>
+<div class="ce">
+    <Breadcrumb Items="@breadcrumbItems" />
+
+    <!-- Header -->
+    <div class="ce-header">
+        <div>
+            <h1 class="ce-header-title"><i class="bi bi-box-seam"></i> Add Event Equipment</h1>
+            <p class="ce-header-sub">Add new equipment to your inventory</p>
         </div>
+        <button class="ce-btn ce-btn-cancel" @onclick="Cancel">
+            <i class="bi bi-x-lg"></i> Cancel
+        </button>
     </div>
 
-    <div class="row">
-        <div class="col-lg-8 mx-auto">
-            <div class="modern-card">
-                <div class="modern-card-body">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <div class="ce-card">
+                <div class="ce-card-body">
                     <EditForm Model="@equipment" OnValidSubmit="@HandleSubmit">
                         <DataAnnotationsValidator />
-                        <ValidationSummary class="alert alert-danger" />
+                        <ValidationSummary class="validation-errors" />
 
                         <!-- Basic Information -->
-                        <div class="mb-4">
-                            <h5 class="mb-3"><i class="bi bi-info-circle me-2"></i>Basic Information</h5>
-                            
-                            <div class="mb-3">
-                                <label class="form-label">Equipment Name <span class="text-danger">*</span></label>
-                                <InputText @bind-Value="equipment.Name" class="form-control" placeholder="e.g., White Wedding Tent 20x30" />
-                                <ValidationMessage For="@(() => equipment.Name)" />
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Category <span class="text-danger">*</span></label>
-                                <InputSelect @bind-Value="equipment.Category" class="form-select">
-                                    <option value="">-- Select Category --</option>
-                                    <option value="Tents">Tents</option>
-                                    <option value="Chairs">Chairs</option>
-                                    <option value="Sound System">Sound System</option>
-                                    <option value="Lighting">Lighting</option>
-                                    <option value="Catering">Catering</option>
-                                    <option value="Decoration">Decoration</option>
-                                    <option value="Tables">Tables</option>
-                                    <option value="Stage">Stage & Platform</option>
-                                    <option value="Audio Visual">Audio Visual</option>
-                                    <option value="Other">Other</option>
-                                </InputSelect>
-                                <ValidationMessage For="@(() => equipment.Category)" />
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Description <span class="text-danger">*</span></label>
-                                <InputTextArea @bind-Value="equipment.Description" class="form-control" rows="4" 
-                                    placeholder="Provide detailed description of the equipment, its features, and condition..." />
-                                <ValidationMessage For="@(() => equipment.Description)" />
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Specifications</label>
-                                <InputTextArea @bind-Value="equipment.Specifications" class="form-control" rows="3" 
-                                    placeholder="e.g., Dimensions: 20x30 feet, Material: Canvas, Capacity: 150 guests" />
-                                <small class="text-muted">Optional: Add technical specifications, dimensions, capacity, etc.</small>
-                            </div>
+                        <div class="ce-section">
+                            <div class="ce-section-icon ce-icon-terracotta"><i class="bi bi-info-circle"></i></div>
+                            <h5 class="ce-section-title">Basic Information</h5>
                         </div>
 
+                        <div class="ce-field">
+                            <label class="ce-label">Equipment Name <span class="req">*</span></label>
+                            <InputText @bind-Value="equipment.Name" class="ce-input" placeholder="e.g., White Wedding Tent 20x30" />
+                            <ValidationMessage For="@(() => equipment.Name)" />
+                        </div>
+
+                        <div class="ce-field">
+                            <label class="ce-label">Category <span class="req">*</span></label>
+                            <InputSelect @bind-Value="equipment.Category" class="ce-select">
+                                <option value="">-- Select Category --</option>
+                                <option value="Tents">Tents</option>
+                                <option value="Chairs">Chairs</option>
+                                <option value="Sound System">Sound System</option>
+                                <option value="Lighting">Lighting</option>
+                                <option value="Catering">Catering</option>
+                                <option value="Decoration">Decoration</option>
+                                <option value="Tables">Tables</option>
+                                <option value="Stage">Stage & Platform</option>
+                                <option value="Audio Visual">Audio Visual</option>
+                                <option value="Other">Other</option>
+                            </InputSelect>
+                            <ValidationMessage For="@(() => equipment.Category)" />
+                        </div>
+
+                        <div class="ce-field">
+                            <label class="ce-label">Description <span class="req">*</span></label>
+                            <InputTextArea @bind-Value="equipment.Description" class="ce-input" rows="3"
+                                placeholder="Provide detailed description of the equipment, its features, and condition..." />
+                            <ValidationMessage For="@(() => equipment.Description)" />
+                        </div>
+
+                        <div class="ce-field">
+                            <label class="ce-label">Specifications</label>
+                            <InputTextArea @bind-Value="equipment.Specifications" class="ce-input" rows="2"
+                                placeholder="e.g., Dimensions: 20x30 feet, Material: Canvas, Capacity: 150 guests" />
+                            <span class="ce-hint">Optional: Add technical specifications, dimensions, capacity, etc.</span>
+                        </div>
+
+                        <hr class="ce-divider" />
+
                         <!-- Pricing & Availability -->
-                        <div class="mb-4">
-                            <h5 class="mb-3"><i class="bi bi-currency-dollar me-2"></i>Pricing & Availability</h5>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Price Per Unit <span class="text-danger">*</span></label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">$</span>
-                                        <InputNumber @bind-Value="equipment.PricePerUnit" class="form-control" 
-                                            placeholder="0.00" step="0.01" />
+                        <div class="ce-section">
+                            <div class="ce-section-icon ce-icon-teal"><i class="bi bi-currency-dollar"></i></div>
+                            <h5 class="ce-section-title">Pricing & Availability</h5>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="ce-field">
+                                    <label class="ce-label">Price Per Unit <span class="req">*</span></label>
+                                    <div class="ce-input-group">
+                                        <span class="ce-input-prefix">$</span>
+                                        <InputNumber @bind-Value="equipment.PricePerUnit" class="ce-input" placeholder="0.00" step="0.01" />
                                     </div>
                                     <ValidationMessage For="@(() => equipment.PricePerUnit)" />
                                 </div>
-
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Unit Type <span class="text-danger">*</span></label>
-                                    <InputSelect @bind-Value="equipment.Unit" class="form-select">
+                            </div>
+                            <div class="col-md-6">
+                                <div class="ce-field">
+                                    <label class="ce-label">Unit Type <span class="req">*</span></label>
+                                    <InputSelect @bind-Value="equipment.Unit" class="ce-select">
                                         <option value="">-- Select Unit --</option>
                                         <option value="piece">Piece</option>
                                         <option value="set">Set</option>
@@ -101,65 +109,66 @@
                                     <ValidationMessage For="@(() => equipment.Unit)" />
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Available Quantity <span class="text-danger">*</span></label>
-                                    <InputNumber @bind-Value="equipment.AvailableQuantity" class="form-control" 
-                                        placeholder="0" min="0" />
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="ce-field">
+                                    <label class="ce-label">Available Quantity <span class="req">*</span></label>
+                                    <InputNumber @bind-Value="equipment.AvailableQuantity" class="ce-input" placeholder="0" min="0" />
                                     <ValidationMessage For="@(() => equipment.AvailableQuantity)" />
                                 </div>
-
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Status</label>
-                                    <div class="form-check form-switch mt-2">
-                                        <InputCheckbox @bind-Value="equipment.IsAvailable" class="form-check-input" id="isAvailable" />
-                                        <label class="form-check-label" for="isAvailable">
-                                            Available for Booking
-                                        </label>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="ce-field">
+                                    <label class="ce-label">Status</label>
+                                    <div class="ce-toggle-item">
+                                        <InputCheckbox @bind-Value="equipment.IsAvailable" id="isAvailable" />
+                                        <div>
+                                            <div class="ce-toggle-label">Available for Booking</div>
+                                            <div class="ce-toggle-hint">Customers can rent this equipment</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Image URL (Optional) -->
-                        <div class="mb-4">
-                            <h5 class="mb-3"><i class="bi bi-image me-2"></i>Equipment Image</h5>
-                            
-                            <div class="mb-3">
-                                <label class="form-label">Image URL</label>
-                                <InputText @bind-Value="imageUrl" class="form-control" 
-                                    placeholder="https://example.com/image.jpg" />
-                                <small class="text-muted">Optional: Add a URL to an image of your equipment</small>
-                            </div>
+                        <hr class="ce-divider" />
 
-                            @if (!string.IsNullOrEmpty(imageUrl))
-                            {
-                                <div class="mb-3">
-                                    <label class="form-label">Image Preview</label>
-                                    <div class="border rounded p-2">
-                                        <img src="@imageUrl" alt="Equipment preview" class="img-fluid" style="max-height: 200px;" 
-                                            @onerror="HandleImageError" />
-                                    </div>
-                                </div>
-                            }
+                        <!-- Image URL -->
+                        <div class="ce-section">
+                            <div class="ce-section-icon ce-icon-bronze"><i class="bi bi-image"></i></div>
+                            <h5 class="ce-section-title">Equipment Image</h5>
                         </div>
 
-                        <!-- Submit Buttons -->
-                        <div class="d-flex gap-3 justify-content-end">
-                            <button type="button" class="btn btn-outline-secondary" @onclick="Cancel">
-                                <i class="bi bi-x-circle me-2"></i>Cancel
+                        <div class="ce-field">
+                            <label class="ce-label">Image URL</label>
+                            <InputText @bind-Value="imageUrl" class="ce-input" placeholder="https://example.com/image.jpg" />
+                            <span class="ce-hint">Optional: Add a URL to an image of your equipment</span>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(imageUrl))
+                        {
+                            <div class="ce-img-preview">
+                                <img src="@imageUrl" alt="Equipment preview" @onerror="HandleImageError" />
+                            </div>
+                        }
+
+                        <!-- Footer -->
+                        <div class="ce-footer">
+                            <button type="button" class="ce-btn ce-btn-muted" @onclick="Cancel">
+                                <i class="bi bi-x-lg"></i> Cancel
                             </button>
-                            <button type="submit" class="btn-modern btn-gradient-primary" disabled="@isSubmitting">
+                            <button type="submit" class="ce-btn ce-btn-submit" disabled="@isSubmitting">
                                 @if (isSubmitting)
                                 {
-                                    <span class="spinner-border spinner-border-sm me-2"></span>
-                                    <text>Saving...</text>
+                                    <span class="ce-spinner"></span>
+                                    <span>Saving...</span>
                                 }
                                 else
                                 {
-                                    <i class="bi bi-check-circle me-2"></i>
-                                    <text>Add Equipment</text>
+                                    <i class="bi bi-check-lg"></i>
+                                    <span>Add Equipment</span>
                                 }
                             </button>
                         </div>
@@ -167,16 +176,14 @@
                 </div>
             </div>
 
-            <!-- Information Card -->
-            <div class="modern-card mt-4">
-                <div class="modern-card-body">
-                    <h6 class="mb-3"><i class="bi bi-info-circle me-2"></i>Important Information</h6>
-                    <ul class="mb-0">
-                        <li>Your equipment will be submitted for admin approval before being visible to customers.</li>
-                        <li>Provide accurate descriptions and specifications to help customers make informed decisions.</li>
-                        <li>Set competitive pricing based on market rates and equipment quality.</li>
-                        <li>Keep your inventory updated to avoid booking conflicts.</li>
-                    </ul>
+            <!-- Tips Card -->
+            <div class="ce-card">
+                <div class="ce-card-body" style="padding: 0.875rem 1rem;">
+                    <div class="ce-tips-title"><i class="bi bi-info-circle"></i> Important Information</div>
+                    <div class="ce-tip"><i class="bi bi-check-circle-fill"></i><span>Your equipment will be submitted for admin approval before being visible to customers.</span></div>
+                    <div class="ce-tip"><i class="bi bi-check-circle-fill"></i><span>Provide accurate descriptions and specifications to help customers make informed decisions.</span></div>
+                    <div class="ce-tip"><i class="bi bi-check-circle-fill"></i><span>Set competitive pricing based on market rates and equipment quality.</span></div>
+                    <div class="ce-tip"><i class="bi bi-check-circle-fill"></i><span>Keep your inventory updated to avoid booking conflicts.</span></div>
                 </div>
             </div>
         </div>
@@ -188,6 +195,13 @@
     private string imageUrl = string.Empty;
     private bool isSubmitting = false;
     private string currentProviderId = "temp-provider-id"; // In production, get from auth context
+
+    private List<BreadcrumbItem> breadcrumbItems = new()
+    {
+        new BreadcrumbItem { Text = "Home", Url = "/" },
+        new BreadcrumbItem { Text = "Event Equipments", Url = "/owner/event-equipments" },
+        new BreadcrumbItem { Text = "Add Equipment", IsActive = true }
+    };
 
     protected override void OnInitialized()
     {

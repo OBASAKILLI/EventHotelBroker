@@ -1,0 +1,119 @@
+/* ============================================
+   Owner Hotels — Safari Vents Compact
+   Prefix: oh-
+   ============================================ */
+
+.oh {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    color: #2A2A2A;
+    background: #f5f3ef;
+    min-height: 100vh;
+    padding: 1.25rem 1.5rem;
+}
+
+/* ── Header ── */
+.oh-header {
+    background: linear-gradient(135deg, #2A2A2A 0%, #3d3d3d 100%);
+    border-radius: 14px; padding: 1.25rem 1.5rem;
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1rem;
+}
+.oh-header-title { font-size: 1rem; font-weight: 800; color: #fff; letter-spacing: -0.02em; margin: 0 0 0.125rem 0; }
+.oh-header-sub { font-size: 0.6875rem; color: rgba(255,255,255,0.55); margin: 0; }
+
+/* ── Buttons ── */
+.oh-btn {
+    display: inline-flex; align-items: center; gap: 0.375rem;
+    font-size: 0.6875rem; font-weight: 600; padding: 0.35rem 0.625rem;
+    border-radius: 8px; border: none; cursor: pointer;
+    transition: all 0.15s ease; text-decoration: none; white-space: nowrap;
+}
+.oh-btn-add { background: rgba(200,121,65,0.9); color: #fff; }
+.oh-btn-add:hover { background: #C87941; color: #fff; }
+.oh-btn-view { background: rgba(72,140,130,0.1); color: #488C82; }
+.oh-btn-view:hover { background: rgba(72,140,130,0.18); }
+.oh-btn-edit { background: rgba(158,139,99,0.1); color: #9E8B63; }
+.oh-btn-edit:hover { background: rgba(158,139,99,0.18); }
+
+/* ── Stats ── */
+.oh-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.625rem; margin-bottom: 1rem; }
+.oh-stat {
+    background: #fff; border: 1px solid rgba(158,139,99,0.12); border-radius: 12px;
+    padding: 0.75rem 0.875rem; display: flex; align-items: center; justify-content: space-between;
+    transition: border-color 0.15s ease;
+}
+.oh-stat:hover { border-color: rgba(158,139,99,0.25); }
+.oh-stat-value { font-size: 1.25rem; font-weight: 800; color: #2A2A2A; letter-spacing: -0.02em; line-height: 1; }
+.oh-stat-label { font-size: 0.5625rem; color: #8a8177; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 0.125rem; }
+.oh-stat-icon { width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 0.8125rem; flex-shrink: 0; }
+.oh-icon-terracotta { background: rgba(200,121,65,0.1); color: #C87941; }
+.oh-icon-teal { background: rgba(72,140,130,0.1); color: #488C82; }
+.oh-icon-bronze { background: rgba(158,139,99,0.1); color: #9E8B63; }
+.oh-icon-charcoal { background: rgba(42,42,42,0.06); color: #2A2A2A; }
+
+/* ── Search ── */
+.oh-search-bar { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+.oh-search-wrap { position: relative; flex: 1; min-width: 200px; }
+.oh-search-wrap i { position: absolute; left: 0.625rem; top: 50%; transform: translateY(-50%); font-size: 0.6875rem; color: #9E8B63; pointer-events: none; }
+.oh-search-input {
+    width: 100%; padding: 0.4rem 0.625rem 0.4rem 1.75rem; font-size: 0.6875rem; font-family: inherit;
+    border: 1px solid rgba(158,139,99,0.18); border-radius: 8px; background: #fff; color: #2A2A2A; outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.oh-search-input::placeholder { color: #b5a98a; }
+.oh-search-input:focus { border-color: #C87941; box-shadow: 0 0 0 2px rgba(200,121,65,0.1); }
+.oh-filter-select {
+    padding: 0.4rem 0.625rem; font-size: 0.6875rem; font-family: inherit;
+    border: 1px solid rgba(158,139,99,0.18); border-radius: 8px; background: #fff; color: #2A2A2A;
+    outline: none; cursor: pointer; min-width: 120px; transition: border-color 0.15s ease;
+}
+.oh-filter-select:focus { border-color: #C87941; }
+.oh-search-count { font-size: 0.5625rem; color: #8a8177; white-space: nowrap; }
+
+/* ── Grid ── */
+.oh-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.75rem; }
+
+/* ── Hotel Card ── */
+.oh-card { background: #fff; border: 1px solid rgba(158,139,99,0.12); border-radius: 12px; overflow: hidden; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+.oh-card:hover { border-color: rgba(158,139,99,0.25); box-shadow: 0 4px 16px rgba(158,139,99,0.08); }
+.oh-card-img { position: relative; height: 140px; overflow: hidden; background: linear-gradient(135deg, #C87941, #9E8B63); display: flex; align-items: center; justify-content: center; }
+.oh-card-img img { width: 100%; height: 100%; object-fit: cover; }
+.oh-card-img-placeholder { color: rgba(255,255,255,0.4); font-size: 2.5rem; }
+.oh-card-body { padding: 0.75rem; }
+.oh-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.375rem; }
+.oh-card-name { font-size: 0.8125rem; font-weight: 700; color: #2A2A2A; margin: 0; line-height: 1.2; }
+.oh-card-loc { font-size: 0.625rem; color: #8a8177; display: flex; align-items: center; gap: 0.2rem; margin-bottom: 0.5rem; }
+.oh-card-loc i { font-size: 0.5625rem; color: #9E8B63; }
+
+/* ── Card Details ── */
+.oh-card-details { display: flex; gap: 0.5rem; margin-bottom: 0.625rem; flex-wrap: wrap; }
+.oh-detail { font-size: 0.5625rem; color: #5a5450; display: flex; align-items: center; gap: 0.2rem; background: rgba(158,139,99,0.06); padding: 0.15rem 0.375rem; border-radius: 5px; }
+.oh-detail i { font-size: 0.5rem; color: #9E8B63; }
+.oh-card-price { font-size: 0.8125rem; font-weight: 800; color: #488C82; margin-bottom: 0.5rem; }
+.oh-card-price-sub { font-size: 0.5rem; font-weight: 400; color: #8a8177; }
+
+/* ── Badges ── */
+.oh-badge { font-size: 0.5rem; font-weight: 700; padding: 0.1rem 0.3rem; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.03em; display: inline-flex; align-items: center; gap: 0.15rem; flex-shrink: 0; }
+.oh-badge-approved { background: rgba(72,140,130,0.1); color: #488C82; }
+.oh-badge-pending { background: rgba(200,121,65,0.1); color: #C87941; }
+.oh-badge-draft { background: rgba(42,42,42,0.06); color: #8a8177; }
+
+/* ── Card Actions ── */
+.oh-card-actions { display: flex; gap: 0.375rem; }
+.oh-card-actions .oh-btn { flex: 1; justify-content: center; font-size: 0.5625rem; padding: 0.3rem 0.5rem; }
+
+/* ── Empty / Loading ── */
+.oh-empty { text-align: center; padding: 3rem 1rem; }
+.oh-empty-icon { font-size: 2.5rem; color: #c4b99a; margin-bottom: 0.75rem; }
+.oh-empty-title { font-size: 0.9375rem; font-weight: 700; color: #2A2A2A; margin-bottom: 0.25rem; }
+.oh-empty-text { font-size: 0.6875rem; color: #8a8177; margin-bottom: 1rem; }
+.oh-loading { text-align: center; padding: 2.5rem 1rem; }
+.oh-spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid rgba(200,121,65,0.15); border-top-color: #C87941; border-radius: 50%; animation: oh-spin 0.6s linear infinite; }
+@keyframes oh-spin { to { transform: rotate(360deg); } }
+.oh-loading-text { font-size: 0.6875rem; color: #8a8177; margin-top: 0.5rem; }
+
+/* ── Responsive ── */
+@media (max-width: 992px) { .oh-stats { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 768px) { .oh { padding: 0.75rem; } .oh-header { flex-direction: column; align-items: flex-start; gap: 0.75rem; } .oh-grid { grid-template-columns: 1fr; } }
+@media (max-width: 576px) { .oh-stats { grid-template-columns: 1fr; } }

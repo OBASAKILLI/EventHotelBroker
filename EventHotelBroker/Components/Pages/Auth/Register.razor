@@ -8,145 +8,81 @@
 
 <PageTitle>Register - EventHotelBroker</PageTitle>
 
-<div class="auth-container">
-    <!-- Back to Home Link -->
-    <div class="text-center mb-3">
-        <a href="/" class="text-muted text-decoration-none">
-            <i class="bi bi-arrow-left me-2"></i>Back to Home
-        </a>
-    </div>
+<link href="/css/auth-register.css?v=1" rel="stylesheet" />
 
-    <div class="auth-card">
-        <div class="auth-header">
-            <div class="auth-logo">
-                <i class="bi bi-person-plus-fill"></i>
-            </div>
-            <h2>Create Account</h2>
-            <p>Join EventHotelBroker today</p>
+<div class="rg-page">
+    <a href="/" class="rg-back"><i class="bi bi-arrow-left"></i> Back to Home</a>
+
+    <div class="rg-card">
+        <div class="rg-header">
+            <div class="rg-logo"><i class="bi bi-person-plus-fill"></i></div>
+            <h2 class="rg-title">Create Account</h2>
+            <p class="rg-subtitle">Join EventHotelBroker today</p>
         </div>
 
-        <div class="auth-body">
-            <div class="mb-3">
-                <label class="form-label-system">Full Name</label>
-                <input type="text" class="form-control-system" @bind="fullName" placeholder="John Doe" />
+        <div class="rg-body">
+            <div class="rg-field">
+                <label class="rg-label">Full Name</label>
+                <input type="text" class="rg-input" @bind="fullName" placeholder="John Doe" />
             </div>
 
-            <div class="mb-3">
-                <label class="form-label-system">Email Address</label>
-                <input type="email" class="form-control-system" @bind="email" placeholder="you@example.com" />
+            <div class="rg-field">
+                <label class="rg-label">Email Address</label>
+                <input type="email" class="rg-input" @bind="email" placeholder="you@example.com" />
             </div>
 
-            <div class="mb-3">
-                <label class="form-label-system">Phone Number</label>
-                <input type="tel" class="form-control-system" @bind="phone" placeholder="+254 712 345 678" />
+            <div class="rg-field">
+                <label class="rg-label">Phone Number</label>
+                <input type="tel" class="rg-input" @bind="phone" placeholder="+254 712 345 678" />
             </div>
 
-            <div class="mb-3">
-                <label class="form-label-system">Password</label>
-                <input type="password" class="form-control-system" @bind="password" placeholder="Create a strong password" />
+            <div class="rg-row">
+                <div class="rg-field">
+                    <label class="rg-label">Password</label>
+                    <input type="password" class="rg-input" @bind="password" placeholder="Strong password" />
+                </div>
+                <div class="rg-field">
+                    <label class="rg-label">Confirm Password</label>
+                    <input type="password" class="rg-input" @bind="confirmPassword" placeholder="Confirm password" />
+                </div>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label-system">Confirm Password</label>
-                <input type="password" class="form-control-system" @bind="confirmPassword" placeholder="Confirm your password" />
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label-system">I want to register as:</label>
-                <select class="form-control-system" @bind="userRole">
+            <div class="rg-field">
+                <label class="rg-label">Register as</label>
+                <select class="rg-select" @bind="userRole">
                     <option value="client">Client (Book hotels & events)</option>
-                    <option value="owner">Hotel/Venue Owner</option>
+                    <option value="owner">Hotel / Venue Owner</option>
                 </select>
             </div>
 
-            <div class="form-check mb-4">
-                <input class="form-check-input" type="checkbox" id="terms" @bind="acceptTerms">
-                <label class="form-check-label" for="terms">
-                    I agree to the <a href="/terms" class="text-primary">Terms & Conditions</a> and <a href="/privacy" class="text-primary">Privacy Policy</a>
-                </label>
-            </div>
+            <label class="rg-terms">
+                <input type="checkbox" @bind="acceptTerms" />
+                <span class="rg-terms-label">I agree to the <a href="/terms">Terms & Conditions</a> and <a href="/privacy">Privacy Policy</a></span>
+            </label>
 
-            <button type="button" class="btn-system btn-system-primary btn-system-lg w-100 mb-3" @onclick="HandleRegister">
-                <i class="bi bi-person-check me-2"></i>Create Account
+            <button type="button" class="rg-btn rg-btn-primary" @onclick="HandleRegister">
+                <i class="bi bi-person-check"></i> Create Account
             </button>
 
-            <div class="text-center mb-3">
-                <span class="text-muted">or sign up with</span>
+            <div class="rg-divider">
+                <span class="rg-divider-text">or sign up with</span>
             </div>
 
-            <div class="row g-2 mb-4">
-                <div class="col-6">
-                    <button type="button" class="btn-system btn-system-outline-secondary w-100" @onclick="GoogleSignup">
-                        <i class="bi bi-google me-2"></i>Google
-                    </button>
-                </div>
-                <div class="col-6">
-                    <button type="button" class="btn-system btn-system-outline-secondary w-100" @onclick="FacebookSignup">
-                        <i class="bi bi-facebook me-2"></i>Facebook
-                    </button>
-                </div>
+            <div class="rg-socials">
+                <button type="button" class="rg-btn-social" @onclick="GoogleSignup">
+                    <i class="bi bi-google"></i> Google
+                </button>
+                <button type="button" class="rg-btn-social" @onclick="FacebookSignup">
+                    <i class="bi bi-facebook"></i> Facebook
+                </button>
             </div>
 
-            <div class="text-center">
-                <span class="text-muted">Already have an account? </span>
-                <a href="/login" class="text-primary fw-bold" style="text-decoration: none;">Sign in</a>
+            <div class="rg-footer">
+                Already have an account? <a href="/login">Sign in</a>
             </div>
         </div>
     </div>
 </div>
-
-<style>
-    .auth-container {
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 2rem;
-    }
-
-    .auth-card {
-        background: white;
-        border-radius: 1.5rem;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        max-width: 500px;
-        width: 100%;
-        overflow: hidden;
-        margin: 2rem 0;
-    }
-
-    .auth-header {
-        text-align: center;
-        padding: 2rem 2rem 1.5rem;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    }
-
-    .auth-logo {
-        width: 70px;
-        height: 70px;
-        margin: 0 auto 1rem;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 2rem;
-    }
-
-    .auth-header h2 {
-        margin-bottom: 0.5rem;
-        font-weight: 700;
-    }
-
-    .auth-header p {
-        color: #6c757d;
-        margin-bottom: 0;
-    }
-
-    .auth-body {
-        padding: 2rem;
-    }
-</style>
 
 @code {
     private string fullName = "";

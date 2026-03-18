@@ -1,166 +1,131 @@
 @page "/owner/dashboard"
+@rendermode InteractiveServer
 @using EventHotelBroker.Models
 @using EventHotelBroker.Services
 @inject IHotelService HotelService
 @inject IBookingService BookingService
 @inject IEventService EventService
+@inject NavigationManager Navigation
 
 <PageTitle>Owner Dashboard - EventHotelBroker</PageTitle>
 
-<div class="owner-dashboard">
-    <!-- Dashboard Header -->
-    <div class="dashboard-header">
-        <div class="header-content">
-            <div class="header-info">
-                <h1 class="dashboard-title">
-                    <i class="bi bi-speedometer2 me-3"></i>Owner Dashboard
-                </h1>
-                <p class="dashboard-subtitle">Manage your properties and bookings</p>
-            </div>
-            <a href="/owner/create-hotel" class="btn-modern btn-gradient-primary">
-                <i class="bi bi-plus-circle me-2"></i>Add New Hotel
-            </a>
+<link href="/css/owner-dashboard.css?v=3" rel="stylesheet" />
+
+<div class="od">
+    <Breadcrumb Items="@breadcrumbItems" />
+
+    <!-- Welcome Banner -->
+    <div class="od-welcome">
+        <div>
+            <h1 class="od-title"><i class="bi bi-speedometer2"></i> Owner Dashboard</h1>
+            <p class="od-subtitle">Manage your properties, equipment & bookings</p>
+        </div>
+        <div class="od-welcome-right">
+            <a href="/owner/create-hotel" class="od-btn od-btn-primary"><i class="bi bi-plus-lg"></i> New Hotel</a>
+            <a href="/owner/create-package" class="od-btn od-btn-outline"><i class="bi bi-gift"></i> New Package</a>
         </div>
     </div>
 
     @if (isLoading)
     {
-        <div class="loading-state">
-            <div class="spinner-modern"></div>
-            <p class="loading-text">Loading dashboard...</p>
+        <div class="od-loading">
+            <i class="bi bi-arrow-repeat"></i>
+            <p>Loading dashboard...</p>
         </div>
     }
     else
     {
-        <!-- Statistics Cards -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon stat-icon-primary">
-                    <i class="bi bi-building"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-label">My Hotels</div>
-                    <div class="stat-value">@myHotels.Count()</div>
+        <!-- Stats Row -->
+        <div class="od-stats">
+            <div class="od-stat">
+                <div class="od-stat-icon od-icon-terracotta"><i class="bi bi-building"></i></div>
+                <div>
+                    <div class="od-stat-value">@myHotels.Count()</div>
+                    <div class="od-stat-label">My Hotels</div>
                 </div>
             </div>
-
-            <div class="stat-card">
-                <div class="stat-icon stat-icon-success">
-                    <i class="bi bi-check-circle"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-label">Published</div>
-                    <div class="stat-value">@myHotels.Count(h => h.IsPublished && h.IsApproved)</div>
+            <div class="od-stat">
+                <div class="od-stat-icon od-icon-teal"><i class="bi bi-check-circle"></i></div>
+                <div>
+                    <div class="od-stat-value">@myHotels.Count(h => h.IsPublished && h.IsApproved)</div>
+                    <div class="od-stat-label">Published</div>
                 </div>
             </div>
-
-            <div class="stat-card">
-                <div class="stat-icon" style="background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);">
-                    <i class="bi bi-box-seam"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-label">Event Equipments</div>
-                    <div class="stat-value">@eventEquipmentsCount</div>
+            <div class="od-stat">
+                <div class="od-stat-icon od-icon-bronze"><i class="bi bi-box-seam"></i></div>
+                <div>
+                    <div class="od-stat-value">@eventEquipmentsCount</div>
+                    <div class="od-stat-label">Equipment</div>
                 </div>
             </div>
-
-            <div class="stat-card">
-                <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);">
-                    <i class="bi bi-gift"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-label">Event Packages</div>
-                    <div class="stat-value">@eventPackagesCount</div>
+            <div class="od-stat">
+                <div class="od-stat-icon od-icon-olive"><i class="bi bi-gift"></i></div>
+                <div>
+                    <div class="od-stat-value">@eventPackagesCount</div>
+                    <div class="od-stat-label">Packages</div>
                 </div>
             </div>
-
-            <div class="stat-card">
-                <div class="stat-icon stat-icon-warning">
-                    <i class="bi bi-clock-history"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-label">Pending Approval</div>
-                    <div class="stat-value">@myHotels.Count(h => h.IsPublished && !h.IsApproved)</div>
+            <div class="od-stat">
+                <div class="od-stat-icon od-icon-charcoal"><i class="bi bi-clock-history"></i></div>
+                <div>
+                    <div class="od-stat-value">@myHotels.Count(h => h.IsPublished && !h.IsApproved)</div>
+                    <div class="od-stat-label">Pending</div>
                 </div>
             </div>
-
-            <div class="stat-card">
-                <div class="stat-icon stat-icon-info">
-                    <i class="bi bi-calendar-check"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-label">Booking Requests</div>
-                    <div class="stat-value">@bookingRequests.Count()</div>
+            <div class="od-stat">
+                <div class="od-stat-icon od-icon-terracotta"><i class="bi bi-calendar-check"></i></div>
+                <div>
+                    <div class="od-stat-value">@bookingRequests.Count()</div>
+                    <div class="od-stat-label">Requests</div>
                 </div>
             </div>
         </div>
 
-        <div class="dashboard-content">
-            <!-- My Hotels -->
-            <div class="content-main">
-                <div class="modern-card">
-                    <div class="card-header-modern">
-                        <h5 class="card-title-modern">
-                            <i class="bi bi-building me-2"></i>My Hotels
-                        </h5>
-                        <a href="/owner/hotels" class="btn-modern btn-outline-primary btn-sm">View All</a>
+        <!-- Main 8:4 Layout -->
+        <div class="row g-3">
+            <!-- Left Column: Hotels -->
+            <div class="col-lg-8">
+                <div class="od-card">
+                    <div class="od-card-head">
+                        <span class="od-card-title"><i class="bi bi-building"></i> My Hotels</span>
+                        <a href="/owner/hotels" class="od-link">View All <i class="bi bi-arrow-right"></i></a>
                     </div>
-                    <div class="card-body-modern">
+                    <div class="od-card-body">
                         @if (myHotels.Any())
                         {
-                            <div class="hotel-list">
-                                @foreach (var hotel in myHotels.Take(5))
-                                {
-                                    <div class="hotel-item">
-                                        <div class="hotel-item-content">
-                                            <h6 class="hotel-item-name">@hotel.Name</h6>
-                                            <p class="hotel-item-location">
-                                                <i class="bi bi-geo-alt"></i> @hotel.City, @hotel.Country
-                                            </p>
-                                            <div class="hotel-item-meta">
-                                                <span class="meta-item">
-                                                    <i class="bi bi-people"></i> @hotel.Capacity guests
-                                                </span>
-                                                <span class="meta-item">
-                                                    <i class="bi bi-currency-dollar"></i> @hotel.Currency @hotel.PricePerNight.ToString("N0")/night
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div class="hotel-item-actions">
-                                            @if (hotel.IsApproved)
-                                            {
-                                                <span class="status-badge status-success">
-                                                    <i class="bi bi-check-circle"></i> Approved
-                                                </span>
-                                            }
-                                            else if (hotel.IsPublished)
-                                            {
-                                                <span class="status-badge status-warning">
-                                                    <i class="bi bi-clock"></i> Pending
-                                                </span>
-                                            }
-                                            else
-                                            {
-                                                <span class="status-badge status-secondary">
-                                                    <i class="bi bi-file-earmark"></i> Draft
-                                                </span>
-                                            }
-                                            <a href="/owner/hotels/@hotel.Id/edit" class="btn-modern btn-outline-primary btn-sm">
-                                                <i class="bi bi-pencil"></i> Edit
-                                            </a>
-                                        </div>
+                            @foreach (var hotel in myHotels.Take(5))
+                            {
+                                <div class="od-row">
+                                    <div class="od-row-left">
+                                        <span class="od-row-name">@hotel.Name</span>
+                                        <span class="od-row-meta"><i class="bi bi-geo-alt"></i> @hotel.City, @hotel.Country · @hotel.Capacity guests · @hotel.Currency @hotel.PricePerNight.ToString("N0")/night</span>
                                     </div>
-                                }
-                            </div>
+                                    <div class="od-row-right">
+                                        @if (hotel.IsApproved)
+                                        {
+                                            <span class="od-badge od-badge-ok">Approved</span>
+                                        }
+                                        else if (hotel.IsPublished)
+                                        {
+                                            <span class="od-badge od-badge-warn">Pending</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="od-badge od-badge-muted">Draft</span>
+                                        }
+                                        <a href="/owner/hotels/@hotel.Id/edit" class="od-btn od-btn-ghost"><i class="bi bi-pencil"></i> Edit</a>
+                                    </div>
+                                </div>
+                            }
                         }
                         else
                         {
-                            <div class="empty-state">
-                                <i class="bi bi-building empty-state-icon"></i>
-                                <h3 class="empty-state-title">No Hotels Yet</h3>
-                                <p class="empty-state-text">Start by adding your first property</p>
-                                <a href="/owner/create-hotel" class="btn-modern btn-gradient-primary">
-                                    <i class="bi bi-plus-circle me-2"></i>Add Your First Hotel
+                            <div class="od-empty">
+                                <i class="bi bi-building"></i>
+                                <div class="od-empty-title">No Hotels Yet</div>
+                                <div class="od-empty-text">Start by adding your first property</div>
+                                <a href="/owner/create-hotel" class="od-btn od-btn-primary" style="display:inline-flex; width:auto;">
+                                    <i class="bi bi-plus-lg"></i> Add Hotel
                                 </a>
                             </div>
                         }
@@ -168,40 +133,31 @@
                 </div>
             </div>
 
-            <!-- Recent Booking Requests -->
-            <div class="content-sidebar">
-                <div class="modern-card">
-                    <div class="card-header-modern">
-                        <h5 class="card-title-modern">
-                            <i class="bi bi-calendar-check me-2"></i>Booking Requests
-                        </h5>
-                        <a href="/owner/bookings" class="btn-modern btn-outline-primary btn-sm">View All</a>
+            <!-- Right Column -->
+            <div class="col-lg-4">
+                <!-- Booking Requests -->
+                <div class="od-card">
+                    <div class="od-card-head">
+                        <span class="od-card-title"><i class="bi bi-calendar-check"></i> Booking Requests</span>
+                        <a href="/owner/bookings" class="od-link">View All <i class="bi bi-arrow-right"></i></a>
                     </div>
-                    <div class="card-body-modern">
+                    <div class="od-card-body">
                         @if (bookingRequests.Any())
                         {
-                            <div class="booking-list">
-                                @foreach (var booking in bookingRequests.Take(5))
-                                {
-                                    <div class="booking-item">
-                                        <div class="booking-header">
-                                            <span class="booking-id">Booking #@booking.Id</span>
-                                            <span class="status-badge status-@GetStatusColor(booking.Status)">@booking.Status</span>
-                                        </div>
-                                        <div class="booking-dates">
-                                            <i class="bi bi-calendar"></i>
-                                            @booking.StartDate.ToString("MMM dd") - @booking.EndDate.ToString("MMM dd")
-                                        </div>
-                                        <div class="booking-guests">
-                                            <i class="bi bi-people"></i> @booking.HeadCount guests
-                                        </div>
+                            @foreach (var booking in bookingRequests.Take(5))
+                            {
+                                <div class="od-bk-row">
+                                    <div class="od-bk-left">
+                                        <span class="od-bk-id">Booking #@booking.Id</span>
+                                        <span class="od-bk-meta"><i class="bi bi-calendar"></i> @booking.StartDate.ToString("MMM dd") – @booking.EndDate.ToString("MMM dd") · @booking.HeadCount guests</span>
                                     </div>
-                                }
-                            </div>
+                                    <span class="od-badge od-badge-warn">@booking.Status</span>
+                                </div>
+                            }
                         }
                         else
                         {
-                            <div class="empty-state-small">
+                            <div class="od-empty-sm">
                                 <i class="bi bi-calendar-x"></i>
                                 <p>No booking requests yet</p>
                             </div>
@@ -210,59 +166,51 @@
                 </div>
 
                 <!-- Quick Actions -->
-                <div class="modern-card mb-4">
-                    <div class="card-header-modern">
-                        <h5 class="card-title-modern">
-                            <i class="bi bi-lightning me-2"></i>Quick Actions
-                        </h5>
+                <div class="od-card">
+                    <div class="od-card-head">
+                        <span class="od-card-title"><i class="bi bi-lightning"></i> Quick Actions</span>
                     </div>
-                    <div class="card-body-modern">
-                        <div class="d-grid gap-2">
-                            <a href="/owner/create-hotel" class="btn-modern btn-gradient-primary">
-                                <i class="bi bi-building me-2"></i>Add New Hotel
+                    <div class="od-card-body" style="padding: 0.5rem;">
+                        <div class="od-qa-stack">
+                            <a href="/owner/create-hotel" class="od-qa">
+                                <div class="od-qa-icon od-icon-terracotta"><i class="bi bi-building"></i></div>
+                                <span class="od-qa-text">Add New Hotel</span>
+                                <i class="bi bi-chevron-right od-qa-arrow"></i>
                             </a>
-                            <a href="/owner/create-equipment" class="btn-modern" style="background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%); color: white;">
-                                <i class="bi bi-box-seam me-2"></i>Add Event Equipment
+                            <a href="/owner/create-equipment" class="od-qa">
+                                <div class="od-qa-icon od-icon-bronze"><i class="bi bi-box-seam"></i></div>
+                                <span class="od-qa-text">Add Event Equipment</span>
+                                <i class="bi bi-chevron-right od-qa-arrow"></i>
                             </a>
-                            <a href="/owner/create-package" class="btn-modern" style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); color: white;">
-                                <i class="bi bi-gift me-2"></i>Create Event Package
+                            <a href="/owner/create-package" class="od-qa">
+                                <div class="od-qa-icon od-icon-olive"><i class="bi bi-gift"></i></div>
+                                <span class="od-qa-text">Create Event Package</span>
+                                <i class="bi bi-chevron-right od-qa-arrow"></i>
                             </a>
-                            <a href="/owner/event-equipments" class="btn-modern btn-outline-primary">
-                                <i class="bi bi-list-ul me-2"></i>Manage Equipment
+                            <a href="/owner/event-equipments" class="od-qa">
+                                <div class="od-qa-icon od-icon-teal"><i class="bi bi-list-ul"></i></div>
+                                <span class="od-qa-text">Manage Equipment</span>
+                                <i class="bi bi-chevron-right od-qa-arrow"></i>
                             </a>
-                            <a href="/owner/event-packages" class="btn-modern btn-outline-primary">
-                                <i class="bi bi-card-list me-2"></i>Manage Packages
+                            <a href="/owner/event-packages" class="od-qa">
+                                <div class="od-qa-icon od-icon-charcoal"><i class="bi bi-card-list"></i></div>
+                                <span class="od-qa-text">Manage Packages</span>
+                                <i class="bi bi-chevron-right od-qa-arrow"></i>
                             </a>
                         </div>
                     </div>
                 </div>
 
-                <!-- Quick Tips -->
-                <div class="modern-card tips-card">
-                    <div class="card-header-modern">
-                        <h5 class="card-title-modern">
-                            <i class="bi bi-lightbulb me-2"></i>Quick Tips
-                        </h5>
+                <!-- Tips -->
+                <div class="od-card">
+                    <div class="od-card-head">
+                        <span class="od-card-title"><i class="bi bi-lightbulb"></i> Quick Tips</span>
                     </div>
-                    <div class="card-body-modern">
-                        <div class="tips-list">
-                            <div class="tip-item">
-                                <i class="bi bi-check-circle"></i>
-                                <span>Add high-quality photos to attract more bookings</span>
-                            </div>
-                            <div class="tip-item">
-                                <i class="bi bi-check-circle"></i>
-                                <span>Respond to inquiries within 24 hours</span>
-                            </div>
-                            <div class="tip-item">
-                                <i class="bi bi-check-circle"></i>
-                                <span>Keep your availability calendar updated</span>
-                            </div>
-                            <div class="tip-item">
-                                <i class="bi bi-check-circle"></i>
-                                <span>Bundle equipment into packages for better sales</span>
-                            </div>
-                        </div>
+                    <div class="od-card-body" style="padding: 0.75rem 1rem;">
+                        <div class="od-tip"><i class="bi bi-check-circle-fill"></i><span>Add high-quality photos to attract more bookings</span></div>
+                        <div class="od-tip"><i class="bi bi-check-circle-fill"></i><span>Respond to inquiries within 24 hours</span></div>
+                        <div class="od-tip"><i class="bi bi-check-circle-fill"></i><span>Keep your availability calendar updated</span></div>
+                        <div class="od-tip"><i class="bi bi-check-circle-fill"></i><span>Bundle equipment into packages for better sales</span></div>
                     </div>
                 </div>
             </div>
@@ -277,6 +225,12 @@
     private string? currentUserId;
     private int eventEquipmentsCount = 0;
     private int eventPackagesCount = 0;
+
+    private List<BreadcrumbItem> breadcrumbItems = new()
+    {
+        new BreadcrumbItem { Text = "Home", Url = "/" },
+        new BreadcrumbItem { Text = "Owner Dashboard", IsActive = true }
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -350,15 +304,4 @@
         }
     }
 
-    private string GetStatusColor(BookingStatus status)
-    {
-        return status switch
-        {
-            BookingStatus.Pending => "warning",
-            BookingStatus.Confirmed => "success",
-            BookingStatus.Rejected => "danger",
-            BookingStatus.Cancelled => "secondary",
-            _ => "secondary"
-        };
-    }
 }

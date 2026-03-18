@@ -1,109 +1,116 @@
 @page "/admin/bookings"
+@rendermode InteractiveServer
 @using EventHotelBroker.Models
 @using EventHotelBroker.Repositories
 @inject IUnitOfWork UnitOfWork
 
 <PageTitle>All Bookings - Admin</PageTitle>
 
-<div class="container-fluid px-4 animate-fade-in">
-    <!-- Modern Header -->
-    <div class="page-header mb-4">
-        <div class="d-flex justify-content-between align-items-center">
+<link href="/css/admin-bookings.css?v=1" rel="stylesheet" />
+
+<div class="ab">
+    <Breadcrumb Items="@breadcrumbItems" />
+
+    <!-- Header -->
+    <div class="ab-header">
+        <div>
+            <h1 class="ab-header-title"><i class="bi bi-calendar-check"></i> Booking Management</h1>
+            <p class="ab-header-sub">Monitor and manage all hotel bookings</p>
+        </div>
+        <button class="ab-btn ab-btn-refresh" @onclick="LoadBookings">
+            <i class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="ab-stats">
+        <div class="ab-stat">
             <div>
-                <h1><i class="bi bi-calendar-check me-3"></i>Booking Management</h1>
-                <p>Monitor and manage all hotel bookings</p>
+                <div class="ab-stat-value">@bookings.Count</div>
+                <div class="ab-stat-label">Total Bookings</div>
             </div>
-            <button class="btn-modern" style="background: var(--gray-200); color: var(--gray-700);" @onclick="LoadBookings">
-                <i class="bi bi-arrow-clockwise me-2"></i>Refresh
-            </button>
+            <div class="ab-stat-icon ab-icon-terracotta"><i class="bi bi-calendar-check"></i></div>
+        </div>
+        <div class="ab-stat">
+            <div>
+                <div class="ab-stat-value">@bookings.Count(b => b.Status == BookingStatus.Pending)</div>
+                <div class="ab-stat-label">Pending</div>
+            </div>
+            <div class="ab-stat-icon ab-icon-bronze"><i class="bi bi-clock-history"></i></div>
+        </div>
+        <div class="ab-stat">
+            <div>
+                <div class="ab-stat-value">@bookings.Count(b => b.Status == BookingStatus.Confirmed)</div>
+                <div class="ab-stat-label">Confirmed</div>
+            </div>
+            <div class="ab-stat-icon ab-icon-teal"><i class="bi bi-check-circle"></i></div>
+        </div>
+        <div class="ab-stat">
+            <div>
+                <div class="ab-stat-value">@bookings.Count(b => b.Status == BookingStatus.Cancelled || b.Status == BookingStatus.Rejected)</div>
+                <div class="ab-stat-label">Cancelled / Rejected</div>
+            </div>
+            <div class="ab-stat-icon ab-icon-charcoal"><i class="bi bi-x-circle"></i></div>
         </div>
     </div>
 
-    <!-- Stats Cards -->
-    <div class="row g-4 mb-4">
-        <div class="col-md-3">
-            <div class="stats-card">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="stats-number">@bookings.Count</p>
-                        <p class="stats-label mb-0">Total Bookings</p>
-                    </div>
-                    <div class="stats-icon" style="background: var(--primary-gradient);">
-                        <i class="bi bi-calendar-check"></i>
-                    </div>
-                </div>
-            </div>
+    <!-- Search & Filter -->
+    <div class="ab-search-bar">
+        <div class="ab-search-wrap">
+            <i class="bi bi-search"></i>
+            <input type="text" class="ab-search-input" placeholder="Search by hotel, guest, or booking ID..." @bind="searchTerm" @bind:event="oninput" />
         </div>
-        <div class="col-md-3">
-            <div class="stats-card">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="stats-number">@bookings.Count(b => b.Status == BookingStatus.Pending)</p>
-                        <p class="stats-label mb-0">Pending</p>
-                    </div>
-                    <div class="stats-icon" style="background: var(--warning-gradient);">
-                        <i class="bi bi-clock-history"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stats-card">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="stats-number">@bookings.Count(b => b.Status == BookingStatus.Confirmed)</p>
-                        <p class="stats-label mb-0">Confirmed</p>
-                    </div>
-                    <div class="stats-icon" style="background: var(--success-gradient);">
-                        <i class="bi bi-check-circle"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stats-card">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="stats-number">@bookings.Count(b => b.Status == BookingStatus.Cancelled || b.Status == BookingStatus.Rejected)</p>
-                        <p class="stats-label mb-0">Cancelled/Rejected</p>
-                    </div>
-                    <div class="stats-icon" style="background: var(--danger-gradient);">
-                        <i class="bi bi-x-circle"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <select class="ab-filter-select" @bind="statusFilter" @bind:event="onchange">
+            <option value="">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="Confirmed">Confirmed</option>
+            <option value="Rejected">Rejected</option>
+            <option value="Cancelled">Cancelled</option>
+        </select>
+        <span class="ab-search-count">@filteredBookings.Count() of @bookings.Count</span>
     </div>
 
     @if (isLoading)
     {
-        <div class="modern-card">
-            <div class="text-center py-5">
-                <div class="spinner-border spinner-modern text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <p class="mt-3 text-muted">Loading bookings...</p>
+        <div class="ab-card">
+            <div class="ab-loading">
+                <div class="ab-spinner"></div>
+                <div class="ab-loading-text">Loading bookings...</div>
             </div>
         </div>
     }
     else if (!bookings.Any())
     {
-        <div class="modern-card">
-            <div class="empty-state">
-                <i class="bi bi-calendar-x empty-state-icon"></i>
-                <h3 class="empty-state-title">No Bookings Found</h3>
-                <p class="empty-state-text">There are no bookings in the system yet.</p>
+        <div class="ab-card">
+            <div class="ab-empty">
+                <div class="ab-empty-icon"><i class="bi bi-calendar-x"></i></div>
+                <div class="ab-empty-title">No Bookings Found</div>
+                <div class="ab-empty-text">There are no bookings in the system yet.</div>
+            </div>
+        </div>
+    }
+    else if (!filteredBookings.Any())
+    {
+        <div class="ab-card">
+            <div class="ab-empty">
+                <div class="ab-empty-icon"><i class="bi bi-search"></i></div>
+                <div class="ab-empty-title">No Results</div>
+                <div class="ab-empty-text">No bookings match your search criteria.</div>
             </div>
         </div>
     }
     else
     {
-        <div class="table-modern">
-            <div class="table-responsive">
-                <table class="table">
+        <div class="ab-card">
+            <div class="ab-card-header">
+                <h5 class="ab-card-title"><i class="bi bi-table"></i> All Bookings</h5>
+                <span class="ab-card-count">@filteredBookings.Count() records</span>
+            </div>
+            <div style="overflow-x:auto;">
+                <table class="ab-table">
                     <thead>
                         <tr>
-                            <th>Booking ID</th>
+                            <th>ID</th>
                             <th>Hotel</th>
                             <th>Guest</th>
                             <th>Check-in</th>
@@ -114,53 +121,29 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var booking in bookings)
+                        @foreach (var booking in filteredBookings)
                         {
                             <tr>
+                                <td><span class="ab-id">#@booking.Id</span></td>
                                 <td>
-                                    <span style="font-weight: 600; color: var(--purple);">#@booking.Id</span>
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div style="width: 40px; height: 40px; background: var(--success-gradient); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
-                                            <i class="bi bi-building text-white"></i>
-                                        </div>
+                                    <div class="ab-hotel-cell">
+                                        <div class="ab-hotel-icon"><i class="bi bi-building"></i></div>
                                         <div>
-                                            <div style="font-weight: 600; color: var(--gray-800);">@(booking.Hotel?.Name ?? "N/A")</div>
-                                            <small class="text-muted">Hotel ID: @booking.HotelId</small>
+                                            <div class="ab-hotel-name">@(booking.Hotel?.Name ?? "N/A")</div>
+                                            <div class="ab-hotel-sub">ID: @booking.HotelId</div>
                                         </div>
                                     </div>
                                 </td>
+                                <td><span class="ab-guest"><i class="bi bi-person"></i> @(booking.User?.FullName ?? "N/A")</span></td>
+                                <td><span class="ab-date"><i class="bi bi-calendar-event"></i> @booking.StartDate.ToString("MMM dd, yyyy")</span></td>
+                                <td><span class="ab-date"><i class="bi bi-calendar-event"></i> @booking.EndDate.ToString("MMM dd, yyyy")</span></td>
+                                <td><span class="ab-badge ab-badge-guests"><i class="bi bi-people"></i> @booking.HeadCount</span></td>
                                 <td>
-                                    <div style="color: var(--gray-700);">
-                                        <i class="bi bi-person me-1"></i>@(booking.User?.FullName ?? "N/A")
-                                    </div>
-                                </td>
-                                <td>
-                                    <div style="color: var(--gray-700);">
-                                        <i class="bi bi-calendar-event me-1"></i>@booking.StartDate.ToString("MMM dd, yyyy")
-                                    </div>
-                                </td>
-                                <td>
-                                    <div style="color: var(--gray-700);">
-                                        <i class="bi bi-calendar-event me-1"></i>@booking.EndDate.ToString("MMM dd, yyyy")
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="badge-modern badge-gradient-info">
-                                        <i class="bi bi-people me-1"></i>@booking.HeadCount
+                                    <span class="ab-badge @GetAbStatusBadge(booking.Status)">
+                                        <i class="bi @GetStatusIcon(booking.Status)"></i> @booking.Status
                                     </span>
                                 </td>
-                                <td>
-                                    <span class="badge-modern @GetModernStatusBadge(booking.Status)">
-                                        <i class="bi @GetStatusIcon(booking.Status) me-1"></i>@booking.Status
-                                    </span>
-                                </td>
-                                <td>
-                                    <div style="color: var(--gray-600);">
-                                        <i class="bi bi-calendar3 me-1"></i>@booking.CreatedAt.ToString("MMM dd, yyyy")
-                                    </div>
-                                </td>
+                                <td><span class="ab-date"><i class="bi bi-calendar3"></i> @booking.CreatedAt.ToString("MMM dd, yyyy")</span></td>
                             </tr>
                         }
                     </tbody>
@@ -173,6 +156,29 @@
 @code {
     private bool isLoading = true;
     private List<Booking> bookings = new();
+    private string searchTerm = "";
+    private string statusFilter = "";
+
+    private List<BreadcrumbItem> breadcrumbItems = new()
+    {
+        new BreadcrumbItem { Text = "Home", Url = "/" },
+        new BreadcrumbItem { Text = "Admin Dashboard", Url = "/admin/dashboard" },
+        new BreadcrumbItem { Text = "Bookings", IsActive = true }
+    };
+
+    private IEnumerable<Booking> filteredBookings => bookings.Where(b =>
+    {
+        if (!string.IsNullOrEmpty(statusFilter) && Enum.TryParse<BookingStatus>(statusFilter, out var s) && b.Status != s)
+            return false;
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var term = searchTerm.Trim().ToLower();
+            return b.Id.ToString().Contains(term)
+                || (b.Hotel?.Name?.ToLower().Contains(term) ?? false)
+                || (b.User?.FullName?.ToLower().Contains(term) ?? false);
+        }
+        return true;
+    });
 
     protected override async Task OnInitializedAsync()
     {
@@ -197,27 +203,15 @@
         }
     }
 
-    private string GetStatusColor(BookingStatus status)
+    private string GetAbStatusBadge(BookingStatus status)
     {
         return status switch
         {
-            BookingStatus.Pending => "warning",
-            BookingStatus.Confirmed => "success",
-            BookingStatus.Rejected => "danger",
-            BookingStatus.Cancelled => "secondary",
-            _ => "secondary"
-        };
-    }
-
-    private string GetModernStatusBadge(BookingStatus status)
-    {
-        return status switch
-        {
-            BookingStatus.Pending => "badge-gradient-warning",
-            BookingStatus.Confirmed => "badge-gradient-success",
-            BookingStatus.Rejected => "badge-gradient-danger",
-            BookingStatus.Cancelled => "badge-gradient-info",
-            _ => "badge-gradient-info"
+            BookingStatus.Pending => "ab-badge-pending",
+            BookingStatus.Confirmed => "ab-badge-confirmed",
+            BookingStatus.Rejected => "ab-badge-rejected",
+            BookingStatus.Cancelled => "ab-badge-cancelled",
+            _ => "ab-badge-cancelled"
         };
     }
 

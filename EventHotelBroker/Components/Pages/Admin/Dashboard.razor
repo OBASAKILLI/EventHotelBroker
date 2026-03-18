@@ -1,4 +1,5 @@
 @page "/admin/dashboard"
+@rendermode InteractiveServer
 @using EventHotelBroker.Models
 @using EventHotelBroker.Repositories
 @using EventHotelBroker.Services
@@ -10,161 +11,120 @@
 
 <PageTitle>Admin Dashboard - EventHotelBroker</PageTitle>
 
-<div class="container-fluid px-4 animate-fade-in">
-    <!-- Modern Header -->
-    <div class="page-header mb-4">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h1><i class="bi bi-speedometer2 me-3"></i>Admin Dashboard</h1>
-                <p>Monitor and manage your platform</p>
-            </div>
-            <div class="d-flex align-items-center gap-3">
-                <span class="badge-modern badge-gradient-info">
-                    <i class="bi bi-calendar3 me-2"></i>@DateTime.Now.ToString("MMMM dd, yyyy")
-                </span>
-            </div>
+<link href="/css/admin-dashboard.css?v=1" rel="stylesheet" />
+
+<div class="ad">
+    <Breadcrumb Items="@breadcrumbItems" />
+
+    <!-- Header -->
+    <div class="ad-header">
+        <div>
+            <h1 class="ad-header-title"><i class="bi bi-speedometer2"></i> Admin Dashboard</h1>
+            <p class="ad-header-sub">Monitor and manage your platform</p>
         </div>
+        <span class="ad-header-date">
+            <i class="bi bi-calendar3"></i> @DateTime.Now.ToString("MMMM dd, yyyy")
+        </span>
     </div>
 
     @if (isLoading)
     {
-        <div class="modern-card">
-            <div class="text-center py-5">
-                <div class="spinner-border spinner-modern text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <p class="mt-3 text-muted">Loading dashboard...</p>
+        <div class="ad-card">
+            <div class="ad-loading">
+                <div class="ad-spinner"></div>
+                <div class="ad-loading-text">Loading dashboard...</div>
             </div>
         </div>
     }
     else
     {
-        <!-- Statistics Cards -->
-        <div class="row g-4 mb-4">
-            <div class="col-lg-2 col-md-4 col-sm-6">
-                <div class="stats-card">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <p class="stats-number">@stats.TotalUsers</p>
-                            <p class="stats-label mb-0">Total Users</p>
-                        </div>
-                        <div class="stats-icon" style="background: var(--primary-gradient);">
-                            <i class="bi bi-people"></i>
-                        </div>
-                    </div>
+        <!-- Stats -->
+        <div class="ad-stats">
+            <div class="ad-stat">
+                <div>
+                    <div class="ad-stat-value">@stats.TotalUsers</div>
+                    <div class="ad-stat-label">Users</div>
                 </div>
+                <div class="ad-stat-icon ad-icon-terracotta"><i class="bi bi-people"></i></div>
             </div>
-
-            <div class="col-lg-2 col-md-4 col-sm-6">
-                <div class="stats-card">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <p class="stats-number">@stats.TotalHotels</p>
-                            <p class="stats-label mb-0">Hotels</p>
-                        </div>
-                        <div class="stats-icon" style="background: var(--success-gradient);">
-                            <i class="bi bi-building"></i>
-                        </div>
-                    </div>
+            <div class="ad-stat">
+                <div>
+                    <div class="ad-stat-value">@stats.TotalHotels</div>
+                    <div class="ad-stat-label">Hotels</div>
                 </div>
+                <div class="ad-stat-icon ad-icon-teal"><i class="bi bi-building"></i></div>
             </div>
-
-            <div class="col-lg-2 col-md-4 col-sm-6">
-                <div class="stats-card">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <p class="stats-number">@stats.TotalEventEquipments</p>
-                            <p class="stats-label mb-0">Equipments</p>
-                        </div>
-                        <div class="stats-icon" style="background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);">
-                            <i class="bi bi-box-seam"></i>
-                        </div>
-                    </div>
+            <div class="ad-stat">
+                <div>
+                    <div class="ad-stat-value">@stats.TotalEventEquipments</div>
+                    <div class="ad-stat-label">Equipments</div>
                 </div>
+                <div class="ad-stat-icon ad-icon-bronze"><i class="bi bi-box-seam"></i></div>
             </div>
-
-            <div class="col-lg-2 col-md-4 col-sm-6">
-                <div class="stats-card">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <p class="stats-number">@stats.TotalEventPackages</p>
-                            <p class="stats-label mb-0">Packages</p>
-                        </div>
-                        <div class="stats-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);">
-                            <i class="bi bi-gift"></i>
-                        </div>
-                    </div>
+            <div class="ad-stat">
+                <div>
+                    <div class="ad-stat-value">@stats.TotalEventPackages</div>
+                    <div class="ad-stat-label">Packages</div>
                 </div>
+                <div class="ad-stat-icon ad-icon-olive"><i class="bi bi-gift"></i></div>
             </div>
-
-            <div class="col-lg-2 col-md-4 col-sm-6">
-                <div class="stats-card">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <p class="stats-number">@stats.TotalEventBookings</p>
-                            <p class="stats-label mb-0">Event Bookings</p>
-                        </div>
-                        <div class="stats-icon" style="background: var(--info-gradient);">
-                            <i class="bi bi-calendar-event"></i>
-                        </div>
-                    </div>
+            <div class="ad-stat">
+                <div>
+                    <div class="ad-stat-value">@stats.TotalEventBookings</div>
+                    <div class="ad-stat-label">Event Bookings</div>
                 </div>
+                <div class="ad-stat-icon ad-icon-charcoal"><i class="bi bi-calendar-event"></i></div>
             </div>
-
-            <div class="col-lg-2 col-md-4 col-sm-6">
-                <div class="stats-card">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <p class="stats-number">@stats.PendingApprovals</p>
-                            <p class="stats-label mb-0">Pending</p>
-                        </div>
-                        <div class="stats-icon" style="background: var(--warning-gradient);">
-                            <i class="bi bi-clock-history"></i>
-                        </div>
-                    </div>
+            <div class="ad-stat">
+                <div>
+                    <div class="ad-stat-value">@stats.PendingApprovals</div>
+                    <div class="ad-stat-label">Pending</div>
                 </div>
+                <div class="ad-stat-icon ad-icon-terracotta"><i class="bi bi-clock-history"></i></div>
             </div>
         </div>
 
-        <div class="row g-4">
-            <!-- Recent Hotels Pending Approval -->
+        <!-- Search -->
+        <div class="ad-search-bar">
+            <div class="ad-search-wrap">
+                <i class="bi bi-search"></i>
+                <input type="text" class="ad-search-input" placeholder="Search hotels, bookings, or users..." @bind="dashboardSearch" @bind:event="oninput" />
+            </div>
+            <span class="ad-search-count">@filteredHotels.Count() hotels · @filteredBookings.Count() bookings · @filteredDashUsers.Count() users</span>
+        </div>
+
+        <div class="row g-3">
+            <!-- Hotels Pending Approval -->
             <div class="col-lg-6">
-                <div class="modern-card">
-                    <div class="modern-card-header">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-clock-history me-2"></i>
-                            <h5 class="mb-0">Hotels Pending Approval</h5>
-                        </div>
+                <div class="ad-card">
+                    <div class="ad-card-header">
+                        <h5 class="ad-card-title"><i class="bi bi-clock-history"></i> Hotels Pending Approval</h5>
                     </div>
-                    <div class="modern-card-body">
-                        @if (pendingHotels.Any())
+                    <div class="ad-card-body">
+                        @if (filteredHotels.Any())
                         {
-                            <div class="list-group list-group-flush">
-                                @foreach (var hotel in pendingHotels.Take(5))
-                                {
-                                    <div class="list-group-item px-0">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <h6 class="mb-1">@hotel.Name</h6>
-                                                <small class="text-muted">@hotel.City, @hotel.Country</small>
-                                            </div>
-                                            <a href="/admin/hotels" class="btn-modern btn-gradient-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
-                                                <i class="bi bi-eye me-1"></i>Review
-                                            </a>
-                                        </div>
-                                    </div>
-                                }
-                            </div>
-                            @if (pendingHotels.Count() > 5)
+                            @foreach (var hotel in filteredHotels.Take(5))
                             {
-                                <div class="text-center mt-3">
-                                    <a href="/admin/hotels" class="btn btn-link">View All (@pendingHotels.Count())</a>
+                                <div class="ad-list-item">
+                                    <div>
+                                        <div class="ad-list-name">@hotel.Name</div>
+                                        <span class="ad-list-sub">@hotel.City, @hotel.Country</span>
+                                    </div>
+                                    <a href="/admin/hotels" class="ad-btn ad-btn-sm ad-btn-review">
+                                        <i class="bi bi-eye"></i> Review
+                                    </a>
+                                </div>
+                            }
+                            @if (filteredHotels.Count() > 5)
+                            {
+                                <div style="text-align:center;padding-top:0.5rem;">
+                                    <a href="/admin/hotels" class="ad-link">View All (@filteredHotels.Count())</a>
                                 </div>
                             }
                         }
                         else
                         {
-                            <p class="text-muted text-center mb-0">No pending approvals</p>
+                            <div class="ad-empty">No pending approvals</div>
                         }
                     </div>
                 </div>
@@ -172,42 +132,35 @@
 
             <!-- Recent Bookings -->
             <div class="col-lg-6">
-                <div class="modern-card">
-                    <div class="modern-card-header">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-calendar-check me-2"></i>
-                            <h5 class="mb-0">Recent Bookings</h5>
-                        </div>
+                <div class="ad-card">
+                    <div class="ad-card-header">
+                        <h5 class="ad-card-title"><i class="bi bi-calendar-check"></i> Recent Bookings</h5>
                     </div>
-                    <div class="modern-card-body">
-                        @if (recentBookings.Any())
+                    <div class="ad-card-body">
+                        @if (filteredBookings.Any())
                         {
-                            <div class="list-group list-group-flush">
-                                @foreach (var booking in recentBookings.Take(5))
-                                {
-                                    <div class="list-group-item px-0">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <h6 class="mb-1">Booking #@booking.Id</h6>
-                                                <small class="text-muted">@booking.StartDate.ToString("MMM dd") - @booking.EndDate.ToString("MMM dd, yyyy")</small>
-                                            </div>
-                                            <span class="badge-modern @GetModernBadgeClass(booking.Status)">
-                                                <i class="bi @GetStatusIcon(booking.Status) me-1"></i>@booking.Status
-                                            </span>
-                                        </div>
-                                    </div>
-                                }
-                            </div>
-                            @if (recentBookings.Count() > 5)
+                            @foreach (var booking in filteredBookings.Take(5))
                             {
-                                <div class="text-center mt-3">
-                                    <a href="/admin/bookings" class="btn btn-link">View All (@recentBookings.Count())</a>
+                                <div class="ad-list-item">
+                                    <div>
+                                        <div class="ad-list-name">Booking #@booking.Id</div>
+                                        <span class="ad-list-sub">@booking.StartDate.ToString("MMM dd") - @booking.EndDate.ToString("MMM dd, yyyy")</span>
+                                    </div>
+                                    <span class="ad-badge @GetAdBadgeClass(booking.Status)">
+                                        <i class="bi @GetStatusIcon(booking.Status)"></i> @booking.Status
+                                    </span>
+                                </div>
+                            }
+                            @if (filteredBookings.Count() > 5)
+                            {
+                                <div style="text-align:center;padding-top:0.5rem;">
+                                    <a href="/admin/bookings" class="ad-link">View All (@filteredBookings.Count())</a>
                                 </div>
                             }
                         }
                         else
                         {
-                            <p class="text-muted text-center mb-0">No bookings yet</p>
+                            <div class="ad-empty">No bookings match</div>
                         }
                     </div>
                 </div>
@@ -215,39 +168,32 @@
 
             <!-- Recent Users -->
             <div class="col-lg-6">
-                <div class="modern-card">
-                    <div class="modern-card-header">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-people me-2"></i>
-                            <h5 class="mb-0">Recent Users</h5>
-                        </div>
+                <div class="ad-card">
+                    <div class="ad-card-header">
+                        <h5 class="ad-card-title"><i class="bi bi-people"></i> Recent Users</h5>
                     </div>
-                    <div class="modern-card-body">
-                        @if (recentUsers.Any())
+                    <div class="ad-card-body">
+                        @if (filteredDashUsers.Any())
                         {
-                            <div class="list-group list-group-flush">
-                                @foreach (var user in recentUsers.Take(5))
-                                {
-                                    <div class="list-group-item px-0">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <h6 class="mb-1">@user.FullName</h6>
-                                                <small class="text-muted">@user.Email</small>
-                                            </div>
-                                            <span class="badge-modern badge-gradient-info">
-                                                <i class="bi bi-person-badge me-1"></i>@user.Role
-                                            </span>
-                                        </div>
+                            @foreach (var user in filteredDashUsers.Take(5))
+                            {
+                                <div class="ad-list-item">
+                                    <div>
+                                        <div class="ad-list-name">@user.FullName</div>
+                                        <span class="ad-list-sub">@user.Email</span>
                                     </div>
-                                }
-                            </div>
-                            <div class="text-center mt-3">
-                                <a href="/admin/users" class="btn btn-link">View All Users</a>
+                                    <span class="ad-badge ad-badge-role">
+                                        <i class="bi bi-person-badge"></i> @user.Role
+                                    </span>
+                                </div>
+                            }
+                            <div style="text-align:center;padding-top:0.5rem;">
+                                <a href="/admin/users" class="ad-link">View All Users</a>
                             </div>
                         }
                         else
                         {
-                            <p class="text-muted text-center mb-0">No users yet</p>
+                            <div class="ad-empty">No users match</div>
                         }
                     </div>
                 </div>
@@ -255,32 +201,35 @@
 
             <!-- Quick Actions -->
             <div class="col-lg-6">
-                <div class="modern-card">
-                    <div class="modern-card-header">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-lightning me-2"></i>
-                            <h5 class="mb-0">Quick Actions</h5>
-                        </div>
+                <div class="ad-card">
+                    <div class="ad-card-header">
+                        <h5 class="ad-card-title"><i class="bi bi-lightning"></i> Quick Actions</h5>
                     </div>
-                    <div class="modern-card-body">
-                        <div class="d-grid gap-3">
-                            <a href="/admin/users" class="btn-modern btn-gradient-primary">
-                                <i class="bi bi-people me-2"></i>Manage Users
+                    <div class="ad-card-body">
+                        <div class="ad-actions-grid">
+                            <a href="/admin/users" class="ad-action">
+                                <div class="ad-action-icon ad-icon-terracotta"><i class="bi bi-people"></i></div>
+                                Manage Users
                             </a>
-                            <a href="/admin/hotels" class="btn-modern btn-gradient-success">
-                                <i class="bi bi-building me-2"></i>Manage Hotels
+                            <a href="/admin/hotels" class="ad-action">
+                                <div class="ad-action-icon ad-icon-teal"><i class="bi bi-building"></i></div>
+                                Manage Hotels
                             </a>
-                            <a href="/admin/event-equipments" class="btn-modern" style="background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%); color: white;">
-                                <i class="bi bi-box-seam me-2"></i>Event Equipments
+                            <a href="/admin/event-equipments" class="ad-action">
+                                <div class="ad-action-icon ad-icon-bronze"><i class="bi bi-box-seam"></i></div>
+                                Event Equipments
                             </a>
-                            <a href="/admin/event-packages" class="btn-modern" style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); color: white;">
-                                <i class="bi bi-gift me-2"></i>Event Packages
+                            <a href="/admin/event-packages" class="ad-action">
+                                <div class="ad-action-icon ad-icon-olive"><i class="bi bi-gift"></i></div>
+                                Event Packages
                             </a>
-                            <a href="/admin/event-bookings" class="btn-modern" style="background: var(--info-gradient); color: white;">
-                                <i class="bi bi-calendar-event me-2"></i>Event Bookings
+                            <a href="/admin/event-bookings" class="ad-action">
+                                <div class="ad-action-icon ad-icon-charcoal"><i class="bi bi-calendar-event"></i></div>
+                                Event Bookings
                             </a>
-                            <a href="/admin/audit-logs" class="btn-modern" style="background: var(--gray-700); color: white;">
-                                <i class="bi bi-file-text me-2"></i>View Audit Logs
+                            <a href="/admin/audit-logs" class="ad-action">
+                                <div class="ad-action-icon ad-icon-charcoal"><i class="bi bi-file-text"></i></div>
+                                Audit Logs
                             </a>
                         </div>
                     </div>
@@ -296,6 +245,42 @@
     private IEnumerable<Hotel> pendingHotels = new List<Hotel>();
     private IEnumerable<Booking> recentBookings = new List<Booking>();
     private List<ApplicationUser> recentUsers = new();
+    private string dashboardSearch = "";
+
+    private IEnumerable<Hotel> filteredHotels => string.IsNullOrWhiteSpace(dashboardSearch)
+        ? pendingHotels
+        : pendingHotels.Where(h =>
+        {
+            var term = dashboardSearch.Trim().ToLower();
+            return (h.Name?.ToLower().Contains(term) ?? false)
+                || (h.City?.ToLower().Contains(term) ?? false)
+                || (h.Country?.ToLower().Contains(term) ?? false);
+        });
+
+    private IEnumerable<Booking> filteredBookings => string.IsNullOrWhiteSpace(dashboardSearch)
+        ? recentBookings
+        : recentBookings.Where(b =>
+        {
+            var term = dashboardSearch.Trim().ToLower();
+            return b.Id.ToString().Contains(term)
+                || b.Status.ToString().ToLower().Contains(term);
+        });
+
+    private IEnumerable<ApplicationUser> filteredDashUsers => string.IsNullOrWhiteSpace(dashboardSearch)
+        ? recentUsers
+        : recentUsers.Where(u =>
+        {
+            var term = dashboardSearch.Trim().ToLower();
+            return (u.FullName?.ToLower().Contains(term) ?? false)
+                || (u.Email?.ToLower().Contains(term) ?? false)
+                || (u.Role?.ToLower().Contains(term) ?? false);
+        });
+
+    private List<BreadcrumbItem> breadcrumbItems = new()
+    {
+        new BreadcrumbItem { Text = "Home", Url = "/" },
+        new BreadcrumbItem { Text = "Admin Dashboard", IsActive = true }
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -345,15 +330,15 @@
         };
     }
 
-    private string GetModernBadgeClass(BookingStatus status)
+    private string GetAdBadgeClass(BookingStatus status)
     {
         return status switch
         {
-            BookingStatus.Pending => "badge-gradient-warning",
-            BookingStatus.Confirmed => "badge-gradient-success",
-            BookingStatus.Rejected => "badge-gradient-danger",
-            BookingStatus.Cancelled => "badge-gradient-info",
-            _ => "badge-gradient-info"
+            BookingStatus.Pending => "ad-badge-pending",
+            BookingStatus.Confirmed => "ad-badge-confirmed",
+            BookingStatus.Rejected => "ad-badge-rejected",
+            BookingStatus.Cancelled => "ad-badge-cancelled",
+            _ => "ad-badge-cancelled"
         };
     }
 

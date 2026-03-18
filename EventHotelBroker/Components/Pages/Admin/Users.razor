@@ -1,4 +1,5 @@
 @page "/admin/users"
+@rendermode InteractiveServer
 @using EventHotelBroker.Models
 @using EventHotelBroker.Data
 @using Microsoft.EntityFrameworkCore
@@ -6,106 +7,112 @@
 
 <PageTitle>Manage Users - Admin</PageTitle>
 
-<div class="container-fluid px-4 animate-fade-in">
-    <!-- Modern Header -->
-    <div class="page-header mb-4">
-        <div class="d-flex justify-content-between align-items-center">
+<link href="/css/admin-users.css?v=1" rel="stylesheet" />
+
+<div class="au">
+    <Breadcrumb Items="@breadcrumbItems" />
+
+    <!-- Header -->
+    <div class="au-header">
+        <div>
+            <h1 class="au-header-title"><i class="bi bi-people"></i> User Management</h1>
+            <p class="au-header-sub">Manage all platform users and their roles</p>
+        </div>
+        <button class="au-btn au-btn-refresh" @onclick="LoadUsers">
+            <i class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="au-stats">
+        <div class="au-stat">
             <div>
-                <h1><i class="bi bi-people me-3"></i>User Management</h1>
-                <p>Manage all platform users and their roles</p>
+                <div class="au-stat-value">@users.Count</div>
+                <div class="au-stat-label">Total Users</div>
             </div>
-            <button class="btn-modern" style="background: var(--gray-200); color: var(--gray-700);" @onclick="LoadUsers">
-                <i class="bi bi-arrow-clockwise me-2"></i>Refresh
-            </button>
+            <div class="au-stat-icon au-icon-terracotta"><i class="bi bi-people"></i></div>
+        </div>
+        <div class="au-stat">
+            <div>
+                <div class="au-stat-value">@users.Count(u => u.Role == "Admin")</div>
+                <div class="au-stat-label">Admins</div>
+            </div>
+            <div class="au-stat-icon au-icon-charcoal"><i class="bi bi-shield-check"></i></div>
+        </div>
+        <div class="au-stat">
+            <div>
+                <div class="au-stat-value">@users.Count(u => u.Role == "HotelOwner")</div>
+                <div class="au-stat-label">Hotel Owners</div>
+            </div>
+            <div class="au-stat-icon au-icon-teal"><i class="bi bi-building"></i></div>
+        </div>
+        <div class="au-stat">
+            <div>
+                <div class="au-stat-value">@users.Count(u => u.Role == "User")</div>
+                <div class="au-stat-label">Clients</div>
+            </div>
+            <div class="au-stat-icon au-icon-bronze"><i class="bi bi-person"></i></div>
         </div>
     </div>
 
-    <!-- Stats Cards -->
-    <div class="row g-4 mb-4">
-        <div class="col-md-3">
-            <div class="stats-card">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="stats-number">@users.Count</p>
-                        <p class="stats-label mb-0">Total Users</p>
-                    </div>
-                    <div class="stats-icon" style="background: var(--primary-gradient);">
-                        <i class="bi bi-people"></i>
-                    </div>
-                </div>
-            </div>
+    <!-- Search & Filter -->
+    <div class="au-search-bar">
+        <div class="au-search-wrap">
+            <i class="bi bi-search"></i>
+            <input type="text" class="au-search-input" placeholder="Search by name, email, phone, or business..." @bind="searchTerm" @bind:event="oninput" />
         </div>
-        <div class="col-md-3">
-            <div class="stats-card">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="stats-number">@users.Count(u => u.Role == "Admin")</p>
-                        <p class="stats-label mb-0">Admins</p>
-                    </div>
-                    <div class="stats-icon" style="background: var(--danger-gradient);">
-                        <i class="bi bi-shield-check"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stats-card">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="stats-number">@users.Count(u => u.Role == "HotelOwner")</p>
-                        <p class="stats-label mb-0">Hotel Owners</p>
-                    </div>
-                    <div class="stats-icon" style="background: var(--success-gradient);">
-                        <i class="bi bi-building"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stats-card">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="stats-number">@users.Count(u => u.Role == "User")</p>
-                        <p class="stats-label mb-0">Clients</p>
-                    </div>
-                    <div class="stats-icon" style="background: var(--info-gradient);">
-                        <i class="bi bi-person"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <select class="au-filter-select" @bind="roleFilter" @bind:event="onchange">
+            <option value="">All Roles</option>
+            <option value="Admin">Admin</option>
+            <option value="HotelOwner">Hotel Owner</option>
+            <option value="ServiceProvider">Service Provider</option>
+            <option value="User">Client</option>
+        </select>
+        <span class="au-search-count">@filteredUsers.Count() of @users.Count</span>
     </div>
 
     @if (isLoading)
     {
-        <div class="modern-card">
-            <div class="text-center py-5">
-                <div class="spinner-border spinner-modern text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <p class="mt-3 text-muted">Loading users...</p>
+        <div class="au-card">
+            <div class="au-loading">
+                <div class="au-spinner"></div>
+                <div class="au-loading-text">Loading users...</div>
             </div>
         </div>
     }
     else if (!users.Any())
     {
-        <div class="modern-card">
-            <div class="empty-state">
-                <i class="bi bi-people empty-state-icon"></i>
-                <h3 class="empty-state-title">No Users Found</h3>
-                <p class="empty-state-text">There are no users in the system yet.</p>
+        <div class="au-card">
+            <div class="au-empty">
+                <div class="au-empty-icon"><i class="bi bi-people"></i></div>
+                <div class="au-empty-title">No Users Found</div>
+                <div class="au-empty-text">There are no users in the system yet.</div>
+            </div>
+        </div>
+    }
+    else if (!filteredUsers.Any())
+    {
+        <div class="au-card">
+            <div class="au-empty">
+                <div class="au-empty-icon"><i class="bi bi-search"></i></div>
+                <div class="au-empty-title">No Results</div>
+                <div class="au-empty-text">No users match your search criteria.</div>
             </div>
         </div>
     }
     else
     {
-        <div class="table-modern">
-            <div class="table-responsive">
-                <table class="table">
+        <div class="au-card">
+            <div class="au-card-header">
+                <h5 class="au-card-title"><i class="bi bi-table"></i> All Users</h5>
+                <span class="au-card-count">@filteredUsers.Count() records</span>
+            </div>
+            <div style="overflow-x:auto;">
+                <table class="au-table">
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>User Details</th>
+                            <th>User</th>
                             <th>Contact</th>
                             <th>Role</th>
                             <th>Business</th>
@@ -113,49 +120,41 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var user in users)
+                        @foreach (var user in filteredUsers)
                         {
                             <tr>
+                                <td><span class="au-id">#@user.Id</span></td>
                                 <td>
-                                    <span style="font-weight: 600; color: var(--purple);">#@user.Id</span>
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div style="width: 40px; height: 40px; background: var(--primary-gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; color: white; font-weight: 600;">
-                                            @user.FullName?.Substring(0, 1).ToUpper()
-                                        </div>
+                                    <div class="au-user-cell">
+                                        <div class="au-avatar">@user.FullName?.Substring(0, 1).ToUpper()</div>
                                         <div>
-                                            <div style="font-weight: 600; color: var(--gray-800);">@user.FullName</div>
-                                            <small class="text-muted">@user.Email</small>
+                                            <div class="au-user-name">@user.FullName</div>
+                                            <div class="au-user-email">@user.Email</div>
                                         </div>
                                     </div>
                                 </td>
                                 <td>
-                                    <div style="color: var(--gray-700);">
-                                        <i class="bi bi-telephone me-1"></i>@(user.PhoneNumber ?? "N/A")
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="badge-modern @GetModernRoleBadge(user.Role)">
-                                        <i class="bi @GetRoleIcon(user.Role) me-1"></i>@user.Role
+                                    <span class="au-contact">
+                                        <i class="bi bi-telephone"></i> @(user.PhoneNumber ?? "N/A")
                                     </span>
                                 </td>
                                 <td>
-                                    <div style="color: var(--gray-700);">
-                                        @if (!string.IsNullOrEmpty(user.BusinessName))
-                                        {
-                                            <i class="bi bi-briefcase me-1"></i>@user.BusinessName
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">-</span>
-                                        }
-                                    </div>
+                                    <span class="au-badge @GetAuRoleBadge(user.Role)">
+                                        <i class="bi @GetRoleIcon(user.Role)"></i> @user.Role
+                                    </span>
                                 </td>
                                 <td>
-                                    <div style="color: var(--gray-600);">
-                                        <i class="bi bi-calendar3 me-1"></i>@user.CreatedAt.ToString("MMM dd, yyyy")
-                                    </div>
+                                    @if (!string.IsNullOrEmpty(user.BusinessName))
+                                    {
+                                        <span class="au-business"><i class="bi bi-briefcase"></i> @user.BusinessName</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="au-business" style="color:#c4b99a;">-</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="au-date"><i class="bi bi-calendar3"></i> @user.CreatedAt.ToString("MMM dd, yyyy")</span>
                                 </td>
                             </tr>
                         }
@@ -169,6 +168,30 @@
 @code {
     private bool isLoading = true;
     private List<ApplicationUser> users = new();
+    private string searchTerm = "";
+    private string roleFilter = "";
+
+    private IEnumerable<ApplicationUser> filteredUsers => users.Where(u =>
+    {
+        if (!string.IsNullOrEmpty(roleFilter) && u.Role != roleFilter)
+            return false;
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var term = searchTerm.Trim().ToLower();
+            return (u.FullName?.ToLower().Contains(term) ?? false)
+                || (u.Email?.ToLower().Contains(term) ?? false)
+                || (u.PhoneNumber?.ToLower().Contains(term) ?? false)
+                || (u.BusinessName?.ToLower().Contains(term) ?? false);
+        }
+        return true;
+    });
+
+    private List<BreadcrumbItem> breadcrumbItems = new()
+    {
+        new BreadcrumbItem { Text = "Home", Url = "/" },
+        new BreadcrumbItem { Text = "Admin Dashboard", Url = "/admin/dashboard" },
+        new BreadcrumbItem { Text = "Users", IsActive = true }
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -206,15 +229,15 @@
         };
     }
 
-    private string GetModernRoleBadge(string role)
+    private string GetAuRoleBadge(string role)
     {
         return role switch
         {
-            "Admin" => "badge-gradient-danger",
-            "HotelOwner" => "badge-gradient-success",
-            "ServiceProvider" => "badge-gradient-info",
-            "User" => "badge-gradient-warning",
-            _ => "badge-gradient-info"
+            "Admin" => "au-badge-admin",
+            "HotelOwner" => "au-badge-owner",
+            "ServiceProvider" => "au-badge-provider",
+            "User" => "au-badge-user",
+            _ => "au-badge-user"
         };
     }
 
