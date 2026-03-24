@@ -17,7 +17,7 @@ public static class EventDataSeeder
         }
 
         // Get a sample provider (use first user or create one)
-        var provider = await context.AspNetUsers.FirstOrDefaultAsync();
+        var provider = await context.Users.FirstOrDefaultAsync();
         if (provider == null)
         {
             return; // No users exist yet

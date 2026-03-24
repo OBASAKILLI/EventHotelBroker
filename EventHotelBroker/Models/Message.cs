@@ -11,7 +11,7 @@ public class Message
     public DateTime SentAt { get; set; } = DateTime.UtcNow;
 
     // Navigation properties
-    public virtual ApplicationUser? Sender { get; set; }
-    public virtual ApplicationUser? Receiver { get; set; }
+    public virtual Users? Sender { get; set; }
+    public virtual Users? Receiver { get; set; }
     public virtual Hotel? Hotel { get; set; }
 }

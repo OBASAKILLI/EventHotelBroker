@@ -45,7 +45,7 @@ public class EventEquipment
 
     // Navigation properties
     [ForeignKey("ProviderId")]
-    public virtual ApplicationUser? Provider { get; set; }
+    public virtual Users? Provider { get; set; }
 
     public virtual ICollection<EventEquipmentImage> Images { get; set; } = new List<EventEquipmentImage>();
     public virtual ICollection<EventPackageEquipment> PackageEquipments { get; set; } = new List<EventPackageEquipment>();

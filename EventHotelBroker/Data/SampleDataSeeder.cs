@@ -16,7 +16,7 @@ public static class SampleDataSeeder
         }
 
         // Create sample hotel owners (these match the hardcoded credentials)
-        var owner1 = new ApplicationUser
+        var owner1 = new Users
         {
             Id = "owner-001",
             Email = "owner1@test.com",
@@ -29,7 +29,7 @@ public static class SampleDataSeeder
             IsOwnerVerified = true
         };
 
-        var owner2 = new ApplicationUser
+        var owner2 = new Users
         {
             Id = "owner-002",
             Email = "owner2@test.com",
@@ -42,7 +42,7 @@ public static class SampleDataSeeder
             IsOwnerVerified = true
         };
 
-        var owner3 = new ApplicationUser
+        var owner3 = new Users
         {
             Id = "owner-003",
             Email = "owner3@test.com",
@@ -56,7 +56,7 @@ public static class SampleDataSeeder
         };
 
         // Create sample regular users
-        var user1 = new ApplicationUser
+        var user1 = new Users
         {
             Id = "user-001",
             Email = "user1@test.com",
@@ -66,7 +66,7 @@ public static class SampleDataSeeder
             IsActive = true
         };
 
-        var user2 = new ApplicationUser
+        var user2 = new Users
         {
             Id = "user-002",
             Email = "user2@test.com",
@@ -77,17 +77,16 @@ public static class SampleDataSeeder
         };
 
         // Add users to database (required for foreign key constraints)
-        // Using raw SQL to include ASP.NET Identity required columns
-        if (!context.AspNetUsers.Any())
+        if (!context.Users.Any(u => u.Role == "HotelOwner" || u.Role == "User"))
         {
             await context.Database.ExecuteSqlRawAsync(@"
-                INSERT INTO AspNetUsers (Id, Email, EmailConfirmed, PhoneNumber, PhoneNumberConfirmed, TwoFactorEnabled, LockoutEnabled, AccessFailedCount, FullName, Role, IsActive, IsOwnerVerified, BusinessName, RegistrationNumber, CreatedAt)
+                INSERT INTO Users (strid, FirstName, MiddleName, LastName, Email, PhoneNumber, password_hash, FullName, IsTwoFAEnabled, Role, AccountType, IsActive, IsOwnerVerified, IsEmailVerified, BusinessName, RegistrationNumber, CreatedAt)
                 VALUES 
-                ('owner-001', 'owner1@test.com', 0, '+254712345678', 0, 0, 0, 0, 'John Smith', 'HotelOwner', 1, 1, 'Smith Hotels Ltd', 'BN123456', UTC_TIMESTAMP()),
-                ('owner-002', 'owner2@test.com', 0, '+254723456789', 0, 0, 0, 0, 'Mary Johnson', 'HotelOwner', 1, 1, 'Coastal Resorts Kenya', 'BN789012', UTC_TIMESTAMP()),
-                ('owner-003', 'owner3@test.com', 0, '+254734567890', 0, 0, 0, 0, 'David Kimani', 'HotelOwner', 1, 1, 'Mountain View Lodges', 'BN345678', UTC_TIMESTAMP()),
-                ('user-001', 'user1@test.com', 0, '+254745678901', 0, 0, 0, 0, 'Jane Doe', 'User', 1, 0, NULL, NULL, UTC_TIMESTAMP()),
-                ('user-002', 'user2@test.com', 0, '+254756789012', 0, 0, 0, 0, 'Peter Omondi', 'User', 1, 0, NULL, NULL, UTC_TIMESTAMP())
+                ('owner-001', 'John', '.', 'Smith', 'owner1@test.com', '+254712345678', '', 'John Smith', 0, 'HotelOwner', 'HotelOwner', 1, 1, 1, 'Smith Hotels Ltd', 'BN123456', UTC_TIMESTAMP()),
+                ('owner-002', 'Mary', '.', 'Johnson', 'owner2@test.com', '+254723456789', '', 'Mary Johnson', 0, 'HotelOwner', 'HotelOwner', 1, 1, 1, 'Coastal Resorts Kenya', 'BN789012', UTC_TIMESTAMP()),
+                ('owner-003', 'David', '.', 'Kimani', 'owner3@test.com', '+254734567890', '', 'David Kimani', 0, 'HotelOwner', 'HotelOwner', 1, 1, 1, 'Mountain View Lodges', 'BN345678', UTC_TIMESTAMP()),
+                ('user-001', 'Jane', '.', 'Doe', 'user1@test.com', '+254745678901', '', 'Jane Doe', 0, 'User', 'User', 1, 0, 1, NULL, NULL, UTC_TIMESTAMP()),
+                ('user-002', 'Peter', '.', 'Omondi', 'user2@test.com', '+254756789012', '', 'Peter Omondi', 0, 'User', 'User', 1, 0, 1, NULL, NULL, UTC_TIMESTAMP())
             ");
         }
 

@@ -1,4 +1,5 @@
 using EventHotelBroker.Models;
+using EventHotelBroker.Interfaces;
 
 namespace EventHotelBroker.Repositories;
 
@@ -14,6 +15,7 @@ public interface IUnitOfWork : IDisposable
     IRepository<Booking> Bookings { get; }
     IRepository<Message> Messages { get; }
     IRepository<AuditLog> AuditLogs { get; }
+    IUserRepository userRepository { get; }
     
     // Event Management Repositories
     IRepository<EventEquipment> EventEquipments { get; }

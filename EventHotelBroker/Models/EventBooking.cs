@@ -73,7 +73,7 @@ public class EventBooking
 
     // Navigation properties
     [ForeignKey("UserId")]
-    public virtual ApplicationUser? User { get; set; }
+    public virtual Users? User { get; set; }
 
     [ForeignKey("PackageId")]
     public virtual EventPackage? Package { get; set; }

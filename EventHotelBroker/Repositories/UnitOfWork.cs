@@ -1,4 +1,5 @@
 using EventHotelBroker.Data;
+using EventHotelBroker.Interfaces;
 using EventHotelBroker.Models;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -19,6 +20,7 @@ public class UnitOfWork : IUnitOfWork
     public IRepository<Booking> Bookings { get; }
     public IRepository<Message> Messages { get; }
     public IRepository<AuditLog> AuditLogs { get; }
+    public IUserRepository userRepository { get; }
     
     // Event Management Repositories
     public IRepository<EventEquipment> EventEquipments { get; }

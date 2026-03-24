@@ -53,7 +53,7 @@ public class EventPackage
 
     // Navigation properties
     [ForeignKey("ProviderId")]
-    public virtual ApplicationUser? Provider { get; set; }
+    public virtual Users? Provider { get; set; }
 
     public virtual ICollection<EventPackageEquipment> PackageEquipments { get; set; } = new List<EventPackageEquipment>();
     public virtual ICollection<EventBooking> EventBookings { get; set; } = new List<EventBooking>();

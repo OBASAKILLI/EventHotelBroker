@@ -231,7 +231,7 @@
                 
                 // Get record counts
                 hotelCount = await UnitOfWork.Hotels.CountAsync();
-                userCount = await DbContext.AspNetUsers.CountAsync();
+                userCount = await DbContext.Users.CountAsync();
                 bookingCount = await UnitOfWork.Bookings.CountAsync();
                 amenityCount = await UnitOfWork.Amenities.CountAsync();
                 categoryCount = await UnitOfWork.Categories.CountAsync();

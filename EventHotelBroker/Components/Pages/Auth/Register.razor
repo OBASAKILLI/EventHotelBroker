@@ -1,10 +1,16 @@
 @page "/register"
 @using EventHotelBroker.Components.Layout
 @using EventHotelBroker.Services
+@using EventHotelBroker.Models
+@using EventHotelBroker.Data
+@using EventHotelBroker.Utils
+@using Microsoft.EntityFrameworkCore
 @layout AuthLayout
 @rendermode InteractiveServer
 @inject NavigationManager Navigation
 @inject ToastService ToastService
+@inject ApplicationDbContext DbContext
+@inject EventHotelBroker.Services.IEmailService EmailService
 
 <PageTitle>Register - EventHotelBroker</PageTitle>
 
@@ -60,8 +66,15 @@
                 <span class="rg-terms-label">I agree to the <a href="/terms">Terms & Conditions</a> and <a href="/privacy">Privacy Policy</a></span>
             </label>
 
-            <button type="button" class="rg-btn rg-btn-primary" @onclick="HandleRegister">
-                <i class="bi bi-person-check"></i> Create Account
+            <button type="button" class="rg-btn rg-btn-primary" @onclick="HandleRegister" disabled="@isSubmitting">
+                @if (isSubmitting)
+                {
+                    <span class="spinner-border spinner-border-sm me-1"></span> <span>Creating Account...</span>
+                }
+                else
+                {
+                    <i class="bi bi-person-check"></i> <span>Create Account</span>
+                }
             </button>
 
             <div class="rg-divider">
@@ -92,10 +105,14 @@
     private string confirmPassword = "";
     private string userRole = "client";
     private bool acceptTerms = false;
+    private bool isSubmitting = false;
 
     private async Task HandleRegister()
     {
-        if (string.IsNullOrEmpty(fullName) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+        if (isSubmitting) return;
+
+        // Validation
+        if (string.IsNullOrWhiteSpace(fullName) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
         {
             ToastService.ShowWarning("Missing Information", "Please fill in all required fields");
             return;
@@ -107,23 +124,96 @@
             return;
         }
 
+        if (password.Length < 8)
+        {
+            ToastService.ShowWarning("Weak Password", "Password must be at least 8 characters long");
+            return;
+        }
+
         if (!acceptTerms)
         {
             ToastService.ShowWarning("Terms Required", "Please accept the terms and conditions");
             return;
         }
 
-        ToastService.ShowSuccess("Registration Successful!", "Welcome to EventHotelBroker");
-        
-        // Simulate registration - redirect based on role
-        await Task.Delay(1000);
-        if (userRole == "owner")
+        isSubmitting = true;
+        StateHasChanged();
+
+        try
         {
-            Navigation.NavigateTo("/owner/dashboard");
+            // Check if email already exists
+            var existingUser = await DbContext.Users.FirstOrDefaultAsync(u => u.Email == email.Trim());
+            if (existingUser != null)
+            {
+                ToastService.ShowError("Email Taken", "An account with this email address already exists");
+                isSubmitting = false;
+                return;
+            }
+
+            // Encrypt the password
+            var encryption = new Encryption();
+            var encryptedPassword = encryption.Encryptstring(password);
+
+            // Parse full name
+            var nameParts = fullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var firstName = nameParts.Length > 0 ? nameParts[0] : fullName.Trim();
+            var lastName = nameParts.Length > 1 ? nameParts[^1] : ".";
+            var middleName = nameParts.Length > 2 ? string.Join(" ", nameParts[1..^1]) : ".";
+
+            // Generate email verification token
+            var verificationToken = Guid.NewGuid().ToString("N");
+            var tokenExpiry = DateTime.UtcNow.AddHours(24);
+
+            // Determine role
+            var role = userRole == "owner" ? "HotelOwner" : "User";
+
+            // Create new user
+            var newUser = new EventHotelBroker.Models.Users
+            {
+                FirstName = firstName,
+                MiddleName = middleName,
+                LastName = lastName,
+                FullName = fullName.Trim(),
+                Email = email.Trim(),
+                PhoneNumber = phone?.Trim() ?? "",
+                password_hash = encryptedPassword,
+                Role = role,
+                AccountType = role,
+                IsActive = false,
+                IsEmailVerified = false,
+                EmailVerificationToken = verificationToken,
+                EmailVerificationTokenExpiry = tokenExpiry,
+                IsTwoFAEnabled = false,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await DbContext.Users.AddAsync(newUser);
+            await DbContext.SaveChangesAsync();
+
+            // Build verification link
+            var baseUrl = Navigation.BaseUri.TrimEnd('/');
+            var verificationLink = $"{baseUrl}/activate-account?token={verificationToken}&email={Uri.EscapeDataString(email.Trim())}";
+
+            // Send verification email
+            try
+            {
+                await EmailService.SendVerificationEmailAsync(email.Trim(), fullName.Trim(), verificationLink);
+            }
+            catch (Exception)
+            {
+                // Email sending may fail if SMTP is not configured, but user is still created
+            }
+
+            ToastService.ShowSuccess("Registration Successful!", "A verification email has been sent to your inbox. Please check your email and click the activation link to activate your account.");
         }
-        else
+        catch (Exception ex)
         {
-            Navigation.NavigateTo("/user/dashboard");
+            ToastService.ShowError("Registration Failed", $"An error occurred: {ex.Message}");
+        }
+        finally
+        {
+            isSubmitting = false;
+            StateHasChanged();
         }
     }
 

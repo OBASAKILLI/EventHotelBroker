@@ -167,11 +167,11 @@
 
 @code {
     private bool isLoading = true;
-    private List<ApplicationUser> users = new();
+    private List<EventHotelBroker.Models.Users> users = new();
     private string searchTerm = "";
     private string roleFilter = "";
 
-    private IEnumerable<ApplicationUser> filteredUsers => users.Where(u =>
+    private IEnumerable<EventHotelBroker.Models.Users> filteredUsers => users.Where(u =>
     {
         if (!string.IsNullOrEmpty(roleFilter) && u.Role != roleFilter)
             return false;
@@ -203,7 +203,7 @@
         isLoading = true;
         try
         {
-            users = await DbContext.AspNetUsers
+            users = await DbContext.Users
                 .OrderByDescending(u => u.CreatedAt)
                 .ToListAsync();
         }

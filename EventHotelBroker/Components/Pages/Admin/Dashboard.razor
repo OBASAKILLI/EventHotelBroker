@@ -244,7 +244,7 @@
     private DashboardStats stats = new();
     private IEnumerable<Hotel> pendingHotels = new List<Hotel>();
     private IEnumerable<Booking> recentBookings = new List<Booking>();
-    private List<ApplicationUser> recentUsers = new();
+    private List<EventHotelBroker.Models.Users> recentUsers = new();
     private string dashboardSearch = "";
 
     private IEnumerable<Hotel> filteredHotels => string.IsNullOrWhiteSpace(dashboardSearch)
@@ -266,7 +266,7 @@
                 || b.Status.ToString().ToLower().Contains(term);
         });
 
-    private IEnumerable<ApplicationUser> filteredDashUsers => string.IsNullOrWhiteSpace(dashboardSearch)
+    private IEnumerable<EventHotelBroker.Models.Users> filteredDashUsers => string.IsNullOrWhiteSpace(dashboardSearch)
         ? recentUsers
         : recentUsers.Where(u =>
         {
@@ -287,7 +287,7 @@
         try
         {
             // Load statistics
-            var allUsers = await DbContext.AspNetUsers.ToListAsync();
+            var allUsers = await DbContext.Users.ToListAsync();
             stats.TotalUsers = allUsers.Count;
             stats.TotalHotels = await UnitOfWork.Hotels.CountAsync();
             stats.PendingApprovals = await UnitOfWork.Hotels.CountAsync(h => !h.IsApproved && h.IsPublished);

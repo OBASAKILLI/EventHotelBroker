@@ -17,7 +17,7 @@ public class AuthService : IAuthService
         _logger = logger;
     }
 
-    public async Task<(bool Success, string Message, ApplicationUser? User)> LoginAsync(string email, string password)
+    public async Task<(bool Success, string Message, Users? User)> LoginAsync(string email, string password)
     {
         try
         {
@@ -121,7 +121,7 @@ public class AuthService : IAuthService
         }
     }
 
-    public async Task<ApplicationUser?> GetUserByIdAsync(string userId)
+    public async Task<Users?> GetUserByIdAsync(string userId)
     {
         return await _context.Users.FindAsync(userId);
     }

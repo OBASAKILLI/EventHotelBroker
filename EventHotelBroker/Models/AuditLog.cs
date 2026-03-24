@@ -10,5 +10,5 @@ public class AuditLog
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation properties
-    public virtual ApplicationUser? User { get; set; }
+    public virtual Users? User { get; set; }
 }

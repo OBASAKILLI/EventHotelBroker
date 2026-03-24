@@ -14,7 +14,7 @@ public class Booking
     public DateTime? UpdatedAt { get; set; }
 
     // Navigation properties
-    public virtual ApplicationUser? User { get; set; }
+    public virtual Users? User { get; set; }
     public virtual Hotel? Hotel { get; set; }
 }
 

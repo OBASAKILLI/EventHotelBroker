@@ -15,7 +15,7 @@ public class Service
     public DateTime? UpdatedAt { get; set; }
 
     // Navigation properties
-    public virtual ApplicationUser? Provider { get; set; }
+    public virtual Users? Provider { get; set; }
     public virtual Category? Category { get; set; }
     public virtual ICollection<ServiceImage> Images { get; set; } = new List<ServiceImage>();
 }

@@ -1,0 +1,199 @@
+@page "/activate-account"
+@using EventHotelBroker.Components.Layout
+@using EventHotelBroker.Models
+@using EventHotelBroker.Data
+@using Microsoft.EntityFrameworkCore
+@layout AuthLayout
+@rendermode InteractiveServer
+@inject ApplicationDbContext DbContext
+@inject NavigationManager Navigation
+
+<PageTitle>Activate Account - EventHotelBroker</PageTitle>
+
+<link href="/css/auth-register.css?v=1" rel="stylesheet" />
+
+<div class="rg-page">
+    <a href="/" class="rg-back"><i class="bi bi-arrow-left"></i> Back to Home</a>
+
+    <div class="rg-card">
+        <div class="rg-header">
+            @if (isLoading)
+            {
+                <div class="rg-logo"><i class="bi bi-hourglass-split"></i></div>
+                <h2 class="rg-title">Verifying...</h2>
+                <p class="rg-subtitle">Please wait while we verify your account</p>
+            }
+            else if (isSuccess)
+            {
+                <div class="rg-logo" style="background: linear-gradient(135deg, #28a745, #20c997);"><i class="bi bi-check-circle-fill"></i></div>
+                <h2 class="rg-title">Account Activated!</h2>
+                <p class="rg-subtitle">Your email has been verified successfully</p>
+            }
+            else
+            {
+                <div class="rg-logo" style="background: linear-gradient(135deg, #dc3545, #e74c3c);"><i class="bi bi-x-circle-fill"></i></div>
+                <h2 class="rg-title">Activation Failed</h2>
+                <p class="rg-subtitle">@errorMessage</p>
+            }
+        </div>
+
+        <div class="rg-body">
+            @if (isLoading)
+            {
+                <div style="text-align: center; padding: 24px 0;">
+                    <div class="spinner-border" style="color: #667eea; width: 3rem; height: 3rem;" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p style="margin-top: 16px; color: #6c757d;">Verifying your activation link...</p>
+                </div>
+            }
+            else if (isSuccess)
+            {
+                <div style="text-align: center; padding: 16px 0;">
+                    <div style="background: #d4edda; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                        <i class="bi bi-envelope-check" style="font-size: 2rem; color: #28a745;"></i>
+                        <p style="color: #155724; margin: 12px 0 0; font-size: 14px;">
+                            Your email <strong>@userEmail</strong> has been verified and your account is now active. You can now sign in to your account.
+                        </p>
+                    </div>
+                    <button type="button" class="rg-btn rg-btn-primary" @onclick="GoToLogin">
+                        <i class="bi bi-box-arrow-in-right"></i> Sign In to Your Account
+                    </button>
+                </div>
+            }
+            else
+            {
+                <div style="text-align: center; padding: 16px 0;">
+                    <div style="background: #f8d7da; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                        <i class="bi bi-exclamation-triangle" style="font-size: 2rem; color: #dc3545;"></i>
+                        <p style="color: #721c24; margin: 12px 0 0; font-size: 14px;">
+                            @errorDetail
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                        <button type="button" class="rg-btn rg-btn-primary" @onclick="GoToRegister">
+                            <i class="bi bi-person-plus"></i> Create New Account
+                        </button>
+                        <button type="button" class="rg-btn rg-btn-primary" style="background: #6c757d;" @onclick="GoToLogin">
+                            <i class="bi bi-box-arrow-in-right"></i> Sign In
+                        </button>
+                    </div>
+                </div>
+            }
+
+            <div class="rg-footer">
+                Need help? <a href="/contact">Contact Support</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "token")]
+    public string? Token { get; set; }
+
+    [SupplyParameterFromQuery(Name = "email")]
+    public string? EmailParam { get; set; }
+
+    private bool isLoading = true;
+    private bool isSuccess = false;
+    private string errorMessage = "Something went wrong";
+    private string errorDetail = "";
+    private string userEmail = "";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await ProcessActivation();
+            StateHasChanged();
+        }
+    }
+
+    private async Task ProcessActivation()
+    {
+        try
+        {
+            // Validate query parameters
+            if (string.IsNullOrWhiteSpace(Token) || string.IsNullOrWhiteSpace(EmailParam))
+            {
+                errorMessage = "Invalid Activation Link";
+                errorDetail = "The activation link is invalid or incomplete. Please check the link in your email and try again, or register for a new account.";
+                isLoading = false;
+                return;
+            }
+
+            var decodedEmail = Uri.UnescapeDataString(EmailParam);
+            userEmail = decodedEmail;
+
+            // Check if user exists with this email
+            var user = await DbContext.Users.FirstOrDefaultAsync(u => u.Email == decodedEmail);
+            if (user == null)
+            {
+                errorMessage = "Account Not Found";
+                errorDetail = $"No account was found with the email address \"{decodedEmail}\". The account may have been deleted or the email address may be incorrect. Please register for a new account.";
+                isLoading = false;
+                return;
+            }
+
+            // Check if already verified
+            if (user.IsEmailVerified)
+            {
+                errorMessage = "Already Activated";
+                errorDetail = "This account has already been activated. You can sign in with your credentials.";
+                isSuccess = true;
+                isLoading = false;
+                return;
+            }
+
+            // Check if token matches
+            if (user.EmailVerificationToken != Token)
+            {
+                errorMessage = "Invalid Token";
+                errorDetail = "The activation token is invalid. This may happen if a new activation email was sent. Please use the most recent activation link from your email.";
+                isLoading = false;
+                return;
+            }
+
+            // Check if token is expired
+            if (user.EmailVerificationTokenExpiry == null || user.EmailVerificationTokenExpiry < DateTime.UtcNow)
+            {
+                errorMessage = "Link Expired";
+                errorDetail = "The activation link has expired. Activation links are valid for 24 hours. Please register again or contact support for assistance.";
+                isLoading = false;
+                return;
+            }
+
+            // Activate the user
+            user.IsEmailVerified = true;
+            user.IsActive = true;
+            user.EmailVerificationTimestamp = DateTime.UtcNow;
+            user.EmailVerificationToken = null;
+            user.EmailVerificationTokenExpiry = null;
+
+            DbContext.Users.Update(user);
+            await DbContext.SaveChangesAsync();
+
+            isSuccess = true;
+        }
+        catch (Exception)
+        {
+            errorMessage = "Activation Error";
+            errorDetail = "An unexpected error occurred while activating your account. Please try again later or contact support.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void GoToLogin()
+    {
+        Navigation.NavigateTo("/login");
+    }
+
+    private void GoToRegister()
+    {
+        Navigation.NavigateTo("/register");
+    }
+}

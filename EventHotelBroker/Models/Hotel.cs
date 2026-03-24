@@ -50,7 +50,7 @@ public class Hotel
     public DateTime? UpdatedAt { get; set; }
 
     // Navigation properties
-    public virtual ApplicationUser? Owner { get; set; }
+    public virtual Users? Owner { get; set; }
     public virtual ICollection<HotelImage> Images { get; set; } = new List<HotelImage>();
     public virtual ICollection<HotelAmenity> HotelAmenities { get; set; } = new List<HotelAmenity>();
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();

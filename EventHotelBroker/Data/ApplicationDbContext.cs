@@ -10,14 +10,14 @@ public class ApplicationDbContext : DbContext
     {
     }
 
-    public DbSet<ApplicationUser> AspNetUsers { get; set; }
-    public DbSet<ApplicationUser> Users { get; set; }
+
     public DbSet<Hotel> Hotels { get; set; }
     public DbSet<HotelImage> HotelImages { get; set; }
     public DbSet<Service> Services { get; set; }
     public DbSet<ServiceImage> ServiceImages { get; set; }
     public DbSet<Category> Categories { get; set; }
     public DbSet<Amenity> Amenities { get; set; }
+    public DbSet<Users> Users { get; set; }
     public DbSet<HotelAmenity> HotelAmenities { get; set; }
     public DbSet<Booking> Bookings { get; set; }
     public DbSet<Message> Messages { get; set; }
@@ -33,20 +33,7 @@ public class ApplicationDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // ApplicationUser configuration
-        modelBuilder.Entity<ApplicationUser>(entity =>
-        {
-            entity.ToTable("AspNetUsers");
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Id).HasMaxLength(255);
-            entity.Property(e => e.Email).HasMaxLength(256);
-            entity.Property(e => e.PhoneNumber).HasMaxLength(50);
-            entity.Property(e => e.FullName).HasMaxLength(200);
-            entity.Property(e => e.Role).HasMaxLength(50);
-            entity.Property(e => e.BusinessName).HasMaxLength(200);
-            entity.Property(e => e.RegistrationNumber).HasMaxLength(100);
-        });
-
+    
         // Hotel configuration
         modelBuilder.Entity<Hotel>(entity =>
         {
