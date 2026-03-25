@@ -8,4 +8,6 @@ public interface IAuthService
     Task<bool> GenerateAndSendTwoFactorCodeAsync(string userId);
     Task<(bool Success, string Message)> VerifyTwoFactorCodeAsync(string userId, string code);
     Task<Users?> GetUserByIdAsync(string userId);
+    Task<(bool Success, string Message)> ForgotPasswordAsync(string email, string baseUri);
+    Task<(bool Success, string Message)> ResetPasswordAsync(string email, string token, string newPassword);
 }

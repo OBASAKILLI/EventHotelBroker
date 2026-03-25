@@ -1,4 +1,8 @@
 @inherits LayoutComponentBase
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IHttpContextAccessor HttpContextAccessor
+@inject AuthenticationStateProvider AuthStateProvider
 
 <link href="/css/design-system.css" rel="stylesheet" />
 
@@ -23,12 +27,46 @@
                 <button class="app-bar-btn" title="Settings">
                     <i class="bi bi-gear"></i>
                 </button>
-                <div class="user-profile" style="cursor: pointer;" onclick="window.location.href='/login'">
-                    <div class="user-avatar">
-                        <i class="bi bi-person-circle"></i>
+                @if (isLoggedIn)
+                {
+                    <div class="user-profile" style="cursor: pointer; position: relative;" @onclick="ToggleUserMenu">
+                        <div class="user-avatar" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
+                            <span style="font-size: 0.85rem; font-weight: 600;">@userInitials</span>
+                        </div>
+                        <span class="user-name">@userName</span>
+                        <i class="bi bi-chevron-down" style="font-size: 0.7rem; margin-left: 4px; color: #6c757d;"></i>
                     </div>
-                    <span class="user-name">Login / Register</span>
-                </div>
+                    @if (showUserMenu)
+                    {
+                        <div style="position: absolute; top: 50px; right: 16px; background: white; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); min-width: 220px; z-index: 2000; overflow: hidden;">
+                            <div style="padding: 16px; border-bottom: 1px solid #f0f0f0;">
+                                <div style="font-weight: 600; color: #2A2A2A; font-size: 0.9rem;">@userName</div>
+                                <div style="color: #6c757d; font-size: 0.78rem;">@userEmail</div>
+                                <span style="display: inline-block; margin-top: 6px; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; background: rgba(102,126,234,0.1); color: #667eea;">@userRole</span>
+                            </div>
+                            <a href="/profile" style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; color: #333; text-decoration: none; font-size: 0.85rem; transition: background 0.15s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='transparent'">
+                                <i class="bi bi-person"></i> My Profile
+                            </a>
+                            <a href="/settings" style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; color: #333; text-decoration: none; font-size: 0.85rem; transition: background 0.15s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='transparent'">
+                                <i class="bi bi-gear"></i> Settings
+                            </a>
+                            <div style="border-top: 1px solid #f0f0f0;">
+                                <button onclick="document.getElementById('logoutModalHome').style.display='flex'" style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; color: #dc3545; background: none; border: none; width: 100%; text-align: left; font-size: 0.85rem; cursor: pointer; transition: background 0.15s;" onmouseover="this.style.background='#fff5f5'" onmouseout="this.style.background='transparent'">
+                                    <i class="bi bi-box-arrow-right"></i> Sign Out
+                                </button>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="user-profile" style="cursor: pointer;" onclick="window.location.href='/login'">
+                        <div class="user-avatar">
+                            <i class="bi bi-person-circle"></i>
+                        </div>
+                        <span class="user-name">Login / Register</span>
+                    </div>
+                }
             </div>
         </div>
     </header>
@@ -43,6 +81,21 @@
         <i class="bi bi-chat-dots-fill"></i>
         <span class="chat-badge">3</span>
     </a>
+</div>
+
+<!-- Logout Confirmation Modal (JS-driven) -->
+<div id="logoutModalHome" onclick="if(event.target===this)this.style.display='none'" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:white; border-radius:16px; padding:32px; max-width:380px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.2); text-align:center;">
+        <div style="width:56px; height:56px; border-radius:50%; background:#fff5f5; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+            <i class="bi bi-box-arrow-right" style="font-size:1.5rem; color:#dc3545;"></i>
+        </div>
+        <h3 style="margin:0 0 8px; color:#2A2A2A; font-size:1.15rem;">Sign Out</h3>
+        <p style="color:#6c757d; font-size:0.9rem; margin:0 0 24px;">Are you sure you want to sign out of your account?</p>
+        <div style="display:flex; gap:12px; justify-content:center;">
+            <button onclick="document.getElementById('logoutModalHome').style.display='none'" style="padding:10px 24px; border-radius:8px; border:1px solid #dee2e6; background:white; color:#333; font-size:0.9rem; cursor:pointer; font-weight:500;">Cancel</button>
+            <button onclick="window.location.href='/logout'" style="padding:10px 24px; border-radius:8px; border:none; background:#dc3545; color:white; font-size:0.9rem; cursor:pointer; font-weight:500;">Sign Out</button>
+        </div>
+    </div>
 </div>
 
 <style>
@@ -106,11 +159,83 @@
     }
 </style>
 
-@* <div id="blazor-error-ui" class="modern-error-ui">
-    <div class="error-content">
-        <i class="bi bi-exclamation-triangle-fill"></i>
-        <span>An unhandled error has occurred.</span>
-        <a href="" class="reload">Reload</a>
-        <a class="dismiss">×</a>
-    </div>
-</div> *@
+@code {
+    private bool showUserMenu = false;
+    private bool isLoggedIn = false;
+    private string userName = "";
+    private string userEmail = "";
+    private string userRole = "";
+    private string userInitials = "";
+
+    protected override void OnInitialized()
+    {
+        LoadUserFromSession();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        AuthStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
+        await base.OnParametersSetAsync();
+    }
+
+    private async void OnAuthenticationStateChanged(Task<AuthenticationState> task)
+    {
+        await InvokeAsync(() =>
+        {
+            LoadUserFromSession();
+            StateHasChanged();
+        });
+    }
+
+    private void LoadUserFromSession()
+    {
+        try
+        {
+            var token = HttpContextAccessor.HttpContext?.Session?.GetString("JWToken");
+            if (!string.IsNullOrEmpty(token))
+            {
+                var parts = token.Split('.');
+                if (parts.Length >= 2)
+                {
+                    var payload = parts[1];
+                    switch (payload.Length % 4)
+                    {
+                        case 2: payload += "=="; break;
+                        case 3: payload += "="; break;
+                    }
+                    var jsonBytes = Convert.FromBase64String(payload);
+                    var json = System.Text.Encoding.UTF8.GetString(jsonBytes);
+                    var claims = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(json);
+
+                    if (claims != null)
+                    {
+                        claims.TryGetValue("given_name", out var givenName);
+                        claims.TryGetValue("email", out var email);
+                        claims.TryGetValue("AccountType", out var accountType);
+
+                        userName = givenName?.ToString() ?? "User";
+                        userEmail = email?.ToString() ?? "";
+                        userRole = accountType?.ToString() ?? "User";
+
+                        var nameParts = userName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                        userInitials = nameParts.Length >= 2
+                            ? $"{nameParts[0][0]}{nameParts[^1][0]}".ToUpper()
+                            : (userName.Length >= 2 ? userName[..2].ToUpper() : userName.ToUpper());
+
+                        isLoggedIn = true;
+                    }
+                }
+            }
+        }
+        catch
+        {
+            isLoggedIn = false;
+        }
+    }
+
+    private void ToggleUserMenu()
+    {
+        showUserMenu = !showUserMenu;
+    }
+
+}

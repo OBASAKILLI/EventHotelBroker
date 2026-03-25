@@ -1,11 +1,18 @@
 @page "/login"
 @using EventHotelBroker.Components.Layout
 @using EventHotelBroker.Services
+@using EventHotelBroker.Data
+@using EventHotelBroker.Models
+@using EventHotelBroker.Utils
+@using Microsoft.EntityFrameworkCore
 @layout AuthLayout
 @rendermode InteractiveServer
 @inject NavigationManager Navigation
 @inject ToastService ToastService
 @inject IAuthService AuthService
+@inject TokenProvider TokenProvider
+@inject CustomAuthenticationStateProvider AuthStateProvider
+@inject IHttpContextAccessor HttpContextAccessor
 
 <PageTitle>Login - EventHotelBroker</PageTitle>
 
@@ -16,59 +23,121 @@
 
     <div class="lg-card">
         <div class="lg-header">
-            <div class="lg-logo"><i class="bi bi-building-fill"></i></div>
-            <h2 class="lg-title">Welcome Back</h2>
-            <p class="lg-subtitle">Sign in to your EventHotelBroker account</p>
+            @if (!showOtpForm)
+            {
+                <div class="lg-logo"><i class="bi bi-building-fill"></i></div>
+                <h2 class="lg-title">Welcome Back</h2>
+                <p class="lg-subtitle">Sign in to your EventHotelBroker account</p>
+            }
+            else
+            {
+                <div class="lg-logo" style="background: linear-gradient(135deg, #667eea, #764ba2);"><i class="bi bi-shield-lock-fill"></i></div>
+                <h2 class="lg-title">Two-Factor Authentication</h2>
+                <p class="lg-subtitle">Enter the 6-digit code sent to your email</p>
+            }
         </div>
 
         <div class="lg-body">
-            <div class="lg-field">
-                <label class="lg-label">Email Address</label>
-                <input type="email" class="lg-input" @bind="email" placeholder="you@example.com" />
-            </div>
+            @if (!showOtpForm)
+            {
+                <!-- Login Form -->
+                <div class="lg-field">
+                    <label class="lg-label">Email Address</label>
+                    <input type="email" class="lg-input" @bind="email" placeholder="you@example.com" />
+                </div>
 
-            <div class="lg-field">
-                <label class="lg-label">Password</label>
-                <input type="password" class="lg-input" @bind="password" placeholder="Enter your password" />
-            </div>
+                <div class="lg-field">
+                    <label class="lg-label">Password</label>
+                    <input type="password" class="lg-input" @bind="password" placeholder="Enter your password" />
+                </div>
 
-            <div class="lg-options">
-                <label class="lg-check">
-                    <input type="checkbox" @bind="rememberMe" />
-                    <span class="lg-check-label">Remember me</span>
-                </label>
-                <a href="/forgot-password" class="lg-forgot">Forgot password?</a>
-            </div>
+                <div class="lg-options">
+                    <label class="lg-check">
+                        <input type="checkbox" @bind="rememberMe" />
+                        <span class="lg-check-label">Remember me</span>
+                    </label>
+                    <a href="/forgot-password" class="lg-forgot">Forgot password?</a>
+                </div>
 
-            <button type="button" class="lg-btn lg-btn-primary" @onclick="HandleLogin" disabled="@isLoggingIn">
-                @if (isLoggingIn)
-                {
-                    <span class="lg-spinner"></span>
-                    <span>Signing In...</span>
-                }
-                else
-                {
-                    <i class="bi bi-box-arrow-in-right"></i>
-                    <span>Sign In</span>
-                }
-            </button>
-
-            <div class="lg-divider">
-                <span class="lg-divider-text">or continue with</span>
-            </div>
-
-            <div class="lg-socials">
-                <button type="button" class="lg-btn-social" @onclick="GoogleLogin">
-                    <i class="bi bi-google"></i> Google
+                <button type="button" class="lg-btn lg-btn-primary" @onclick="HandleLogin" disabled="@isLoggingIn">
+                    @if (isLoggingIn)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1"></span>
+                        <span>Signing In...</span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-box-arrow-in-right"></i>
+                        <span>Sign In</span>
+                    }
                 </button>
-                <button type="button" class="lg-btn-social" @onclick="FacebookLogin">
-                    <i class="bi bi-facebook"></i> Facebook
-                </button>
-            </div>
 
-            <div class="lg-footer">
-                Don't have an account? <a href="/register">Sign up</a>
-            </div>
+                <div class="lg-divider">
+                    <span class="lg-divider-text">or continue with</span>
+                </div>
+
+                <div class="lg-socials">
+                    <button type="button" class="lg-btn-social" @onclick="GoogleLogin">
+                        <i class="bi bi-google"></i> Google
+                    </button>
+                    <button type="button" class="lg-btn-social" @onclick="FacebookLogin">
+                        <i class="bi bi-facebook"></i> Facebook
+                    </button>
+                </div>
+
+                <div class="lg-footer">
+                    Don't have an account? <a href="/register">Sign up</a>
+                </div>
+            }
+            else
+            {
+                <!-- OTP Verification Form -->
+                <div style="text-align: center; margin-bottom: 16px;">
+                    <p style="color: #6c757d; font-size: 0.9rem;">
+                        A verification code was sent to <strong>@maskedEmail</strong>
+                    </p>
+                </div>
+
+                <div class="lg-field">
+                    <label class="lg-label">Verification Code</label>
+                    <input type="text" class="lg-input" style="text-align: center; font-size: 1.5rem; letter-spacing: 8px; font-weight: 600;"
+                           @bind="otpCode" placeholder="000000" maxlength="6" />
+                </div>
+
+                <button type="button" class="lg-btn lg-btn-primary" @onclick="HandleVerifyOtp" disabled="@isVerifying">
+                    @if (isVerifying)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1"></span>
+                        <span>Verifying...</span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-shield-check"></i>
+                        <span>Verify & Sign In</span>
+                    }
+                </button>
+
+                <div style="text-align: center; margin-top: 12px;">
+                    <button type="button" style="background: none; border: none; color: #667eea; cursor: pointer; font-size: 0.85rem;"
+                            @onclick="ResendOtp" disabled="@isResending">
+                        @if (isResending)
+                        {
+                            <span>Sending...</span>
+                        }
+                        else
+                        {
+                            <span>Didn't receive the code? Resend</span>
+                        }
+                    </button>
+                </div>
+
+                <div style="text-align: center; margin-top: 8px;">
+                    <button type="button" style="background: none; border: none; color: #6c757d; cursor: pointer; font-size: 0.85rem;"
+                            @onclick="BackToLogin">
+                        <i class="bi bi-arrow-left"></i> Back to login
+                    </button>
+                </div>
+            }
         </div>
     </div>
 </div>
@@ -79,63 +148,210 @@
     private bool rememberMe = false;
     private bool isLoggingIn = false;
 
+    // 2FA state
+    private bool showOtpForm = false;
+    private string otpCode = "";
+    private string pendingUserId = "";
+    private string maskedEmail = "";
+    private bool isVerifying = false;
+    private bool isResending = false;
+
     private async Task HandleLogin()
     {
-        if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
         {
             ToastService.ShowWarning("Missing Information", "Please enter your email and password");
             return;
         }
 
         isLoggingIn = true;
+        StateHasChanged();
 
-        var (success, message, user) = await AuthService.LoginAsync(email, password);
-
-        if (success && user != null)
+        try
         {
-            // Check if 2FA is enabled for this user
-            if (user.TwoFactorEnabled)
-            {
-                // Generate and send 2FA code
-                var codeSent = await AuthService.GenerateAndSendTwoFactorCodeAsync(user.Id);
+            var (success, message, user) = await AuthService.LoginAsync(email, password);
 
+            if (!success || user == null)
+            {
+                ToastService.ShowError("Login Failed", message);
+                isLoggingIn = false;
+                return;
+            }
+
+            // Check if email is verified
+            if (!user.IsEmailVerified)
+            {
+                ToastService.ShowWarning("Email Not Verified", "Please check your email and activate your account before signing in.");
+                isLoggingIn = false;
+                return;
+            }
+
+            // Check if 2FA is enabled
+            if (user.IsTwoFAEnabled)
+            {
+                var codeSent = await AuthService.GenerateAndSendTwoFactorCodeAsync(user.Id);
                 if (codeSent)
                 {
-                    ToastService.ShowSuccess("Verification Code Sent", "Please check your email for the verification code");
-                    await Task.Delay(1000);
-                    Navigation.NavigateTo($"/verify-2fa?UserId={user.Id}");
+                    pendingUserId = user.Id;
+                    maskedEmail = MaskEmail(user.Email);
+                    showOtpForm = true;
+                    ToastService.ShowSuccess("Code Sent", "A verification code has been sent to your email");
                 }
                 else
                 {
                     ToastService.ShowError("Error", "Failed to send verification code. Please try again.");
                 }
+                isLoggingIn = false;
+                return;
+            }
+
+            // No 2FA — generate JWT token, store in session, and navigate
+            await CompleteLogin(user);
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError("Login Error", $"An error occurred: {ex.Message}");
+        }
+        finally
+        {
+            isLoggingIn = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleVerifyOtp()
+    {
+        if (string.IsNullOrWhiteSpace(otpCode) || otpCode.Length != 6)
+        {
+            ToastService.ShowWarning("Invalid Code", "Please enter the 6-digit verification code");
+            return;
+        }
+
+        isVerifying = true;
+        StateHasChanged();
+
+        try
+        {
+            var (success, message) = await AuthService.VerifyTwoFactorCodeAsync(pendingUserId, otpCode);
+
+            if (!success)
+            {
+                ToastService.ShowError("Verification Failed", message);
+                isVerifying = false;
+                return;
+            }
+
+            // OTP verified — generate JWT and complete login
+            var user = await AuthService.GetUserByIdAsync(pendingUserId);
+            if (user != null)
+            {
+                await CompleteLogin(user);
             }
             else
             {
-                // No 2FA, redirect directly to dashboard
-                ToastService.ShowSuccess("Login Successful!", "Welcome back to EventHotelBroker");
-                await Task.Delay(1000);
-                
-                if (user.Role == "Admin")
-                {
-                    Navigation.NavigateTo("/admin/dashboard");
-                }
-                else if (user.Role == "HotelOwner")
-                {
-                    Navigation.NavigateTo("/owner/dashboard");
-                }
-                else
-                {
-                    Navigation.NavigateTo("/user/dashboard");
-                }
+                ToastService.ShowError("Error", "User not found. Please try again.");
             }
         }
-        else
+        catch (Exception ex)
         {
-            ToastService.ShowError("Login Failed", message);
+            ToastService.ShowError("Error", $"An error occurred: {ex.Message}");
         }
+        finally
+        {
+            isVerifying = false;
+            StateHasChanged();
+        }
+    }
 
-        isLoggingIn = false;
+    private async Task CompleteLogin(EventHotelBroker.Models.Users user)
+    {
+        try
+        {
+            // Generate JWT token directly from the user we already have
+            var token = TokenProvider.GenerateToken(user);
+
+            // Store token in session (HttpContext is available during initial render)
+            try
+            {
+                var session = HttpContextAccessor.HttpContext?.Session;
+                if (session != null)
+                {
+                    session.SetString("JWToken", token);
+                    await session.CommitAsync();
+                }
+            }
+            catch (Exception sessionEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"[Login] Session store warning: {sessionEx.Message}");
+            }
+
+            // Notify the authentication state provider
+            await AuthStateProvider.MarkUserAsAuthenticated(token);
+
+            ToastService.ShowSuccess("Login Successful!", $"Welcome back, {user.FullName}");
+            await Task.Delay(500);
+
+            // Navigate based on role
+            if (user.Role == "Admin")
+            {
+                Navigation.NavigateTo("/admin/dashboard", forceLoad: true);
+            }
+            else if (user.Role == "HotelOwner")
+            {
+                Navigation.NavigateTo("/owner/dashboard", forceLoad: true);
+            }
+            else
+            {
+                Navigation.NavigateTo("/user/dashboard", forceLoad: true);
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError("Login Error", ex.Message);
+        }
+    }
+
+    private async Task ResendOtp()
+    {
+        isResending = true;
+        StateHasChanged();
+
+        try
+        {
+            var codeSent = await AuthService.GenerateAndSendTwoFactorCodeAsync(pendingUserId);
+            if (codeSent)
+            {
+                ToastService.ShowSuccess("Code Sent", "A new verification code has been sent to your email");
+            }
+            else
+            {
+                ToastService.ShowError("Error", "Failed to resend verification code");
+            }
+        }
+        finally
+        {
+            isResending = false;
+            StateHasChanged();
+        }
+    }
+
+    private void BackToLogin()
+    {
+        showOtpForm = false;
+        otpCode = "";
+        pendingUserId = "";
+    }
+
+    private string MaskEmail(string emailAddr)
+    {
+        if (string.IsNullOrEmpty(emailAddr)) return "";
+        var parts = emailAddr.Split('@');
+        if (parts.Length != 2) return emailAddr;
+        var name = parts[0];
+        var masked = name.Length > 2
+            ? name[0] + new string('*', name.Length - 2) + name[^1]
+            : name;
+        return $"{masked}@{parts[1]}";
     }
 
     private void GoogleLogin()

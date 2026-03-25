@@ -32,7 +32,6 @@ namespace EventHotelBroker.Interfaces
 
         public async Task<Users> FindUserwithMail(string Email)
         {
-
             using var scope = _scopeFactory.CreateScope();
             var _appDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             return await _appDbContext.Users.FirstOrDefaultAsync(x => x.Email == Email);

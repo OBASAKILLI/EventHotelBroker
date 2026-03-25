@@ -3,6 +3,7 @@ using EventHotelBroker.Data;
 using EventHotelBroker.Models;
 using EventHotelBroker.Repositories;
 using EventHotelBroker.Services;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
@@ -27,9 +28,23 @@ builder.Services.AddScoped<IHotelService, HotelService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<IEventService, EventService>();
-builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<EventHotelBroker.Services.IEmailService, EventHotelBroker.Services.EmailService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ToastService>();
+
+// Session & Authentication
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(60);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+builder.Services.AddScoped<EventHotelBroker.TokenProvider>();
+builder.Services.AddScoped<EventHotelBroker.Utils.CustomAuthenticationStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider>(provider =>
+    provider.GetRequiredService<EventHotelBroker.Utils.CustomAuthenticationStateProvider>());
 
 // Add SignalR for real-time messaging
 builder.Services.AddSignalR();
@@ -102,6 +117,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();
+app.UseSession();
 app.UseAntiforgery();
 
 // Enable Swagger in development

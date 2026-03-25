@@ -18,8 +18,7 @@ public class SimpleAuthenticationStateProvider : AuthenticationStateProvider
     {
         try
         {
-            var userInfoResult = await _sessionStorage.GetAsync<UserInfo>("userInfo");
-            
+            var userInfoResult = await _sessionStorage.GetAsync<UserInfo>("userInfo");            
             if (userInfoResult.Success && userInfoResult.Value != null)
             {
                 var userInfo = userInfoResult.Value;
@@ -31,15 +30,12 @@ public class SimpleAuthenticationStateProvider : AuthenticationStateProvider
                     new Claim(ClaimTypes.Role, userInfo.Role),
                     new Claim("Role", userInfo.Role)
                 };
-
                 if (!string.IsNullOrEmpty(userInfo.BusinessName))
                 {
                     claims.Add(new Claim("BusinessName", userInfo.BusinessName));
                 }
-
                 var identity = new ClaimsIdentity(claims, "SimpleAuth");
-                var user = new ClaimsPrincipal(identity);
-                
+                var user = new ClaimsPrincipal(identity);                
                 return new AuthenticationState(user);
             }
         }
@@ -47,7 +43,6 @@ public class SimpleAuthenticationStateProvider : AuthenticationStateProvider
         {
             // If there's an error reading from session, return anonymous
         }
-
         return new AuthenticationState(_anonymous);
     }
 

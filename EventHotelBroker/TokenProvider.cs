@@ -104,10 +104,10 @@ namespace EventHotelBroker
             {
                 Subject = new ClaimsIdentity(new Claim[]
                 {
-                new Claim(ClaimTypes.Name, $"{user.strid.ToString()},{user.AccountType.ToString()},{user.IsTwoFAEnabled}"),
+                new Claim(ClaimTypes.Name, $"{user.strid},{user.AccountType ?? user.Role},{user.IsTwoFAEnabled}"),
                 new Claim(ClaimTypes.GivenName, $"{user.FullName}"),
                 new Claim(ClaimTypes.Email, $"{user.Email}"),
-                new Claim("AccountType", user.AccountType.ToString()),
+                new Claim("AccountType", user.AccountType ?? user.Role ?? "User"),
                // new Claim(ClaimTypes.Role, ""),
                  
         }),

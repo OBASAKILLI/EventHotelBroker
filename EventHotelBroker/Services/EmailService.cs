@@ -14,72 +14,97 @@ public class EmailService : IEmailService
         _logger = logger;
     }
 
+    private string WrapInTemplate(string headerTitle, string innerContent)
+    {
+        return $@"
+        <html>
+        <body style='font-family: -apple-system, BlinkMacSystemFont, ""Segoe UI"", Roboto, ""Helvetica Neue"", Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0;'>
+            <div style='max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08);'>
+                <!-- Header -->
+                <div style='background: linear-gradient(135deg, #2A2A2A 0%, #4a4a4a 100%); padding: 36px 32px; text-align: center;'>
+                    <div style='font-size: 28px; font-weight: 700; color: #9E8B63; letter-spacing: 1px; margin-bottom: 6px;'>Safari Vents</div>
+                    <div style='font-size: 14px; color: rgba(255,255,255,0.7);'>{headerTitle}</div>
+                </div>
+                <!-- Body -->
+                <div style='padding: 36px 32px;'>
+                    {innerContent}
+                </div>
+                <!-- Footer -->
+                <div style='background: #f8f9fa; padding: 20px 32px; text-align: center; border-top: 1px solid #e9ecef;'>
+                    <p style='color: #9E8B63; font-size: 13px; font-weight: 600; margin: 0 0 4px;'>Safari Vents</p>
+                    <p style='color: #999; font-size: 11px; margin: 0;'>&copy; {DateTime.UtcNow.Year} Safari Vents. All rights reserved.</p>
+                    <p style='color: #bbb; font-size: 11px; margin: 4px 0 0;'>This is an automated message. Please do not reply.</p>
+                </div>
+            </div>
+        </body>
+        </html>";
+    }
+
     public async Task SendTwoFactorCodeAsync(string email, string code, string userName)
     {
-        var subject = "Your Two-Factor Authentication Code";
-        var body = $@"
-            <html>
-            <body style='font-family: Arial, sans-serif;'>
-                <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
-                    <h2 style='color: #667eea;'>Two-Factor Authentication</h2>
-                    <p>Hello {userName},</p>
-                    <p>Your verification code is:</p>
-                    <div style='background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;'>
-                        <h1 style='color: #667eea; font-size: 36px; letter-spacing: 8px; margin: 0;'>{code}</h1>
-                    </div>
-                    <p>This code will expire in 10 minutes.</p>
-                    <p>If you didn't request this code, please ignore this email.</p>
-                    <hr style='border: none; border-top: 1px solid #e9ecef; margin: 30px 0;'>
-                    <p style='color: #6c757d; font-size: 12px;'>
-                        This is an automated message from EventHotelBroker. Please do not reply to this email.
-                    </p>
-                </div>
-            </body>
-            </html>
-        ";
+        var subject = "Your Verification Code - Safari Vents";
+        var inner = $@"
+            <p style='font-size: 16px; color: #333; margin: 0 0 8px;'>Hello <strong>{userName}</strong>,</p>
+            <p style='font-size: 14px; color: #555; line-height: 1.6; margin: 0 0 24px;'>
+                Use the following code to complete your sign-in. This code is valid for <strong>10 minutes</strong>.
+            </p>
+            <div style='background: linear-gradient(135deg, #f8f6f3 0%, #f0ede8 100%); padding: 28px; text-align: center; border-radius: 12px; margin: 0 0 24px; border: 2px dashed #9E8B63;'>
+                <div style='color: #2A2A2A; font-size: 42px; letter-spacing: 12px; font-weight: 700; font-family: monospace;'>{code}</div>
+            </div>
+            <p style='font-size: 13px; color: #888; line-height: 1.5; margin: 0;'>
+                If you didn't request this code, someone may be trying to access your account. You can safely ignore this email.
+            </p>";
 
-        await SendEmailAsync(email, subject, body);
+        await SendEmailAsync(email, subject, WrapInTemplate("Two-Factor Authentication", inner));
     }
 
     public async Task SendVerificationEmailAsync(string email, string userName, string verificationLink)
     {
-        var subject = "Activate Your EventHotelBroker Account";
-        var body = $@"
-            <html>
-            <body style='font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 0;'>
-                <div style='max-width: 600px; margin: 30px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08);'>
-                    <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 32px 24px; text-align: center;'>
-                        <h1 style='color: #ffffff; margin: 0; font-size: 24px;'>Welcome to EventHotelBroker</h1>
-                    </div>
-                    <div style='padding: 32px 24px;'>
-                        <p style='font-size: 16px; color: #333;'>Hello <strong>{userName}</strong>,</p>
-                        <p style='font-size: 14px; color: #555; line-height: 1.6;'>
-                            Thank you for creating your account! Please click the button below to verify your email address and activate your account.
-                        </p>
-                        <div style='text-align: center; margin: 32px 0;'>
-                            <a href='{verificationLink}' style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; padding: 14px 40px; border-radius: 8px; text-decoration: none; font-size: 16px; font-weight: 600; display: inline-block;'>
-                                Activate My Account
-                            </a>
-                        </div>
-                        <p style='font-size: 13px; color: #888; line-height: 1.5;'>
-                            This activation link will expire in <strong>24 hours</strong>. If you did not create this account, please ignore this email.
-                        </p>
-                        <p style='font-size: 13px; color: #888; line-height: 1.5;'>
-                            If the button above doesn't work, copy and paste the following link into your browser:
-                        </p>
-                        <p style='font-size: 12px; color: #667eea; word-break: break-all;'>{verificationLink}</p>
-                    </div>
-                    <div style='background: #f8f9fa; padding: 16px 24px; text-align: center; border-top: 1px solid #e9ecef;'>
-                        <p style='color: #6c757d; font-size: 12px; margin: 0;'>
-                            &copy; {DateTime.UtcNow.Year} EventHotelBroker. All rights reserved.
-                        </p>
-                    </div>
-                </div>
-            </body>
-            </html>
-        ";
+        var subject = "Activate Your Account - Safari Vents";
+        var inner = $@"
+            <p style='font-size: 16px; color: #333; margin: 0 0 8px;'>Hello <strong>{userName}</strong>,</p>
+            <p style='font-size: 14px; color: #555; line-height: 1.6; margin: 0 0 24px;'>
+                Thank you for joining Safari Vents! Click the button below to verify your email and activate your account.
+            </p>
+            <div style='text-align: center; margin: 0 0 28px;'>
+                <a href='{verificationLink}' style='background: linear-gradient(135deg, #2A2A2A 0%, #4a4a4a 100%); color: #9E8B63; padding: 16px 48px; border-radius: 10px; text-decoration: none; font-size: 16px; font-weight: 600; display: inline-block; letter-spacing: 0.5px;'>
+                    Activate My Account
+                </a>
+            </div>
+            <p style='font-size: 13px; color: #888; line-height: 1.5; margin: 0 0 12px;'>
+                This link will expire in <strong>24 hours</strong>. If you did not create this account, please ignore this email.
+            </p>
+            <p style='font-size: 12px; color: #aaa; margin: 0 0 4px;'>If the button doesn't work, copy this link:</p>
+            <p style='font-size: 12px; color: #9E8B63; word-break: break-all; margin: 0;'>{verificationLink}</p>";
 
-        await SendEmailAsync(email, subject, body);
+        await SendEmailAsync(email, subject, WrapInTemplate("Account Activation", inner));
+    }
+
+    public async Task SendPasswordResetEmailAsync(string email, string userName, string resetLink)
+    {
+        var subject = "Reset Your Password - Safari Vents";
+        var inner = $@"
+            <p style='font-size: 16px; color: #333; margin: 0 0 8px;'>Hello <strong>{userName}</strong>,</p>
+            <p style='font-size: 14px; color: #555; line-height: 1.6; margin: 0 0 24px;'>
+                We received a request to reset your password. Click the button below to set a new password for your account.
+            </p>
+            <div style='text-align: center; margin: 0 0 28px;'>
+                <a href='{resetLink}' style='background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: #ffffff; padding: 16px 48px; border-radius: 10px; text-decoration: none; font-size: 16px; font-weight: 600; display: inline-block; letter-spacing: 0.5px;'>
+                    Reset My Password
+                </a>
+            </div>
+            <div style='background: #fff5f5; padding: 16px; border-radius: 8px; border-left: 4px solid #dc3545; margin: 0 0 20px;'>
+                <p style='font-size: 13px; color: #dc3545; margin: 0; font-weight: 500;'>
+                    ⏰ This link will expire in <strong>1 hour</strong>.
+                </p>
+            </div>
+            <p style='font-size: 13px; color: #888; line-height: 1.5; margin: 0 0 12px;'>
+                If you did not request a password reset, you can safely ignore this email. Your password will remain unchanged.
+            </p>
+            <p style='font-size: 12px; color: #aaa; margin: 0 0 4px;'>If the button doesn't work, copy this link:</p>
+            <p style='font-size: 12px; color: #9E8B63; word-break: break-all; margin: 0;'>{resetLink}</p>";
+
+        await SendEmailAsync(email, subject, WrapInTemplate("Password Reset", inner));
     }
 
     public async Task SendEmailAsync(string to, string subject, string body)
@@ -93,12 +118,9 @@ public class EmailService : IEmailService
             var username = _configuration["EmailSettings:SenderEmail"] ?? _configuration["Smtp:User"];
             var password = _configuration["EmailSettings:SenderPassword"] ?? _configuration["Smtp:Pass"];
 
-            // If credentials are not configured, log the email instead
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
                 _logger.LogWarning("Email credentials not configured. Email would be sent to: {Email}", to);
-                _logger.LogInformation("Email Subject: {Subject}", subject);
-                _logger.LogInformation("Email Body: {Body}", body);
                 return;
             }
 
@@ -108,7 +130,7 @@ public class EmailService : IEmailService
 
             var mailMessage = new MailMessage
             {
-                From = new MailAddress(senderEmail ?? "noreply@eventhotelbroker.com", senderName ?? "EventHotelBroker"),
+                From = new MailAddress(senderEmail ?? "noreply@safarivents.com", senderName ?? "Safari Vents"),
                 Subject = subject,
                 Body = body,
                 IsBodyHtml = true

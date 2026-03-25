@@ -1,5 +1,6 @@
 using EventHotelBroker.Data;
 using EventHotelBroker.Models;
+using EventHotelBroker.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventHotelBroker.Services;
@@ -53,9 +54,10 @@ public class AuthService : IAuthService
     {
         try
         {
-            var user = await _context.Users.FindAsync(userId);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.strid == userId);
             if (user == null || string.IsNullOrEmpty(user.Email))
             {
+                _logger.LogWarning("2FA: User not found for userId: {UserId}", userId);
                 return false;
             }
 
@@ -63,10 +65,11 @@ public class AuthService : IAuthService
             var code = new Random().Next(100000, 999999).ToString();
 
             // Store the code and expiry time
-            user.TwoFactorCode = code;
-            user.TwoFactorCodeExpiry = DateTime.UtcNow.AddMinutes(10);
+            user.TwoFACode = code;
+            user.TwoFACodeExpiry = DateTime.UtcNow.AddMinutes(10);
 
             await _context.SaveChangesAsync();
+            _logger.LogInformation("2FA code saved to DB for user: {UserId}, code set: {HasCode}", userId, !string.IsNullOrEmpty(user.TwoFACode));
 
             // Send the code via email
             await _emailService.SendTwoFactorCodeAsync(user.Email, code, user.FullName ?? "User");
@@ -85,30 +88,32 @@ public class AuthService : IAuthService
     {
         try
         {
-            var user = await _context.Users.FindAsync(userId);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.strid == userId);
             if (user == null)
             {
                 return (false, "User not found");
             }
 
-            if (string.IsNullOrEmpty(user.TwoFactorCode))
+            _logger.LogInformation("2FA verify: userId={UserId}, codeInDb={Code}, expiry={Expiry}", userId, user.TwoFACode ?? "NULL", user.TwoFACodeExpiry?.ToString() ?? "NULL");
+
+            if (string.IsNullOrEmpty(user.TwoFACode))
             {
                 return (false, "No verification code found. Please request a new code.");
             }
 
-            if (user.TwoFactorCodeExpiry == null || user.TwoFactorCodeExpiry < DateTime.UtcNow)
+            if (user.TwoFACodeExpiry == null || user.TwoFACodeExpiry < DateTime.UtcNow)
             {
                 return (false, "Verification code has expired. Please request a new code.");
             }
 
-            if (user.TwoFactorCode != code)
+            if (user.TwoFACode != code)
             {
                 return (false, "Invalid verification code");
             }
 
             // Clear the 2FA code after successful verification
-            user.TwoFactorCode = null;
-            user.TwoFactorCodeExpiry = null;
+            user.TwoFACode = null;
+            user.TwoFACodeExpiry = null;
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("2FA verification successful for user: {UserId}", userId);
@@ -123,20 +128,89 @@ public class AuthService : IAuthService
 
     public async Task<Users?> GetUserByIdAsync(string userId)
     {
-        return await _context.Users.FindAsync(userId);
+        return await _context.Users.FirstOrDefaultAsync(u => u.strid == userId);
+    }
+
+    public async Task<(bool Success, string Message)> ForgotPasswordAsync(string email, string baseUri)
+    {
+        try
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null)
+            {
+                // Don't reveal whether user exists
+                return (true, "If an account with that email exists, a password reset link has been sent.");
+            }
+
+            // Generate reset token and set 1 hour expiry
+            var resetToken = Guid.NewGuid().ToString("N");
+            user.ResetToken = resetToken;
+            user.ResetTokenExpiry = DateTime.UtcNow.AddHours(1);
+            await _context.SaveChangesAsync();
+
+            // Build reset link
+            var resetLink = $"{baseUri.TrimEnd('/')}/reset-password?token={resetToken}&email={Uri.EscapeDataString(email)}";
+            await _emailService.SendPasswordResetEmailAsync(email, user.FullName ?? "User", resetLink);
+
+            _logger.LogInformation("Password reset email sent to: {Email}", email);
+            return (true, "If an account with that email exists, a password reset link has been sent.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during forgot password for email: {Email}", email);
+            return (false, "An error occurred. Please try again later.");
+        }
+    }
+
+    public async Task<(bool Success, string Message)> ResetPasswordAsync(string email, string token, string newPassword)
+    {
+        try
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null)
+            {
+                return (false, "Invalid reset link.");
+            }
+
+            if (string.IsNullOrEmpty(user.ResetToken) || user.ResetToken != token)
+            {
+                return (false, "Invalid or already used reset token.");
+            }
+
+            if (user.ResetTokenExpiry == null || user.ResetTokenExpiry < DateTime.UtcNow)
+            {
+                return (false, "Reset link has expired. Please request a new one.");
+            }
+
+            // Encrypt and set new password
+            var encryption = new Encryption();
+            user.password_hash = encryption.Encryptstring(newPassword);
+
+            // Clear reset token
+            user.ResetToken = null;
+            user.ResetTokenExpiry = null;
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Password reset successful for email: {Email}", email);
+            return (true, "Your password has been reset successfully. You can now sign in.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error resetting password for email: {Email}", email);
+            return (false, "An error occurred. Please try again later.");
+        }
     }
 
     private bool VerifyPassword(string password, string? passwordHash)
     {
-        // For demo purposes, we'll use a simple comparison
-        // In production, use BCrypt or ASP.NET Core Identity's password hasher
         if (string.IsNullOrEmpty(passwordHash))
         {
-            // If no password hash exists, accept any password for demo
-            return true;
+            return false;
         }
 
-        // Simple hash comparison (replace with proper password verification)
-        return BCrypt.Net.BCrypt.Verify(password, passwordHash);
+        var encryption = new Encryption();
+        var encryptedInput = encryption.Encryptstring(password);
+        return encryptedInput == passwordHash;
     }
 }
