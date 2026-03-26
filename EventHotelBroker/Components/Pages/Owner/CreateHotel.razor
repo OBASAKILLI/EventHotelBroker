@@ -4,9 +4,11 @@
 @using EventHotelBroker.Models
 @using EventHotelBroker.Services
 @using EventHotelBroker.Repositories
+@using System.Security.Claims
 @inject IHotelService HotelService
 @inject IUnitOfWork UnitOfWork
 @inject NavigationManager NavigationManager
+@inject IHttpContextAccessor HttpContextAccessor
 
 <PageTitle>Create Hotel - EventHotelBroker</PageTitle>
 
@@ -228,8 +230,19 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Since authentication is removed, use a default owner ID (you can change this as needed)
-        currentUserId = "1"; // Default to first owner
+        // Get current user ID from JWT token
+        currentUserId = GetCurrentUserId();
+        
+        // Fallback for testing: if no user ID found, use default
+        if (string.IsNullOrEmpty(currentUserId))
+        {
+            System.Diagnostics.Debug.WriteLine("[CreateHotel] No user ID found, using fallback '1' for testing");
+            currentUserId = "1";
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine($"[CreateHotel] Using user ID: {currentUserId}");
+        }
 
         try
         {
@@ -239,6 +252,59 @@
         {
             errorMessage = "Failed to load amenities.";
         }
+    }
+
+    private string? GetCurrentUserId()
+    {
+        try
+        {
+            var token = HttpContextAccessor.HttpContext?.Session?.GetString("JWToken");
+            System.Diagnostics.Debug.WriteLine($"[CreateHotel] Token from session: {(token != null ? "YES (" + token.Length + " chars)" : "NO")}");
+            
+            if (!string.IsNullOrEmpty(token))
+            {
+                var parts = token.Split('.');
+                if (parts.Length >= 2)
+                {
+                    var payload = parts[1];
+                    switch (payload.Length % 4)
+                    {
+                        case 2: payload += "=="; break;
+                        case 3: payload += "="; break;
+                    }
+                    var jsonBytes = Convert.FromBase64String(payload);
+                    var json = System.Text.Encoding.UTF8.GetString(jsonBytes);
+                    var claims = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(json);
+
+                    System.Diagnostics.Debug.WriteLine($"[CreateHotel] Claims parsed: {claims?.Count ?? 0} claims");
+
+                    if (claims != null && claims.TryGetValue(ClaimTypes.Name, out var nameClaim))
+                    {
+                        // Name claim contains: "userId,accountType,isTwoFAEnabled"
+                        var nameValue = nameClaim.ToString();
+                        System.Diagnostics.Debug.WriteLine($"[CreateHotel] Name claim value: '{nameValue}'");
+                        
+                        if (!string.IsNullOrEmpty(nameValue))
+                        {
+                            var nameParts = nameValue.Split(',');
+                            if (nameParts.Length > 0)
+                            {
+                                var userId = nameParts[0];
+                                System.Diagnostics.Debug.WriteLine($"[CreateHotel] Extracted userId: '{userId}'");
+                                return userId;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[CreateHotel] Error parsing user ID: {ex.Message}");
+        }
+        
+        System.Diagnostics.Debug.WriteLine("[CreateHotel] Returning null user ID");
+        return null;
     }
 
     private void ToggleAmenity(int amenityId, bool isChecked)
@@ -256,9 +322,12 @@
 
     private async Task HandleSubmit()
     {
+        // Debug: Log current user ID
+        System.Diagnostics.Debug.WriteLine($"[CreateHotel] currentUserId: '{currentUserId}'");
+        
         if (string.IsNullOrEmpty(currentUserId))
         {
-            errorMessage = "User not authenticated.";
+            errorMessage = "User not authenticated. Please log in again.";
             return;
         }
 

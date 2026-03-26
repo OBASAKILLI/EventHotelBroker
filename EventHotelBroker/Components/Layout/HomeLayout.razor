@@ -27,6 +27,7 @@
                 <button class="app-bar-btn" title="Settings">
                     <i class="bi bi-gear"></i>
                 </button>
+                <!-- Debug: @isLoggedIn.ToString() -->
                 @if (isLoggedIn)
                 {
                     <div class="user-profile" style="cursor: pointer; position: relative;" @onclick="ToggleUserMenu">
@@ -175,7 +176,16 @@
     protected override async Task OnParametersSetAsync()
     {
         AuthStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
+        // Also refresh on every navigation/render
+        LoadUserFromSession();
         await base.OnParametersSetAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Always refresh user details on every render to catch login changes
+        LoadUserFromSession();
+        await base.OnAfterRenderAsync(firstRender);
     }
 
     private async void OnAuthenticationStateChanged(Task<AuthenticationState> task)
@@ -191,7 +201,10 @@
     {
         try
         {
+            // Try session first
             var token = HttpContextAccessor.HttpContext?.Session?.GetString("JWToken");
+            System.Diagnostics.Debug.WriteLine($"[HomeLayout] Token from session: {(token != null ? "YES (" + token.Length + " chars)" : "NO")}");
+            
             if (!string.IsNullOrEmpty(token))
             {
                 var parts = token.Split('.');
@@ -223,13 +236,39 @@
                             : (userName.Length >= 2 ? userName[..2].ToUpper() : userName.ToUpper());
 
                         isLoggedIn = true;
+                        System.Diagnostics.Debug.WriteLine($"[HomeLayout] User loaded from session: {userName} / {userEmail}");
+                        return;
                     }
                 }
             }
+
+            // Fallback: try to get from AuthenticationStateProvider directly
+            var authState = AuthStateProvider.GetAuthenticationStateAsync().Result;
+            if (authState?.User?.Identity?.IsAuthenticated == true)
+            {
+                var user = authState.User;
+                userName = user.FindFirst(ClaimTypes.GivenName)?.Value ?? user.FindFirst(ClaimTypes.Name)?.Value ?? "User";
+                userEmail = user.FindFirst(ClaimTypes.Email)?.Value ?? "";
+                userRole = user.FindFirst("AccountType")?.Value ?? user.FindFirst(ClaimTypes.Role)?.Value ?? "User";
+
+                var nameParts = userName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                userInitials = nameParts.Length >= 2
+                    ? $"{nameParts[0][0]}{nameParts[^1][0]}".ToUpper()
+                    : (userName.Length >= 2 ? userName[..2].ToUpper() : userName.ToUpper());
+
+                isLoggedIn = true;
+                System.Diagnostics.Debug.WriteLine($"[HomeLayout] User loaded from AuthStateProvider: {userName} / {userEmail}");
+            }
+            else
+            {
+                isLoggedIn = false;
+                System.Diagnostics.Debug.WriteLine("[HomeLayout] No authenticated user found");
+            }
         }
-        catch
+        catch (Exception ex)
         {
             isLoggedIn = false;
+            System.Diagnostics.Debug.WriteLine($"[HomeLayout] Error loading user: {ex.Message}");
         }
     }
 
