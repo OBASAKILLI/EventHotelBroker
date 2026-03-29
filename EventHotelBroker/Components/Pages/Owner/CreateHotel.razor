@@ -5,14 +5,36 @@
 @using EventHotelBroker.Services
 @using EventHotelBroker.Repositories
 @using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
 @inject IHotelService HotelService
 @inject IUnitOfWork UnitOfWork
 @inject NavigationManager NavigationManager
 @inject IHttpContextAccessor HttpContextAccessor
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JSRuntime
+@inject IWebHostEnvironment Environment
+@using EventHotelBroker.Utils
 
 <PageTitle>Create Hotel - EventHotelBroker</PageTitle>
 
 <link href="/css/create-hotel.css?v=1" rel="stylesheet" />
+
+<!-- Debug Info Section -->
+<div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 16px; margin: 16px 0; font-family: monospace; font-size: 0.85rem;">
+    <h6 style="margin: 0 0 12px 0; color: #495057;">Debug: Current User Info</h6>
+    <div><strong>User ID (strid):</strong> @(currentUserId ?? "NULL - NOT LOGGED IN")</div>
+    <div><strong>Is Authenticated:</strong> @(!string.IsNullOrEmpty(currentUserId))</div>
+    <div><strong>Debug Phase:</strong> @debugPhase</div>
+    <div><strong>Cookie Value:</strong> @(debugCookieValue ?? "EMPTY/NULL")</div>
+    <button @onclick="RefreshUserId" 
+            style="margin-top: 8px; padding: 4px 8px; background: #007bff; color: white; border: none; border-radius: 4px; font-size: 0.8rem;">
+        Refresh User ID
+    </button>
+    <button @onclick="ManualCookieCheck" 
+            style="margin-top: 8px; margin-left: 4px; padding: 4px 8px; background: #28a745; color: white; border: none; border-radius: 4px; font-size: 0.8rem;">
+        Check Cookie Now
+    </button>
+</div>
 
 <div class="ch">
     <Breadcrumb Items="@breadcrumbItems" />
@@ -169,6 +191,62 @@
 
                         <hr class="ch-divider" />
 
+                        <!-- Hotel Images -->
+                        <div class="ch-section">
+                            <div class="ch-section-icon ch-icon-terracotta"><i class="bi bi-images"></i></div>
+                            <h5 class="ch-section-title">Hotel Images</h5>
+                        </div>
+
+                        <div class="ch-field">
+                            <label class="ch-label">Upload Images (Max 5, up to 5MB each)</label>
+                            <div style="border: 2px dashed #c4b5a0; border-radius: 8px; padding: 24px; text-align: center; background: #faf8f5; cursor: pointer; position: relative;">
+                                <InputFile OnChange="OnImagesSelected" multiple accept="image/*"
+                                    style="position: absolute; inset: 0; opacity: 0; cursor: pointer;" />
+                                <i class="bi bi-cloud-arrow-up" style="font-size: 2rem; color: #8a8177;"></i>
+                                <div style="color: #5c5550; margin-top: 8px; font-size: 0.85rem;">
+                                    Click or drag images here to upload
+                                </div>
+                                <div style="color: #8a8177; font-size: 0.75rem; margin-top: 4px;">
+                                    Supported: JPG, PNG, WebP
+                                </div>
+                            </div>
+
+                            @if (selectedImages.Any())
+                            {
+                                <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px;">
+                                    @foreach (var img in selectedImages)
+                                    {
+                                        <div style="position: relative; border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden; width: 120px;">
+                                            @if (imagePreviewUrls.ContainsKey(img.Name))
+                                            {
+                                                <img src="@imagePreviewUrls[img.Name]" style="width: 120px; height: 90px; object-fit: cover;" />
+                                            }
+                                            else
+                                            {
+                                                <div style="width: 120px; height: 90px; display: flex; align-items: center; justify-content: center; background: #f0ebe4;">
+                                                    <i class="bi bi-image" style="font-size: 1.5rem; color: #8a8177;"></i>
+                                                </div>
+                                            }
+                                            <div style="padding: 4px 6px; font-size: 0.7rem; color: #5c5550; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                @img.Name
+                                            </div>
+                                            <div style="padding: 0 6px 4px; display: flex; align-items: center; gap: 4px;">
+                                                <input type="radio" name="primaryImage" checked="@(primaryImageName == img.Name)"
+                                                    @onchange="() => primaryImageName = img.Name" />
+                                                <span style="font-size: 0.65rem; color: #8a8177;">Primary</span>
+                                            </div>
+                                            <button type="button" @onclick="() => RemoveImage(img.Name)"
+                                                style="position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 0.7rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                                <i class="bi bi-x"></i>
+                                            </button>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+
+                        <hr class="ch-divider" />
+
                         <!-- Publish Toggle -->
                         <label class="ch-toggle">
                             <InputCheckbox @bind-Value="hotel.IsPublished" id="isPublished" />
@@ -188,6 +266,9 @@
                         <div class="ch-footer">
                             <button type="button" class="ch-btn ch-btn-muted" @onclick="Cancel">
                                 <i class="bi bi-x-lg"></i> Cancel
+                            </button>
+                            <button type="button" class="ch-btn ch-btn-submit" style="background: #28a745;" @onclick="TestSubmit" disabled="@isSubmitting">
+                                🧪 Test Submit (No Validation)
                             </button>
                             <button type="submit" class="ch-btn ch-btn-submit" disabled="@isSubmitting">
                                 @if (isSubmitting)
@@ -220,6 +301,12 @@
     private string? successMessage;
     private bool isSubmitting = false;
     private string? currentUserId;
+    private string debugPhase = "Initializing...";
+    private string? debugCookieValue;
+    private List<IBrowserFile> selectedImages = new();
+    private Dictionary<string, string> imagePreviewUrls = new();
+    private string? primaryImageName;
+    private const long MaxFileSize = 5 * 1024 * 1024; // 5MB
 
     private List<BreadcrumbItem> breadcrumbItems = new()
     {
@@ -230,20 +317,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Get current user ID from JWT token
-        currentUserId = GetCurrentUserId();
-        
-        // Fallback for testing: if no user ID found, use default
-        if (string.IsNullOrEmpty(currentUserId))
-        {
-            System.Diagnostics.Debug.WriteLine("[CreateHotel] No user ID found, using fallback '1' for testing");
-            currentUserId = "1";
-        }
-        else
-        {
-            System.Diagnostics.Debug.WriteLine($"[CreateHotel] Using user ID: {currentUserId}");
-        }
-
         try
         {
             availableAmenities = (await UnitOfWork.Amenities.GetAllAsync()).ToList();
@@ -254,57 +327,178 @@
         }
     }
 
-    private string? GetCurrentUserId()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            debugPhase = "OnAfterRender started...";
+            
+            try
+            {
+                var token = await JSRuntime.InvokeAsync<string>("authHelpers.getCookie", "JWToken");
+                debugCookieValue = string.IsNullOrEmpty(token) ? "COOKIE EMPTY" : $"Found ({token.Length} chars)";
+                debugPhase = "Cookie read complete";
+                
+                if (!string.IsNullOrEmpty(token))
+                {
+                    var customAuth = (CustomAuthenticationStateProvider)AuthStateProvider;
+                    await customAuth.MarkUserAsAuthenticated(token);
+                    currentUserId = await GetCurrentUserIdAsync();
+                    debugPhase = $"Auth complete. UserId={currentUserId}";
+                }
+                else
+                {
+                    debugPhase = "No cookie found - not logged in";
+                }
+            }
+            catch (Exception ex)
+            {
+                debugPhase = $"ERROR: {ex.Message}";
+                debugCookieValue = $"Error: {ex.Message}";
+            }
+
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                errorMessage = "User not authenticated. Please log in again.";
+            }
+            else
+            {
+                errorMessage = null;
+            }
+            
+            StateHasChanged();
+        }
+    }
+
+    private async Task<string?> GetCurrentUserIdAsync()
     {
         try
         {
-            var token = HttpContextAccessor.HttpContext?.Session?.GetString("JWToken");
-            System.Diagnostics.Debug.WriteLine($"[CreateHotel] Token from session: {(token != null ? "YES (" + token.Length + " chars)" : "NO")}");
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState?.User;
             
-            if (!string.IsNullOrEmpty(token))
+            if (user?.Identity?.IsAuthenticated == true)
             {
-                var parts = token.Split('.');
-                if (parts.Length >= 2)
+                // Name claim format: "strid,AccountType,IsTwoFAEnabled"
+                var nameClaim = user.FindFirst(ClaimTypes.Name)?.Value;
+                if (!string.IsNullOrEmpty(nameClaim))
                 {
-                    var payload = parts[1];
-                    switch (payload.Length % 4)
+                    var parts = nameClaim.Split(',');
+                    if (parts.Length > 0)
                     {
-                        case 2: payload += "=="; break;
-                        case 3: payload += "="; break;
-                    }
-                    var jsonBytes = Convert.FromBase64String(payload);
-                    var json = System.Text.Encoding.UTF8.GetString(jsonBytes);
-                    var claims = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(json);
-
-                    System.Diagnostics.Debug.WriteLine($"[CreateHotel] Claims parsed: {claims?.Count ?? 0} claims");
-
-                    if (claims != null && claims.TryGetValue(ClaimTypes.Name, out var nameClaim))
-                    {
-                        // Name claim contains: "userId,accountType,isTwoFAEnabled"
-                        var nameValue = nameClaim.ToString();
-                        System.Diagnostics.Debug.WriteLine($"[CreateHotel] Name claim value: '{nameValue}'");
-                        
-                        if (!string.IsNullOrEmpty(nameValue))
-                        {
-                            var nameParts = nameValue.Split(',');
-                            if (nameParts.Length > 0)
-                            {
-                                var userId = nameParts[0];
-                                System.Diagnostics.Debug.WriteLine($"[CreateHotel] Extracted userId: '{userId}'");
-                                return userId;
-                            }
-                        }
+                        System.Diagnostics.Debug.WriteLine($"[CreateHotel] Extracted userId (strid): '{parts[0]}'");
+                        return parts[0];
                     }
                 }
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[CreateHotel] Error parsing user ID: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[CreateHotel] Error getting user ID: {ex.Message}");
         }
         
-        System.Diagnostics.Debug.WriteLine("[CreateHotel] Returning null user ID");
         return null;
+    }
+
+    private async Task RefreshUserId()
+    {
+        currentUserId = await GetCurrentUserIdAsync();
+        debugPhase = $"Refreshed. UserId={currentUserId}";
+        StateHasChanged();
+    }
+
+    private async Task ManualCookieCheck()
+    {
+        try
+        {
+            var token = await JSRuntime.InvokeAsync<string>("authHelpers.getCookie", "JWToken");
+            debugCookieValue = string.IsNullOrEmpty(token) ? "COOKIE EMPTY" : $"Found ({token.Length} chars)";
+            
+            if (!string.IsNullOrEmpty(token))
+            {
+                var customAuth = (CustomAuthenticationStateProvider)AuthStateProvider;
+                await customAuth.MarkUserAsAuthenticated(token);
+                currentUserId = await GetCurrentUserIdAsync();
+                debugPhase = $"Manual check: UserId={currentUserId}";
+                errorMessage = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            debugCookieValue = $"Error: {ex.Message}";
+        }
+        StateHasChanged();
+    }
+
+    private async Task OnImagesSelected(InputFileChangeEventArgs e)
+    {
+        var files = e.GetMultipleFiles(5);
+        foreach (var file in files)
+        {
+            if (selectedImages.Count >= 5) break;
+            if (file.Size > MaxFileSize)
+            {
+                errorMessage = $"File '{file.Name}' exceeds 5MB limit.";
+                continue;
+            }
+            if (!file.ContentType.StartsWith("image/"))
+            {
+                continue;
+            }
+            selectedImages.Add(file);
+
+            // Generate preview
+            try
+            {
+                var resized = await file.RequestImageFileAsync(file.ContentType, 200, 150);
+                var buffer = new byte[resized.Size];
+                await resized.OpenReadStream(MaxFileSize).ReadAsync(buffer);
+                var base64 = Convert.ToBase64String(buffer);
+                imagePreviewUrls[file.Name] = $"data:{file.ContentType};base64,{base64}";
+            }
+            catch { }
+
+            if (primaryImageName == null)
+                primaryImageName = file.Name;
+        }
+        StateHasChanged();
+    }
+
+    private void RemoveImage(string name)
+    {
+        selectedImages.RemoveAll(f => f.Name == name);
+        imagePreviewUrls.Remove(name);
+        if (primaryImageName == name)
+            primaryImageName = selectedImages.FirstOrDefault()?.Name;
+        StateHasChanged();
+    }
+
+    private async Task SaveHotelImages(int hotelId)
+    {
+        var uploadsPath = Path.Combine(Environment.WebRootPath, "uploads", "hotels");
+        Directory.CreateDirectory(uploadsPath);
+
+        foreach (var file in selectedImages)
+        {
+            var ext = Path.GetExtension(file.Name);
+            var fileName = $"{hotelId}_{Guid.NewGuid():N}{ext}";
+            var filePath = Path.Combine(uploadsPath, fileName);
+
+            await using var stream = new FileStream(filePath, FileMode.Create);
+            await file.OpenReadStream(MaxFileSize).CopyToAsync(stream);
+
+            await UnitOfWork.HotelImages.AddAsync(new HotelImage
+            {
+                HotelId = hotelId,
+                FileName = fileName,
+                Url = $"/uploads/hotels/{fileName}",
+                IsPrimary = file.Name == primaryImageName,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+
+        if (selectedImages.Any())
+            await UnitOfWork.SaveChangesAsync();
     }
 
     private void ToggleAmenity(int amenityId, bool isChecked)
@@ -341,7 +535,17 @@
             hotel.IsApproved = false; // Requires admin approval
             hotel.IsPublished = hotel.IsPublished; // Use checkbox value
             
+            // Ensure Latitude/Longitude are null if not set (avoids MySQL decimal precision issues)
+            if (hotel.Latitude == 0) hotel.Latitude = null;
+            if (hotel.Longitude == 0) hotel.Longitude = null;
+            
             var createdHotel = await HotelService.CreateHotelAsync(hotel);
+
+            // Save uploaded images
+            if (selectedImages.Any())
+            {
+                await SaveHotelImages(createdHotel.Id);
+            }
 
             // Add selected amenities
             if (selectedAmenityIds.Any())
@@ -387,6 +591,46 @@
         {
             isSubmitting = false;
         }
+    }
+
+    private async Task TestSubmit()
+    {
+        System.Diagnostics.Debug.WriteLine("[CreateHotel] TestSubmit called");
+        errorMessage = null;
+        successMessage = null;
+        
+        // Set minimal required data for testing
+        if (string.IsNullOrEmpty(hotel.Name))
+        {
+            hotel.Name = "Test Hotel " + DateTime.Now.Second;
+        }
+        if (string.IsNullOrEmpty(hotel.Description))
+        {
+            hotel.Description = "Test hotel description for debugging purposes.";
+        }
+        if (string.IsNullOrEmpty(hotel.Address))
+        {
+            hotel.Address = "Test Address";
+        }
+        if (string.IsNullOrEmpty(hotel.City))
+        {
+            hotel.City = "Nairobi";
+        }
+        if (string.IsNullOrEmpty(hotel.Country))
+        {
+            hotel.Country = "Kenya";
+        }
+        if (hotel.Capacity == 0)
+        {
+            hotel.Capacity = 10;
+        }
+        if (hotel.PricePerNight == 0)
+        {
+            hotel.PricePerNight = 1000;
+        }
+        
+        System.Diagnostics.Debug.WriteLine("[CreateHotel] Test data set, calling HandleSubmit");
+        await HandleSubmit();
     }
 
     private void Cancel()

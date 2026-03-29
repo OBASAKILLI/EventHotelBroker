@@ -9,109 +9,138 @@ namespace EventHotelBroker.Utils
     {
         private ClaimsPrincipal _anonymous = new ClaimsPrincipal(new ClaimsIdentity());
         private readonly IHttpContextAccessor _httpContextAccessor;
+        
+        // In-memory token storage - survives SignalR connections where HttpContext.Session is null
+        private string? _currentToken;
+
         public CustomAuthenticationStateProvider(IHttpContextAccessor HttpContextAccessor)
         {
             _httpContextAccessor = HttpContextAccessor;
-
         }
+
+        // Public property so pages can read the current token
+        public string? CurrentToken => _currentToken ?? _httpContextAccessor.HttpContext?.Session?.GetString("JWToken");
+
         public override Task<AuthenticationState> GetAuthenticationStateAsync()
         {
             try
             {
-                string Token = _httpContextAccessor.HttpContext?.Session?.GetString("JWToken");
+                // 1. Try in-memory token first (persists across SignalR)
+                string? token = _currentToken;
                 
-                System.Diagnostics.Debug.WriteLine($"[Auth] Token from session: {(Token != null ? "Found" : "NOT FOUND")}");
-                System.Diagnostics.Debug.WriteLine($"[Auth] Session ID: {_httpContextAccessor.HttpContext?.Session?.Id}");
-
-                if (!string.IsNullOrEmpty(Token))
+                // 2. Fall back to session (available during initial HTTP request)
+                if (string.IsNullOrEmpty(token))
                 {
-                    var claims = ParseClaimsFromJwt(Token);
-                    System.Diagnostics.Debug.WriteLine($"[Auth] Claims parsed: {claims.Count()} claims");
-                    foreach (var claim in claims)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[Auth] Claim: {claim.Type} = {claim.Value}");
-                    }
+                    token = _httpContextAccessor.HttpContext?.Session?.GetString("JWToken");
+                }
+                
+                // 3. Fall back to cookie (set by JS during login)
+                if (string.IsNullOrEmpty(token))
+                {
+                    _httpContextAccessor.HttpContext?.Request?.Cookies?.TryGetValue("JWToken", out token);
+                }
+
+                if (!string.IsNullOrEmpty(token))
+                {
+                    // Cache in memory so it survives the HTTP → SignalR transition
+                    _currentToken = token;
                     
+                    var claims = ParseClaimsFromJwt(token);
                     var authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(claims, "jwt"));
-                    var authState = Task.FromResult(new AuthenticationState(authenticatedUser));
-                    return authState;
+                    return Task.FromResult(new AuthenticationState(authenticatedUser));
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine("[Auth] No token found - returning anonymous");
                     return Task.FromResult(new AuthenticationState(_anonymous));
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[Auth] Exception in GetAuthenticationStateAsync: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"[Auth] Stack trace: {ex.StackTrace}");
+                System.Diagnostics.Debug.WriteLine($"[Auth] Exception: {ex.Message}");
                 return Task.FromResult(new AuthenticationState(_anonymous));
             }
         }
+
         public async Task MarkUserAsAuthenticated(string token)
         {
+            // Store token in memory (critical for Blazor Server SignalR connections)
+            _currentToken = token;
+            
+            // Also try to store in session if available
+            try
+            {
+                var session = _httpContextAccessor.HttpContext?.Session;
+                if (session != null)
+                {
+                    session.SetString("JWToken", token);
+                    await session.CommitAsync();
+                }
+            }
+            catch { /* Session may not be available during SignalR */ }
+
             var authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt"));
             var authState = Task.FromResult(new AuthenticationState(authenticatedUser));
             NotifyAuthenticationStateChanged(authState);
         }
+
         public async Task MarkUserAsLoggedOut()
         {
-            _httpContextAccessor.HttpContext.Session.Clear();
+            _currentToken = null;
+            
+            try
+            {
+                _httpContextAccessor.HttpContext?.Session?.Clear();
+            }
+            catch { /* Session may not be available */ }
+            
             var authState = Task.FromResult(new AuthenticationState(_anonymous));
             NotifyAuthenticationStateChanged(authState);
-
         }
         private IEnumerable<Claim> ParseClaimsFromJwt(string jwt)
         {
             var claims = new List<Claim>();
             try
             {
-                System.Diagnostics.Debug.WriteLine($"[Auth] Parsing JWT token. Length: {jwt.Length}");
-                
                 var parts = jwt.Split('.');
-                System.Diagnostics.Debug.WriteLine($"[Auth] JWT parts: {parts.Length}");
-                
-                if (parts.Length < 2)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[Auth] ERROR: Invalid JWT format - not enough parts");
-                    return claims;
-                }
+                if (parts.Length < 2) return claims;
 
-                var payload = parts[1];
-                System.Diagnostics.Debug.WriteLine($"[Auth] Payload length: {payload.Length}");
-                
-                byte[] jsonBytes = ParseBase64WithoutPadding(payload);
+                byte[] jsonBytes = ParseBase64WithoutPadding(parts[1]);
                 string decodedString = Encoding.UTF8.GetString(jsonBytes);
-                
-                System.Diagnostics.Debug.WriteLine($"[Auth] Decoded payload: {decodedString.Substring(0, Math.Min(100, decodedString.Length))}...");
-                
                 var keyValuePairs = JsonSerializer.Deserialize<Dictionary<string, object>>(decodedString);
-                System.Diagnostics.Debug.WriteLine($"[Auth] Deserialized {keyValuePairs.Count} key-value pairs");
                 
-                keyValuePairs.TryGetValue("name", out object UserId);
-                keyValuePairs.TryGetValue("given_name", out object GivenName);
-                keyValuePairs.TryGetValue("email", out object Email);
+                // JwtSecurityTokenHandler maps full ClaimTypes URLs to short JWT names:
+                //   ClaimTypes.Name -> "unique_name"
+                //   ClaimTypes.GivenName -> "given_name"  
+                //   ClaimTypes.Email -> "email"
+                // Try both full URL and short JWT name for each claim
+                
+                object userId = null;
+                keyValuePairs.TryGetValue(ClaimTypes.Name, out userId);
+                if (userId == null) keyValuePairs.TryGetValue("unique_name", out userId);
+                
+                object givenName = null;
+                keyValuePairs.TryGetValue(ClaimTypes.GivenName, out givenName);
+                if (givenName == null) keyValuePairs.TryGetValue("given_name", out givenName);
+                
+                object email = null;
+                keyValuePairs.TryGetValue(ClaimTypes.Email, out email);
+                if (email == null) keyValuePairs.TryGetValue("email", out email);
 
-                System.Diagnostics.Debug.WriteLine($"[Auth] UserId: {UserId}, GivenName: {GivenName}, Email: {Email}");
+                object accountType = null;
+                keyValuePairs.TryGetValue("AccountType", out accountType);
 
-                if (UserId != null)
+                if (userId != null)
                 {
-                    claims.Add(new Claim(ClaimTypes.Name, UserId.ToString()));
-                    claims.Add(new Claim(ClaimTypes.GivenName, GivenName?.ToString() ?? ""));
-                    claims.Add(new Claim(ClaimTypes.Email, Email?.ToString() ?? ""));
-                    System.Diagnostics.Debug.WriteLine($"[Auth] Added {claims.Count} claims");
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine($"[Auth] WARNING: UserId is null, no claims added");
+                    claims.Add(new Claim(ClaimTypes.Name, userId.ToString()));
+                    claims.Add(new Claim(ClaimTypes.GivenName, givenName?.ToString() ?? ""));
+                    claims.Add(new Claim(ClaimTypes.Email, email?.ToString() ?? ""));
+                    claims.Add(new Claim("AccountType", accountType?.ToString() ?? ""));
                 }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[Auth] Exception parsing JWT: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"[Auth] Stack trace: {ex.StackTrace}");
-                throw ex;
+                throw;
             }
             return claims;
         }

@@ -9,6 +9,8 @@
         try
         {
             HttpContextAccessor.HttpContext?.Session?.Clear();
+            // Clear the JWT cookie
+            HttpContextAccessor.HttpContext?.Response?.Cookies?.Delete("JWToken");
         }
         catch { }
 

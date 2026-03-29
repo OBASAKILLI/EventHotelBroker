@@ -2,8 +2,13 @@
 @rendermode InteractiveServer
 @using EventHotelBroker.Models
 @using EventHotelBroker.Services
+@using EventHotelBroker.Utils
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
 @inject IHotelService HotelService
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JSRuntime
 
 <PageTitle>My Hotels - EventHotelBroker</PageTitle>
 
@@ -55,18 +60,28 @@
         </div>
     </div>
 
-    <!-- Search & Filter -->
+    <!-- Status Tabs -->
+    <div class="oh-tabs">
+        <span class="oh-tab @(statusFilter == "" ? "active" : "")" @onclick="@(() => statusFilter = "")">
+            <i class="bi bi-grid"></i> All <span class="oh-tab-count">@hotels.Count</span>
+        </span>
+        <span class="oh-tab @(statusFilter == "approved" ? "active" : "")" @onclick="@(() => statusFilter = "approved")">
+            <i class="bi bi-check-circle"></i> Approved <span class="oh-tab-count">@hotels.Count(h => h.IsApproved)</span>
+        </span>
+        <span class="oh-tab @(statusFilter == "pending" ? "active" : "")" @onclick="@(() => statusFilter = "pending")">
+            <i class="bi bi-clock-history"></i> Pending <span class="oh-tab-count">@hotels.Count(h => !h.IsApproved && h.IsPublished)</span>
+        </span>
+        <span class="oh-tab @(statusFilter == "draft" ? "active" : "")" @onclick="@(() => statusFilter = "draft")">
+            <i class="bi bi-pencil-square"></i> Drafts <span class="oh-tab-count">@hotels.Count(h => !h.IsApproved && !h.IsPublished)</span>
+        </span>
+    </div>
+
+    <!-- Search -->
     <div class="oh-search-bar">
         <div class="oh-search-wrap">
             <i class="bi bi-search"></i>
             <input type="text" class="oh-search-input" placeholder="Search by name, city, or country..." @bind="searchTerm" @bind:event="oninput" />
         </div>
-        <select class="oh-filter-select" @bind="statusFilter" @bind:event="onchange">
-            <option value="">All Status</option>
-            <option value="approved">Approved</option>
-            <option value="pending">Pending</option>
-            <option value="draft">Draft</option>
-        </select>
         <span class="oh-search-count">@filteredHotels.Count() of @hotels.Count</span>
     </div>
 
@@ -157,7 +172,7 @@
 @code {
     private bool isLoading = true;
     private List<Hotel> hotels = new();
-    private string currentUserId = "1"; // Default owner ID
+    private string? currentUserId;
     private string searchTerm = "";
     private string statusFilter = "";
 
@@ -191,20 +206,55 @@
         return true;
     });
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                var token = await JSRuntime.InvokeAsync<string>("authHelpers.getCookie", "JWToken");
+                if (!string.IsNullOrEmpty(token))
+                {
+                    var customAuth = (CustomAuthenticationStateProvider)AuthStateProvider;
+                    await customAuth.MarkUserAsAuthenticated(token);
+                    currentUserId = await GetCurrentUserIdAsync();
+                }
+
+                if (!string.IsNullOrEmpty(currentUserId))
+                {
+                    hotels = (await HotelService.GetHotelsByOwnerAsync(currentUserId)).ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[OwnerHotels] Error: {ex.Message}");
+            }
+            finally
+            {
+                isLoading = false;
+            }
+            StateHasChanged();
+        }
+    }
+
+    private async Task<string?> GetCurrentUserIdAsync()
     {
         try
         {
-            hotels = (await HotelService.GetHotelsByOwnerAsync(currentUserId)).ToList();
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState?.User;
+            if (user?.Identity?.IsAuthenticated == true)
+            {
+                var nameClaim = user.FindFirst(ClaimTypes.Name)?.Value;
+                if (!string.IsNullOrEmpty(nameClaim))
+                {
+                    var parts = nameClaim.Split(',');
+                    if (parts.Length > 0) return parts[0];
+                }
+            }
         }
-        catch (Exception)
-        {
-            // Handle error
-        }
-        finally
-        {
-            isLoading = false;
-        }
+        catch { }
+        return null;
     }
 
     private void ViewHotel(int id)

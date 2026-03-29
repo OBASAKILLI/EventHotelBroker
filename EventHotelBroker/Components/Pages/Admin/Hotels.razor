@@ -144,11 +144,11 @@
                                     }
                                     else if (hotel.IsPublished)
                                     {
-                                        <span class="ah-badge ah-badge-pending"><i class="bi bi-clock-history"></i> Pending</span>
+                                        <span class="ah-badge ah-badge-pending"><i class="bi bi-clock-history"></i> Pending Review</span>
                                     }
                                     else
                                     {
-                                        <span class="ah-badge ah-badge-rejected"><i class="bi bi-x-circle"></i> Rejected</span>
+                                        <span class="ah-badge ah-badge-rejected"><i class="bi bi-file-earmark"></i> Draft</span>
                                     }
                                 </td>
                                 <td><span class="ah-date"><i class="bi bi-calendar3"></i> @hotel.CreatedAt.ToString("MMM dd, yyyy")</span></td>
@@ -157,11 +157,14 @@
                                         <button class="ah-btn ah-btn-sm ah-btn-view" @onclick="() => ViewHotel(hotel.Id)" title="View">
                                             <i class="bi bi-eye"></i>
                                         </button>
-                                        @if (!hotel.IsApproved && hotel.IsPublished)
+                                        @if (!hotel.IsApproved)
                                         {
                                             <button class="ah-btn ah-btn-sm ah-btn-approve" @onclick="() => ApproveHotel(hotel.Id)" title="Approve">
                                                 <i class="bi bi-check-lg"></i>
                                             </button>
+                                        }
+                                        @if (hotel.IsApproved || hotel.IsPublished)
+                                        {
                                             <button class="ah-btn ah-btn-sm ah-btn-reject" @onclick="() => RejectHotel(hotel.Id)" title="Reject">
                                                 <i class="bi bi-x-lg"></i>
                                             </button>

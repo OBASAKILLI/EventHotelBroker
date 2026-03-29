@@ -13,6 +13,7 @@
 @inject TokenProvider TokenProvider
 @inject CustomAuthenticationStateProvider AuthStateProvider
 @inject IHttpContextAccessor HttpContextAccessor
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Login - EventHotelBroker</PageTitle>
 
@@ -270,28 +271,16 @@
             // Generate JWT token directly from the user we already have
             var token = TokenProvider.GenerateToken(user);
 
-            // Store token in session (HttpContext is available during initial render)
-            try
-            {
-                var session = HttpContextAccessor.HttpContext?.Session;
-                if (session != null)
-                {
-                    session.SetString("JWToken", token);
-                    await session.CommitAsync();
-                }
-            }
-            catch (Exception sessionEx)
-            {
-                System.Diagnostics.Debug.WriteLine($"[Login] Session store warning: {sessionEx.Message}");
-            }
-
-            // Notify the authentication state provider
+            // Store token in memory via AuthStateProvider
             await AuthStateProvider.MarkUserAsAuthenticated(token);
+
+            // Store token in browser cookie via JS so it survives page reload
+            await JSRuntime.InvokeVoidAsync("authHelpers.setCookie", "JWToken", token, 3600);
 
             ToastService.ShowSuccess("Login Successful!", $"Welcome back, {user.FullName}");
             await Task.Delay(500);
 
-            // Navigate based on role
+            // Navigate based on role (forceLoad triggers full HTTP request where cookie is available)
             if (user.Role == "Admin")
             {
                 Navigation.NavigateTo("/admin/dashboard", forceLoad: true);

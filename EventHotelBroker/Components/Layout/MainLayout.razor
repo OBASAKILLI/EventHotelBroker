@@ -3,6 +3,8 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @inject IHttpContextAccessor HttpContextAccessor
 @inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JSRuntime
+@using EventHotelBroker.Utils
 
 <link href="/css/design-system.css" rel="stylesheet" />
 
@@ -166,118 +168,83 @@
 
     protected override void OnInitialized()
     {
-        LoadUserFromSession();
-    }
-
-    protected override async Task OnParametersSetAsync()
-    {
-        // Subscribe to authentication state changes
         AuthStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
-        // Also refresh on every navigation/render
-        LoadUserFromSession();
-        await base.OnParametersSetAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // Always refresh user details on every render to catch login changes
-        LoadUserFromSession();
-        await base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
+        {
+            await LoadUserFromCookieAsync();
+        }
     }
 
     private async void OnAuthenticationStateChanged(Task<AuthenticationState> task)
     {
-        await InvokeAsync(() =>
+        await InvokeAsync(async () =>
         {
-            LoadUserFromSession();
+            await LoadUserFromAuthStateAsync();
             StateHasChanged();
         });
     }
 
-    private void LoadUserFromSession()
+    private async Task LoadUserFromCookieAsync()
     {
-        // try
-        // {
-            System.Diagnostics.Debug.WriteLine("[MainLayout] LoadUserFromSession called");
-            
-            // Try session first
-            var token = HttpContextAccessor.HttpContext?.Session?.GetString("JWToken");
-            System.Diagnostics.Debug.WriteLine($"[MainLayout] Token from session: {(token != null ? "YES (" + token.Length + " chars)" : "NO")}");
+        try
+        {
+            // Read JWT cookie via JS interop (works after circuit is established)
+            var token = await JSRuntime.InvokeAsync<string>("authHelpers.getCookie", "JWToken");
             
             if (!string.IsNullOrEmpty(token))
             {
-                System.Diagnostics.Debug.WriteLine("[MainLayout] Processing token...");
-                var parts = token.Split('.');
-                if (parts.Length >= 2)
-                {
-                    var payload = parts[1];
-                    switch (payload.Length % 4)
-                    {
-                        case 2: payload += "=="; break;
-                        case 3: payload += "="; break;
-                    }
-                    var jsonBytes = Convert.FromBase64String(payload);
-                    var json = System.Text.Encoding.UTF8.GetString(jsonBytes);
-                    var claims = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(json);
-
-                    System.Diagnostics.Debug.WriteLine($"[MainLayout] Claims parsed: {claims?.Count ?? 0} claims");
-
-                    if (claims != null)
-                    {
-                        claims.TryGetValue("given_name", out var givenName);
-                        claims.TryGetValue("email", out var email);
-                        claims.TryGetValue("AccountType", out var accountType);
-
-                        userName = givenName?.ToString() ?? "User";
-                        userEmail = email?.ToString() ?? "";
-                        userRole = accountType?.ToString() ?? "User";
-
-                        var nameParts = userName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                        userInitials = nameParts.Length >= 2
-                            ? $"{nameParts[0][0]}{nameParts[^1][0]}".ToUpper()
-                            : (userName.Length >= 2 ? userName[..2].ToUpper() : userName.ToUpper());
-
-                        isLoggedIn = true;
-                        System.Diagnostics.Debug.WriteLine($"[MainLayout] ✓ User loaded from session: {userName} / {userEmail} - isLoggedIn set to true");
-                        return;
-                    }
-                }
+                // Cache token in auth state provider for this circuit
+                var customAuth = (CustomAuthenticationStateProvider)AuthStateProvider;
+                await customAuth.MarkUserAsAuthenticated(token);
+                await LoadUserFromAuthStateAsync();
             }
+            
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainLayout] Cookie read error: {ex.Message}");
+        }
+    }
 
-            // Fallback: try to get from AuthenticationStateProvider directly
-            System.Diagnostics.Debug.WriteLine("[MainLayout] Trying AuthStateProvider fallback...");
-            var authState = AuthStateProvider.GetAuthenticationStateAsync().Result;
-            System.Diagnostics.Debug.WriteLine($"[MainLayout] AuthStateProvider result: IsAuthenticated={authState?.User?.Identity?.IsAuthenticated}");
+    private async Task LoadUserFromAuthStateAsync()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
             
             if (authState?.User?.Identity?.IsAuthenticated == true)
             {
                 var user = authState.User;
-                userName = user.FindFirst(ClaimTypes.GivenName)?.Value ?? user.FindFirst(ClaimTypes.Name)?.Value ?? "User";
+                
+                userName = user.FindFirst(ClaimTypes.GivenName)?.Value ?? "User";
                 userEmail = user.FindFirst(ClaimTypes.Email)?.Value ?? "";
                 userRole = user.FindFirst("AccountType")?.Value ?? user.FindFirst(ClaimTypes.Role)?.Value ?? "User";
 
-                var nameParts = userName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                userInitials = nameParts.Length >= 2
-                    ? $"{nameParts[0][0]}{nameParts[^1][0]}".ToUpper()
+                var namePartsForInitials = userName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                userInitials = namePartsForInitials.Length >= 2
+                    ? $"{namePartsForInitials[0][0]}{namePartsForInitials[^1][0]}".ToUpper()
                     : (userName.Length >= 2 ? userName[..2].ToUpper() : userName.ToUpper());
 
                 isLoggedIn = true;
-                
-                System.Diagnostics.Debug.WriteLine($"[MainLayout] ✓ User loaded from AuthStateProvider: {userName} / {userEmail} - isLoggedIn set to true");
             }
             else
             {
                 isLoggedIn = false;
-                System.Diagnostics.Debug.WriteLine("[MainLayout] ✗ No authenticated user found - isLoggedIn set to false");
+                userName = "";
+                userEmail = "";
+                userRole = "";
+                userInitials = "";
             }
-        // }
-        // catch (Exception ex)
-        // {
-        //     isLoggedIn = false;
-        //     System.Diagnostics.Debug.WriteLine($"[MainLayout] ✗ Error loading user: {ex.Message} - isLoggedIn set to false");
-        // }
-        
-        System.Diagnostics.Debug.WriteLine($"[MainLayout] Final state: isLoggedIn={isLoggedIn}, userName='{userName}'");
+        }
+        catch (Exception ex)
+        {
+            isLoggedIn = false;
+        }
     }
 
     private void ToggleSidebar()

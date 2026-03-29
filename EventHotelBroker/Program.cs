@@ -118,6 +118,22 @@ app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 app.UseSession();
+
+// Middleware: Read JWT token from cookie into session (bridges SignalR login → HTTP session)
+app.Use(async (context, next) =>
+{
+    if (context.Request.Cookies.TryGetValue("JWToken", out var token) && !string.IsNullOrEmpty(token))
+    {
+        var sessionToken = context.Session.GetString("JWToken");
+        if (string.IsNullOrEmpty(sessionToken))
+        {
+            context.Session.SetString("JWToken", token);
+            await context.Session.CommitAsync();
+        }
+    }
+    await next();
+});
+
 app.UseAntiforgery();
 
 // Enable Swagger in development

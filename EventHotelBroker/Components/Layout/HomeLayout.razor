@@ -3,6 +3,8 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @inject IHttpContextAccessor HttpContextAccessor
 @inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JSRuntime
+@using EventHotelBroker.Utils
 
 <link href="/css/design-system.css" rel="stylesheet" />
 
@@ -170,105 +172,80 @@
 
     protected override void OnInitialized()
     {
-        LoadUserFromSession();
-    }
-
-    protected override async Task OnParametersSetAsync()
-    {
         AuthStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
-        // Also refresh on every navigation/render
-        LoadUserFromSession();
-        await base.OnParametersSetAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // Always refresh user details on every render to catch login changes
-        LoadUserFromSession();
-        await base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
+        {
+            await LoadUserFromCookieAsync();
+        }
     }
 
     private async void OnAuthenticationStateChanged(Task<AuthenticationState> task)
     {
-        await InvokeAsync(() =>
+        await InvokeAsync(async () =>
         {
-            LoadUserFromSession();
+            await LoadUserFromAuthStateAsync();
             StateHasChanged();
         });
     }
 
-    private void LoadUserFromSession()
+    private async Task LoadUserFromCookieAsync()
     {
         try
         {
-            // Try session first
-            var token = HttpContextAccessor.HttpContext?.Session?.GetString("JWToken");
-            System.Diagnostics.Debug.WriteLine($"[HomeLayout] Token from session: {(token != null ? "YES (" + token.Length + " chars)" : "NO")}");
+            var token = await JSRuntime.InvokeAsync<string>("authHelpers.getCookie", "JWToken");
             
             if (!string.IsNullOrEmpty(token))
             {
-                var parts = token.Split('.');
-                if (parts.Length >= 2)
-                {
-                    var payload = parts[1];
-                    switch (payload.Length % 4)
-                    {
-                        case 2: payload += "=="; break;
-                        case 3: payload += "="; break;
-                    }
-                    var jsonBytes = Convert.FromBase64String(payload);
-                    var json = System.Text.Encoding.UTF8.GetString(jsonBytes);
-                    var claims = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(json);
-
-                    if (claims != null)
-                    {
-                        claims.TryGetValue("given_name", out var givenName);
-                        claims.TryGetValue("email", out var email);
-                        claims.TryGetValue("AccountType", out var accountType);
-
-                        userName = givenName?.ToString() ?? "User";
-                        userEmail = email?.ToString() ?? "";
-                        userRole = accountType?.ToString() ?? "User";
-
-                        var nameParts = userName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                        userInitials = nameParts.Length >= 2
-                            ? $"{nameParts[0][0]}{nameParts[^1][0]}".ToUpper()
-                            : (userName.Length >= 2 ? userName[..2].ToUpper() : userName.ToUpper());
-
-                        isLoggedIn = true;
-                        System.Diagnostics.Debug.WriteLine($"[HomeLayout] User loaded from session: {userName} / {userEmail}");
-                        return;
-                    }
-                }
+                var customAuth = (CustomAuthenticationStateProvider)AuthStateProvider;
+                await customAuth.MarkUserAsAuthenticated(token);
+                await LoadUserFromAuthStateAsync();
             }
+            
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[HomeLayout] Cookie read error: {ex.Message}");
+        }
+    }
 
-            // Fallback: try to get from AuthenticationStateProvider directly
-            var authState = AuthStateProvider.GetAuthenticationStateAsync().Result;
+    private async Task LoadUserFromAuthStateAsync()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            
             if (authState?.User?.Identity?.IsAuthenticated == true)
             {
                 var user = authState.User;
-                userName = user.FindFirst(ClaimTypes.GivenName)?.Value ?? user.FindFirst(ClaimTypes.Name)?.Value ?? "User";
+                
+                userName = user.FindFirst(ClaimTypes.GivenName)?.Value ?? "User";
                 userEmail = user.FindFirst(ClaimTypes.Email)?.Value ?? "";
                 userRole = user.FindFirst("AccountType")?.Value ?? user.FindFirst(ClaimTypes.Role)?.Value ?? "User";
 
-                var nameParts = userName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                userInitials = nameParts.Length >= 2
-                    ? $"{nameParts[0][0]}{nameParts[^1][0]}".ToUpper()
+                var namePartsForInitials = userName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                userInitials = namePartsForInitials.Length >= 2
+                    ? $"{namePartsForInitials[0][0]}{namePartsForInitials[^1][0]}".ToUpper()
                     : (userName.Length >= 2 ? userName[..2].ToUpper() : userName.ToUpper());
 
                 isLoggedIn = true;
-                System.Diagnostics.Debug.WriteLine($"[HomeLayout] User loaded from AuthStateProvider: {userName} / {userEmail}");
             }
             else
             {
                 isLoggedIn = false;
-                System.Diagnostics.Debug.WriteLine("[HomeLayout] No authenticated user found");
+                userName = "";
+                userEmail = "";
+                userRole = "";
+                userInitials = "";
             }
         }
         catch (Exception ex)
         {
             isLoggedIn = false;
-            System.Diagnostics.Debug.WriteLine($"[HomeLayout] Error loading user: {ex.Message}");
         }
     }
 

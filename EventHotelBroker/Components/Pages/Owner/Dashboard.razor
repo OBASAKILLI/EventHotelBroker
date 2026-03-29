@@ -2,10 +2,15 @@
 @rendermode InteractiveServer
 @using EventHotelBroker.Models
 @using EventHotelBroker.Services
+@using EventHotelBroker.Utils
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
 @inject IHotelService HotelService
 @inject IBookingService BookingService
 @inject IEventService EventService
 @inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Owner Dashboard - EventHotelBroker</PageTitle>
 
@@ -232,76 +237,68 @@
         new BreadcrumbItem { Text = "Owner Dashboard", IsActive = true }
     };
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // Since authentication is removed, use a default owner ID (you can change this as needed)
-        currentUserId = "1"; // Default to first owner
-
-        try
+        if (firstRender)
         {
-            myHotels = (await HotelService.GetHotelsByOwnerAsync(currentUserId)).ToList();
-            
-            // Get bookings for all my hotels
-            foreach (var hotel in myHotels)
+            try
             {
-                var hotelBookings = await BookingService.GetBookingsByHotelAsync(hotel.Id);
-                bookingRequests.AddRange(hotelBookings.Where(b => b.Status == BookingStatus.Pending));
-            }
+                var token = await JSRuntime.InvokeAsync<string>("authHelpers.getCookie", "JWToken");
+                if (!string.IsNullOrEmpty(token))
+                {
+                    var customAuth = (CustomAuthenticationStateProvider)AuthStateProvider;
+                    await customAuth.MarkUserAsAuthenticated(token);
+                    currentUserId = await GetCurrentUserIdAsync();
+                }
 
-            // Add dummy bookings if none exist
-            if (!bookingRequests.Any() && myHotels.Any())
+                if (!string.IsNullOrEmpty(currentUserId))
+                {
+                    myHotels = (await HotelService.GetHotelsByOwnerAsync(currentUserId)).ToList();
+
+                    // Get bookings for all my hotels
+                    foreach (var hotel in myHotels)
+                    {
+                        var hotelBookings = await BookingService.GetBookingsByHotelAsync(hotel.Id);
+                        bookingRequests.AddRange(hotelBookings.Where(b => b.Status == BookingStatus.Pending));
+                    }
+
+                    // Load event statistics
+                    var equipments = await EventService.GetEquipmentsByProviderAsync(currentUserId);
+                    eventEquipmentsCount = equipments.Count();
+
+                    var packages = await EventService.GetPackagesByProviderAsync(currentUserId);
+                    eventPackagesCount = packages.Count();
+                }
+            }
+            catch (Exception ex)
             {
-                var firstHotel = myHotels.First();
-                bookingRequests.Add(new Booking
-                {
-                    Id = 101,
-                    HotelId = firstHotel.Id,
-                    Hotel = firstHotel,
-                    StartDate = DateTime.Now.AddDays(7),
-                    EndDate = DateTime.Now.AddDays(9),
-                    HeadCount = 2,
-                    Status = BookingStatus.Pending,
-                    UserId = "user-1"
-                });
-                bookingRequests.Add(new Booking
-                {
-                    Id = 102,
-                    HotelId = firstHotel.Id,
-                    Hotel = firstHotel,
-                    StartDate = DateTime.Now.AddDays(14),
-                    EndDate = DateTime.Now.AddDays(16),
-                    HeadCount = 4,
-                    Status = BookingStatus.Pending,
-                    UserId = "user-2"
-                });
-                bookingRequests.Add(new Booking
-                {
-                    Id = 103,
-                    HotelId = firstHotel.Id,
-                    Hotel = firstHotel,
-                    StartDate = DateTime.Now.AddDays(21),
-                    EndDate = DateTime.Now.AddDays(23),
-                    HeadCount = 3,
-                    Status = BookingStatus.Pending,
-                    UserId = "user-3"
-                });
+                System.Diagnostics.Debug.WriteLine($"[OwnerDashboard] Error: {ex.Message}");
             }
-
-            // Load event statistics
-            var equipments = await EventService.GetEquipmentsByProviderAsync(currentUserId);
-            eventEquipmentsCount = equipments.Count();
-            
-            var packages = await EventService.GetPackagesByProviderAsync(currentUserId);
-            eventPackagesCount = packages.Count();
-        }
-        catch (Exception)
-        {
-            // Handle error
-        }
-        finally
-        {
-            isLoading = false;
+            finally
+            {
+                isLoading = false;
+            }
+            StateHasChanged();
         }
     }
 
+    private async Task<string?> GetCurrentUserIdAsync()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState?.User;
+            if (user?.Identity?.IsAuthenticated == true)
+            {
+                var nameClaim = user.FindFirst(ClaimTypes.Name)?.Value;
+                if (!string.IsNullOrEmpty(nameClaim))
+                {
+                    var parts = nameClaim.Split(',');
+                    if (parts.Length > 0) return parts[0];
+                }
+            }
+        }
+        catch { }
+        return null;
+    }
 }
