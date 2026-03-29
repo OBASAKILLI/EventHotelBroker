@@ -431,6 +431,14 @@
         try
         {
             hotel = await HotelService.GetHotelWithDetailsAsync(HotelId);
+            
+            // Visibility check: unapproved hotels are only visible to their owner or admin
+            if (hotel != null && !(hotel.IsPublished && hotel.IsApproved))
+            {
+                // For now, hide unapproved hotels from regular users
+                // Owner and admin pages have their own routes
+                hotel = null;
+            }
         }
         catch (Exception)
         {

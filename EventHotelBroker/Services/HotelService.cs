@@ -85,6 +85,7 @@ public class HotelService : IHotelService
         if (hotel == null) return false;
 
         hotel.IsApproved = true;
+        hotel.IsPublished = true;
         hotel.UpdatedAt = DateTime.UtcNow;
         
         _unitOfWork.Hotels.Update(hotel);

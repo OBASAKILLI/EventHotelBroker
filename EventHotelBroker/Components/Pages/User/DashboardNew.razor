@@ -344,7 +344,7 @@
                 : "N/A";
             
             // Load recommended hotels
-            var hotels = await HotelService.GetAllHotelsAsync();
+            var hotels = await HotelService.GetPublishedHotelsAsync();
             recommendedHotels = hotels.Take(3).ToList();
             
             ToastService.ShowSuccess("Dashboard Loaded", "Your dashboard has been updated successfully!");
