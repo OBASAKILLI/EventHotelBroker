@@ -1,0 +1,572 @@
+@page "/owner/edit-equipment/{EquipmentId:int}"
+@rendermode InteractiveServer
+@using EventHotelBroker.Models
+@using EventHotelBroker.Services
+@using EventHotelBroker.Utils
+@using EventHotelBroker.Repositories
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IEventService EventService
+@inject IUnitOfWork UnitOfWork
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IWebHostEnvironment Environment
+
+<PageTitle>Edit Equipment - Owner</PageTitle>
+
+<link href="/css/create-equipment.css?v=1" rel="stylesheet" />
+
+<div class="ce">
+    <Breadcrumb Items="@breadcrumbItems" />
+
+    <!-- Header -->
+    <div class="ce-header">
+        <div>
+            <h1 class="ce-header-title"><i class="bi bi-pencil-square"></i> Edit Equipment</h1>
+            <p class="ce-header-sub">Update your equipment listing details</p>
+        </div>
+        <button class="ce-btn ce-btn-cancel" @onclick="Cancel">
+            <i class="bi bi-arrow-left"></i> Back
+        </button>
+    </div>
+
+    @if (isLoading)
+    {
+        <div style="text-align: center; padding: 3rem;">
+            <div class="ce-spinner" style="width: 32px; height: 32px; border-width: 3px; margin: 0 auto 1rem;"></div>
+            <p style="color: #8a8177; font-size: 0.8rem;">Loading equipment...</p>
+        </div>
+    }
+    else if (equipment == null)
+    {
+        <div style="text-align: center; padding: 3rem;">
+            <i class="bi bi-exclamation-triangle" style="font-size: 2.5rem; color: #C87941;"></i>
+            <h5 style="margin-top: 1rem; color: #2A2A2A;">Equipment Not Found</h5>
+            <p style="color: #8a8177; font-size: 0.8rem;">The equipment you're looking for doesn't exist or you don't have permission to edit it.</p>
+            <a href="/owner/event-equipments" class="ce-btn ce-btn-submit" style="display: inline-flex;">
+                <i class="bi bi-arrow-left"></i> Back to My Equipment
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
+                <div class="ce-card">
+                    <div class="ce-card-body">
+
+                        @if (!string.IsNullOrEmpty(successMessage))
+                        {
+                            <div style="background: rgba(72,140,130,0.1); border: 1px solid rgba(72,140,130,0.3); border-radius: 8px; padding: 12px 16px; margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; font-size: 0.8rem; color: #488C82;">
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span><strong>Success!</strong> @successMessage</span>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div style="background: rgba(220,53,69,0.08); border: 1px solid rgba(220,53,69,0.25); border-radius: 8px; padding: 12px 16px; margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; font-size: 0.8rem; color: #dc3545;">
+                                <i class="bi bi-exclamation-triangle-fill"></i>
+                                <span><strong>Error!</strong> @errorMessage</span>
+                            </div>
+                        }
+
+                        <!-- Status Badge -->
+                        <div style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="font-size: 0.7rem; font-weight: 600; color: #8a8177;">STATUS:</span>
+                            @if (equipment.IsApproved)
+                            {
+                                <span style="font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 6px; background: rgba(72,140,130,0.1); color: #488C82;">
+                                    <i class="bi bi-check-circle"></i> Approved
+                                </span>
+                            }
+                            else if (equipment.IsAvailable)
+                            {
+                                <span style="font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 6px; background: rgba(200,121,65,0.1); color: #C87941;">
+                                    <i class="bi bi-clock-history"></i> Pending Review
+                                </span>
+                            }
+                            else
+                            {
+                                <span style="font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 6px; background: rgba(42,42,42,0.06); color: #8a8177;">
+                                    <i class="bi bi-pencil-square"></i> Draft
+                                </span>
+                            }
+                        </div>
+
+                        <EditForm Model="@equipment" OnValidSubmit="@HandleSubmit">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary class="validation-errors" />
+
+                            <!-- Basic Information -->
+                            <div class="ce-section">
+                                <div class="ce-section-icon ce-icon-terracotta"><i class="bi bi-info-circle"></i></div>
+                                <h5 class="ce-section-title">Basic Information</h5>
+                            </div>
+
+                            <div class="ce-field">
+                                <label class="ce-label">Equipment Name <span class="req">*</span></label>
+                                <InputText @bind-Value="equipment.Name" class="ce-input" placeholder="e.g., White Wedding Tent 20x30" />
+                                <ValidationMessage For="@(() => equipment.Name)" />
+                            </div>
+
+                            <div class="ce-field">
+                                <label class="ce-label">Category <span class="req">*</span></label>
+                                <InputSelect @bind-Value="equipment.Category" class="ce-select">
+                                    <option value="">-- Select Category --</option>
+                                    <option value="Tents">Tents</option>
+                                    <option value="Chairs">Chairs</option>
+                                    <option value="Sound System">Sound System</option>
+                                    <option value="Lighting">Lighting</option>
+                                    <option value="Catering">Catering</option>
+                                    <option value="Decoration">Decoration</option>
+                                    <option value="Tables">Tables</option>
+                                    <option value="Stage">Stage & Platform</option>
+                                    <option value="Audio Visual">Audio Visual</option>
+                                    <option value="Other">Other</option>
+                                </InputSelect>
+                                <ValidationMessage For="@(() => equipment.Category)" />
+                            </div>
+
+                            <div class="ce-field">
+                                <label class="ce-label">Description <span class="req">*</span></label>
+                                <InputTextArea @bind-Value="equipment.Description" class="ce-input" rows="3"
+                                    placeholder="Provide detailed description of the equipment, its features, and condition..." />
+                                <ValidationMessage For="@(() => equipment.Description)" />
+                            </div>
+
+                            <div class="ce-field">
+                                <label class="ce-label">Specifications</label>
+                                <InputTextArea @bind-Value="equipment.Specifications" class="ce-input" rows="2"
+                                    placeholder="e.g., Dimensions: 20x30 feet, Material: Canvas, Capacity: 150 guests" />
+                                <span class="ce-hint">Optional: Add technical specifications, dimensions, capacity, etc.</span>
+                            </div>
+
+                            <hr class="ce-divider" />
+
+                            <!-- Pricing & Availability -->
+                            <div class="ce-section">
+                                <div class="ce-section-icon ce-icon-teal"><i class="bi bi-currency-dollar"></i></div>
+                                <h5 class="ce-section-title">Pricing & Availability</h5>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="ce-field">
+                                        <label class="ce-label">Price Per Unit <span class="req">*</span></label>
+                                        <div class="ce-input-group">
+                                            <span class="ce-input-prefix">$</span>
+                                            <InputNumber @bind-Value="equipment.PricePerUnit" class="ce-input" placeholder="0.00" step="0.01" />
+                                        </div>
+                                        <ValidationMessage For="@(() => equipment.PricePerUnit)" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="ce-field">
+                                        <label class="ce-label">Unit Type <span class="req">*</span></label>
+                                        <InputSelect @bind-Value="equipment.Unit" class="ce-select">
+                                            <option value="">-- Select Unit --</option>
+                                            <option value="piece">Piece</option>
+                                            <option value="set">Set</option>
+                                            <option value="hour">Hour</option>
+                                            <option value="day">Day</option>
+                                            <option value="package">Package</option>
+                                        </InputSelect>
+                                        <ValidationMessage For="@(() => equipment.Unit)" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="ce-field">
+                                        <label class="ce-label">Available Quantity <span class="req">*</span></label>
+                                        <InputNumber @bind-Value="equipment.AvailableQuantity" class="ce-input" placeholder="0" min="0" />
+                                        <ValidationMessage For="@(() => equipment.AvailableQuantity)" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="ce-divider" />
+
+                            <!-- Equipment Images -->
+                            <div class="ce-section">
+                                <div class="ce-section-icon ce-icon-bronze"><i class="bi bi-images"></i></div>
+                                <h5 class="ce-section-title">Equipment Images</h5>
+                            </div>
+
+                            <!-- Existing Images -->
+                            @if (existingImages.Any())
+                            {
+                                <div class="ce-field">
+                                    <label class="ce-label">Current Images</label>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 4px;">
+                                        @foreach (var img in existingImages)
+                                        {
+                                            <div style="position: relative; border: 1px solid @(img.IsPrimary ? "#488C82" : "#dee2e6"); border-radius: 8px; overflow: hidden; width: 120px; border-width: @(img.IsPrimary ? "2px" : "1px");">
+                                                <img src="@img.ImageUrl" style="width: 120px; height: 90px; object-fit: cover;" />
+                                                <div style="padding: 0 6px 4px; display: flex; align-items: center; gap: 4px;">
+                                                    <input type="radio" name="primaryExistingImage" checked="@img.IsPrimary"
+                                                        @onchange="() => SetExistingPrimary(img.Id)" />
+                                                    <span style="font-size: 0.65rem; color: @(img.IsPrimary ? "#488C82" : "#8a8177"); font-weight: @(img.IsPrimary ? "700" : "400");">Primary</span>
+                                                </div>
+                                                <button type="button" @onclick="() => RemoveExistingImage(img.Id)"
+                                                    style="position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 0.7rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="bi bi-x"></i>
+                                                </button>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- Upload New Images -->
+                            <div class="ce-field">
+                                <label class="ce-label">Add New Images (Max 5 total, up to 5MB each)</label>
+                                <div style="border: 2px dashed #c4b5a0; border-radius: 8px; padding: 24px; text-align: center; background: #faf8f5; cursor: pointer; position: relative;">
+                                    <InputFile OnChange="OnImagesSelected" multiple accept="image/*"
+                                        style="position: absolute; inset: 0; opacity: 0; cursor: pointer;" />
+                                    <i class="bi bi-cloud-arrow-up" style="font-size: 2rem; color: #8a8177;"></i>
+                                    <div style="color: #5c5550; margin-top: 8px; font-size: 0.85rem;">Click or drag images here to upload</div>
+                                    <div style="color: #8a8177; font-size: 0.75rem; margin-top: 4px;">Supported: JPG, PNG, WebP</div>
+                                </div>
+
+                                @if (newImages.Any())
+                                {
+                                    <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px;">
+                                        @foreach (var img in newImages)
+                                        {
+                                            <div style="position: relative; border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden; width: 120px;">
+                                                @if (newImagePreviews.ContainsKey(img.Name))
+                                                {
+                                                    <img src="@newImagePreviews[img.Name]" style="width: 120px; height: 90px; object-fit: cover;" />
+                                                }
+                                                else
+                                                {
+                                                    <div style="width: 120px; height: 90px; display: flex; align-items: center; justify-content: center; background: #f0ebe4;">
+                                                        <i class="bi bi-image" style="font-size: 1.5rem; color: #8a8177;"></i>
+                                                    </div>
+                                                }
+                                                <div style="padding: 4px 6px; font-size: 0.7rem; color: #5c5550; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">@img.Name</div>
+                                                <div style="padding: 0 6px 4px; display: flex; align-items: center; justify-content: center;">
+                                                    <span style="font-size: 0.6rem; color: #488C82; font-weight: 600;">NEW</span>
+                                                </div>
+                                                <button type="button" @onclick="() => RemoveNewImage(img.Name)"
+                                                    style="position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 0.7rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="bi bi-x"></i>
+                                                </button>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+
+                            <hr class="ce-divider" />
+
+                            <!-- Info Box -->
+                            <div style="background: rgba(72,140,130,0.06); border: 1px solid rgba(72,140,130,0.15); border-radius: 10px; padding: 0.75rem 1rem; display: flex; gap: 0.75rem; align-items: flex-start;">
+                                <i class="bi bi-info-circle" style="color: #488C82; font-size: 1rem; margin-top: 2px;"></i>
+                                <div>
+                                    <div style="font-size: 0.75rem; font-weight: 700; color: #488C82;">Note</div>
+                                    <div style="font-size: 0.7rem; color: #5c5550;">Changes to approved equipment will keep its current status. Major changes may trigger a re-review by admin.</div>
+                                </div>
+                            </div>
+
+                            <!-- Footer -->
+                            <div class="ce-footer">
+                                <button type="button" class="ce-btn ce-btn-muted" @onclick="Cancel">
+                                    <i class="bi bi-x-lg"></i> Cancel
+                                </button>
+                                <button type="button" class="ce-btn ce-btn-muted" style="color: #dc3545;" @onclick="() => showDeleteConfirm = true">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                                <button type="submit" class="ce-btn ce-btn-submit" disabled="@isSubmitting">
+                                    @if (isSubmitting)
+                                    {
+                                        <span class="ce-spinner"></span>
+                                        <span>Saving...</span>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-check-lg"></i>
+                                        <span>Save Changes</span>
+                                    }
+                                </button>
+                            </div>
+                        </EditForm>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (showDeleteConfirm)
+{
+    <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1050; display: flex; align-items: center; justify-content: center;"
+         @onclick="() => showDeleteConfirm = false">
+        <div style="background: #fff; border-radius: 14px; padding: 1.75rem; max-width: 400px; width: 92%; box-shadow: 0 12px 40px rgba(0,0,0,0.18);"
+             @onclick:stopPropagation="true">
+            <div style="text-align: center;">
+                <div style="width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem; background: rgba(220,53,69,0.1); color: #dc3545;">
+                    <i class="bi bi-trash"></i>
+                </div>
+                <h5 style="margin: 0 0 0.4rem; font-size: 1rem; color: #2A2A2A; font-weight: 700;">Delete Equipment?</h5>
+                <p style="font-size: 0.8rem; color: #8a8177; margin: 0 0 0.25rem;">
+                    Are you sure you want to delete <strong>@equipment?.Name</strong>? This action cannot be undone.
+                </p>
+            </div>
+            <div style="display: flex; gap: 0.5rem; justify-content: center; margin-top: 1.25rem;">
+                <button style="padding: 0.45rem 1.1rem; border-radius: 8px; border: 1px solid #dee2e6; background: #fff; color: #5c5550; font-size: 0.78rem; font-weight: 600; cursor: pointer;"
+                        @onclick="() => showDeleteConfirm = false">
+                    Cancel
+                </button>
+                <button style="padding: 0.45rem 1.1rem; border-radius: 8px; border: none; background: #dc3545; color: #fff; font-size: 0.78rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;"
+                        @onclick="DeleteEquipment">
+                    <i class="bi bi-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int EquipmentId { get; set; }
+
+    private EventEquipment? equipment;
+    private bool isLoading = true;
+    private bool isSubmitting = false;
+    private bool showDeleteConfirm = false;
+    private string? currentProviderId;
+    private string? errorMessage;
+    private string? successMessage;
+
+    private List<EventEquipmentImage> existingImages = new();
+    private List<int> imagesToRemove = new();
+
+    private List<IBrowserFile> newImages = new();
+    private Dictionary<string, string> newImagePreviews = new();
+    private const long MaxFileSize = 5 * 1024 * 1024;
+
+    private List<BreadcrumbItem> breadcrumbItems = new()
+    {
+        new BreadcrumbItem { Text = "Home", Url = "/" },
+        new BreadcrumbItem { Text = "Event Equipments", Url = "/owner/event-equipments" },
+        new BreadcrumbItem { Text = "Edit Equipment", IsActive = true }
+    };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                var token = await JSRuntime.InvokeAsync<string>("authHelpers.getCookie", "JWToken");
+                if (!string.IsNullOrEmpty(token))
+                {
+                    var customAuth = (CustomAuthenticationStateProvider)AuthStateProvider;
+                    await customAuth.MarkUserAsAuthenticated(token);
+                    currentProviderId = await GetCurrentUserIdAsync();
+                }
+
+                if (string.IsNullOrEmpty(currentProviderId))
+                {
+                    errorMessage = "You must be logged in to edit equipment.";
+                    isLoading = false;
+                    StateHasChanged();
+                    return;
+                }
+
+                equipment = await EventService.GetEquipmentByIdAsync(EquipmentId);
+
+                if (equipment == null || equipment.ProviderId != currentProviderId)
+                {
+                    equipment = null;
+                    isLoading = false;
+                    StateHasChanged();
+                    return;
+                }
+
+                // Load existing images
+                var allImages = await UnitOfWork.EventEquipmentImages.FindAsync(i => i.EquipmentId == EquipmentId);
+                existingImages = allImages.ToList();
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Error loading equipment: {ex.Message}";
+            }
+            finally
+            {
+                isLoading = false;
+            }
+            StateHasChanged();
+        }
+    }
+
+    private async Task<string?> GetCurrentUserIdAsync()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState?.User;
+            if (user?.Identity?.IsAuthenticated == true)
+            {
+                var nameClaim = user.FindFirst(ClaimTypes.Name)?.Value;
+                if (!string.IsNullOrEmpty(nameClaim))
+                {
+                    var parts = nameClaim.Split(',');
+                    if (parts.Length > 0) return parts[0];
+                }
+            }
+        }
+        catch { }
+        return null;
+    }
+
+    private void SetExistingPrimary(int imageId)
+    {
+        foreach (var img in existingImages)
+            img.IsPrimary = img.Id == imageId;
+        StateHasChanged();
+    }
+
+    private void RemoveExistingImage(int imageId)
+    {
+        imagesToRemove.Add(imageId);
+        existingImages.RemoveAll(i => i.Id == imageId);
+        StateHasChanged();
+    }
+
+    private async Task OnImagesSelected(InputFileChangeEventArgs e)
+    {
+        var totalCount = existingImages.Count + newImages.Count;
+        var files = e.GetMultipleFiles(5);
+        foreach (var file in files)
+        {
+            if (totalCount + newImages.Count >= 5) break;
+            if (file.Size > MaxFileSize) { errorMessage = $"File '{file.Name}' exceeds 5MB limit."; continue; }
+            if (!file.ContentType.StartsWith("image/")) continue;
+
+            newImages.Add(file);
+            try
+            {
+                var resized = await file.RequestImageFileAsync(file.ContentType, 200, 150);
+                var buffer = new byte[resized.Size];
+                await resized.OpenReadStream(MaxFileSize).ReadAsync(buffer);
+                newImagePreviews[file.Name] = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
+            }
+            catch { }
+        }
+        StateHasChanged();
+    }
+
+    private void RemoveNewImage(string name)
+    {
+        newImages.RemoveAll(f => f.Name == name);
+        newImagePreviews.Remove(name);
+        StateHasChanged();
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (equipment == null || string.IsNullOrEmpty(currentProviderId)) return;
+
+        isSubmitting = true;
+        errorMessage = null;
+        successMessage = null;
+
+        try
+        {
+            await EventService.UpdateEquipmentAsync(equipment);
+
+            // Remove deleted images
+            foreach (var imgId in imagesToRemove)
+            {
+                var img = await UnitOfWork.EventEquipmentImages.GetByIdAsync(imgId);
+                if (img != null)
+                {
+                    var filePath = Path.Combine(Environment.WebRootPath, img.ImageUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                    if (File.Exists(filePath)) File.Delete(filePath);
+                    UnitOfWork.EventEquipmentImages.Remove(img);
+                }
+            }
+
+            // Update primary flags
+            foreach (var img in existingImages)
+            {
+                var dbImg = await UnitOfWork.EventEquipmentImages.GetByIdAsync(img.Id);
+                if (dbImg != null)
+                {
+                    dbImg.IsPrimary = img.IsPrimary;
+                    UnitOfWork.EventEquipmentImages.Update(dbImg);
+                }
+            }
+
+            // Save new images
+            if (newImages.Any())
+            {
+                var uploadsPath = Path.Combine(Environment.WebRootPath, "uploads", "equipment");
+                Directory.CreateDirectory(uploadsPath);
+
+                int order = existingImages.Count + 1;
+                foreach (var file in newImages)
+                {
+                    var ext = Path.GetExtension(file.Name);
+                    var fileName = $"{equipment.Id}_{Guid.NewGuid():N}{ext}";
+                    var filePath = Path.Combine(uploadsPath, fileName);
+
+                    await using var stream = new FileStream(filePath, FileMode.Create);
+                    await file.OpenReadStream(MaxFileSize).CopyToAsync(stream);
+
+                    await UnitOfWork.EventEquipmentImages.AddAsync(new EventEquipmentImage
+                    {
+                        EquipmentId = equipment.Id,
+                        ImageUrl = $"/uploads/equipment/{fileName}",
+                        IsPrimary = false,
+                        DisplayOrder = order++,
+                        UploadedAt = DateTime.UtcNow
+                    });
+                }
+            }
+
+            await UnitOfWork.SaveChangesAsync();
+
+            successMessage = "Equipment updated successfully! Redirecting...";
+            StateHasChanged();
+            await Task.Delay(2000);
+            Navigation.NavigateTo("/owner/event-equipments");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error updating equipment: {ex.Message}";
+            if (ex.InnerException != null) errorMessage += $" | {ex.InnerException.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private async Task DeleteEquipment()
+    {
+        if (equipment == null) return;
+        try
+        {
+            await EventService.DeleteEquipmentAsync(equipment.Id);
+            Navigation.NavigateTo("/owner/event-equipments");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error deleting equipment: {ex.Message}";
+            showDeleteConfirm = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/owner/event-equipments");
+    }
+}

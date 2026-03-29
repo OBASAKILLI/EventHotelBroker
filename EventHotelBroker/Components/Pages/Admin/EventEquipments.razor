@@ -138,14 +138,20 @@
                                         <div class="ae-actions">
                                             @if (!equipment.IsApproved)
                                             {
-                                                <button class="ae-btn ae-btn-sm ae-btn-approve" @onclick="() => ApproveEquipment(equipment.Id)" title="Approve">
+                                                <button class="ae-btn ae-btn-sm ae-btn-approve" @onclick="() => ShowApproveModal(equipment)" title="Approve">
                                                     <i class="bi bi-check-lg"></i>
                                                 </button>
-                                                <button class="ae-btn ae-btn-sm ae-btn-reject" @onclick="() => RejectEquipment(equipment.Id)" title="Reject">
+                                                <button class="ae-btn ae-btn-sm ae-btn-reject" @onclick="() => ShowRejectModal(equipment)" title="Reject">
                                                     <i class="bi bi-x-lg"></i>
                                                 </button>
                                             }
-                                            <button class="ae-btn ae-btn-sm ae-btn-delete" @onclick="() => DeleteEquipment(equipment.Id)" title="Delete">
+                                            else
+                                            {
+                                                <button class="ae-btn ae-btn-sm ae-btn-reject" @onclick="() => ShowRejectModal(equipment)" title="Revoke Approval">
+                                                    <i class="bi bi-x-lg"></i>
+                                                </button>
+                                            }
+                                            <button class="ae-btn ae-btn-sm ae-btn-delete" @onclick="() => ShowDeleteModal(equipment)" title="Delete">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </div>
@@ -167,6 +173,48 @@
         </div>
     }
 </div>
+
+@* --- Confirmation Modals --- *@
+@if (modalVisible)
+{
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1050;display:flex;align-items:center;justify-content:center;animation:fadeIn .2s ease;"
+         @onclick="CloseModal">
+        <div style="background:#fff;border-radius:14px;padding:1.75rem;max-width:420px;width:92%;box-shadow:0 12px 40px rgba(0,0,0,0.18);animation:scaleIn .2s ease;"
+             @onclick:stopPropagation="true">
+            <div style="text-align:center;">
+                <div style="width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.5rem;background:@modalIconBg;color:@modalIconColor;">
+                    <i class="bi @modalIcon"></i>
+                </div>
+                <h5 style="margin:0 0 0.4rem;font-size:1rem;color:#2A2A2A;font-weight:700;">@modalTitle</h5>
+                <p style="font-size:0.8rem;color:#8a8177;margin:0 0 0.25rem;">@modalMessage</p>
+                @if (selectedEquipment != null)
+                {
+                    <div style="background:#faf8f5;border-radius:8px;padding:0.6rem 0.75rem;margin:0.75rem 0;text-align:left;border:1px solid #f0ebe4;">
+                        <div style="font-size:0.75rem;font-weight:700;color:#2A2A2A;">@selectedEquipment.Name</div>
+                        <div style="font-size:0.65rem;color:#8a8177;margin-top:2px;">@selectedEquipment.Category &middot; $@selectedEquipment.PricePerUnit.ToString("N2")/@selectedEquipment.Unit &middot; @selectedEquipment.AvailableQuantity units</div>
+                    </div>
+                }
+            </div>
+            <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1.25rem;">
+                <button style="padding:0.45rem 1.1rem;border-radius:8px;border:1px solid #dee2e6;background:#fff;color:#5c5550;font-size:0.78rem;font-weight:600;cursor:pointer;" @onclick="CloseModal">
+                    Cancel
+                </button>
+                <button style="padding:0.45rem 1.1rem;border-radius:8px;border:none;background:@modalBtnBg;color:#fff;font-size:0.78rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;"
+                        disabled="@isProcessing" @onclick="ConfirmAction">
+                    @if (isProcessing)
+                    {
+                        <span class="ae-spinner" style="width:14px;height:14px;border-width:2px;"></span>
+                    }
+                    else
+                    {
+                        <i class="bi @modalBtnIcon"></i>
+                    }
+                    @modalBtnText
+                </button>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
     private bool isLoading = true;
@@ -228,35 +276,107 @@
         }
     }
 
-    private async Task ApproveEquipment(int id)
+    // Modal state
+    private bool modalVisible = false;
+    private bool isProcessing = false;
+    private EventEquipment? selectedEquipment;
+    private string modalAction = "";
+    private string modalTitle = "";
+    private string modalMessage = "";
+    private string modalIcon = "";
+    private string modalIconBg = "";
+    private string modalIconColor = "";
+    private string modalBtnBg = "";
+    private string modalBtnText = "";
+    private string modalBtnIcon = "";
+
+    private void ShowApproveModal(EventEquipment eq)
     {
-        await EventService.ApproveEquipmentAsync(id);
-        await LoadData();
+        selectedEquipment = eq;
+        modalAction = "approve";
+        modalTitle = "Approve Equipment?";
+        modalMessage = "This equipment will become visible to all customers.";
+        modalIcon = "bi-check-circle";
+        modalIconBg = "rgba(72,140,130,0.12)";
+        modalIconColor = "#488C82";
+        modalBtnBg = "#488C82";
+        modalBtnText = "Approve";
+        modalBtnIcon = "bi-check-lg";
+        modalVisible = true;
     }
 
-    private async Task RejectEquipment(int id)
+    private void ShowRejectModal(EventEquipment eq)
     {
-        await EventService.RejectEquipmentAsync(id);
-        await LoadData();
+        selectedEquipment = eq;
+        modalAction = "reject";
+        modalTitle = eq.IsApproved ? "Revoke Approval?" : "Reject Equipment?";
+        modalMessage = eq.IsApproved
+            ? "This equipment will be removed from public listings."
+            : "This equipment will remain hidden from customers.";
+        modalIcon = "bi-x-circle";
+        modalIconBg = "rgba(200,121,65,0.12)";
+        modalIconColor = "#C87941";
+        modalBtnBg = "#C87941";
+        modalBtnText = eq.IsApproved ? "Revoke" : "Reject";
+        modalBtnIcon = "bi-x-lg";
+        modalVisible = true;
     }
 
-    private async Task DeleteEquipment(int id)
+    private void ShowDeleteModal(EventEquipment eq)
     {
-        if (confirm("Are you sure you want to delete this equipment?"))
+        selectedEquipment = eq;
+        modalAction = "delete";
+        modalTitle = "Delete Equipment?";
+        modalMessage = "This action cannot be undone. The equipment and all its data will be permanently removed.";
+        modalIcon = "bi-trash";
+        modalIconBg = "rgba(220,53,69,0.1)";
+        modalIconColor = "#dc3545";
+        modalBtnBg = "#dc3545";
+        modalBtnText = "Delete";
+        modalBtnIcon = "bi-trash";
+        modalVisible = true;
+    }
+
+    private void CloseModal()
+    {
+        modalVisible = false;
+        selectedEquipment = null;
+        isProcessing = false;
+    }
+
+    private async Task ConfirmAction()
+    {
+        if (selectedEquipment == null) return;
+        isProcessing = true;
+
+        try
         {
-            await EventService.DeleteEquipmentAsync(id);
+            switch (modalAction)
+            {
+                case "approve":
+                    await EventService.ApproveEquipmentAsync(selectedEquipment.Id);
+                    break;
+                case "reject":
+                    await EventService.RejectEquipmentAsync(selectedEquipment.Id);
+                    break;
+                case "delete":
+                    await EventService.DeleteEquipmentAsync(selectedEquipment.Id);
+                    break;
+            }
             await LoadData();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AdminEquipments] Error: {ex.Message}");
+        }
+        finally
+        {
+            CloseModal();
         }
     }
 
     private async Task RefreshData()
     {
         await LoadData();
-    }
-
-    private bool confirm(string message)
-    {
-        // In production, use a proper modal dialog
-        return true;
     }
 }

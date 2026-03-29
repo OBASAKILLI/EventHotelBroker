@@ -2,9 +2,14 @@
 @rendermode InteractiveServer
 @using EventHotelBroker.Models
 @using EventHotelBroker.Services
+@using EventHotelBroker.Utils
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
 @inject IEventService EventService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IWebHostEnvironment Environment
 
 <PageTitle>Create Event Package - Owner</PageTitle>
 
@@ -28,6 +33,22 @@
         <div class="col-lg-9">
             <div class="cp-card">
                 <div class="cp-card-body">
+                    @if (!string.IsNullOrEmpty(successMessage))
+                    {
+                        <div style="background: rgba(72,140,130,0.1); border: 1px solid rgba(72,140,130,0.3); border-radius: 8px; padding: 12px 16px; margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; font-size: 0.8rem; color: #488C82;">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span><strong>Success!</strong> @successMessage</span>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div style="background: rgba(220,53,69,0.08); border: 1px solid rgba(220,53,69,0.25); border-radius: 8px; padding: 12px 16px; margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; font-size: 0.8rem; color: #dc3545;">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <span><strong>Error!</strong> @errorMessage</span>
+                        </div>
+                    }
+
                     <EditForm Model="@package" OnValidSubmit="@HandleSubmit">
                         <DataAnnotationsValidator />
                         <ValidationSummary class="validation-errors" />
@@ -196,22 +217,31 @@
 
                         <hr class="cp-divider" />
 
-                        <!-- Image URL -->
+                        <!-- Package Image -->
                         <div class="cp-section">
                             <div class="cp-section-icon cp-icon-terracotta"><i class="bi bi-image"></i></div>
                             <h5 class="cp-section-title">Package Image</h5>
                         </div>
 
                         <div class="cp-field">
-                            <label class="cp-label">Image URL</label>
-                            <InputText @bind-Value="package.ImageUrl" class="cp-input" placeholder="https://example.com/package-image.jpg" />
-                            <span class="cp-hint">Optional: Add a URL to an image representing this package</span>
+                            <label class="cp-label">Upload Image (Max 5MB)</label>
+                            <div style="border: 2px dashed #c4b5a0; border-radius: 8px; padding: 24px; text-align: center; background: #faf8f5; cursor: pointer; position: relative;">
+                                <InputFile OnChange="OnImageSelected" accept="image/*"
+                                    style="position: absolute; inset: 0; opacity: 0; cursor: pointer;" />
+                                <i class="bi bi-cloud-arrow-up" style="font-size: 2rem; color: #8a8177;"></i>
+                                <div style="color: #5c5550; margin-top: 8px; font-size: 0.85rem;">Click or drag an image here to upload</div>
+                                <div style="color: #8a8177; font-size: 0.75rem; margin-top: 4px;">Supported: JPG, PNG, WebP</div>
+                            </div>
                         </div>
 
-                        @if (!string.IsNullOrEmpty(package.ImageUrl))
+                        @if (!string.IsNullOrEmpty(imagePreviewUrl))
                         {
-                            <div class="cp-img-preview">
-                                <img src="@package.ImageUrl" alt="Package preview" @onerror="HandleImageError" />
+                            <div style="position: relative; display: inline-block; margin-top: 8px;">
+                                <img src="@imagePreviewUrl" alt="Package preview" style="max-width: 200px; max-height: 150px; border-radius: 8px; border: 1px solid #dee2e6;" />
+                                <button type="button" @onclick="RemoveImage"
+                                    style="position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 0.7rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                    <i class="bi bi-x"></i>
+                                </button>
                             </div>
                         }
 
@@ -256,31 +286,138 @@
     private EventPackage package = new();
     private string featuresText = string.Empty;
     private bool isSubmitting = false;
-    private string currentProviderId = "temp-provider-id"; // In production, get from auth context
+    private string? currentProviderId;
+    private string? errorMessage;
+    private string? successMessage;
+
+    private IBrowserFile? selectedImage;
+    private string? imagePreviewUrl;
+    private const long MaxFileSize = 5 * 1024 * 1024;
 
     private List<BreadcrumbItem> breadcrumbItems = new()
     {
         new BreadcrumbItem { Text = "Home", Url = "/" },
-        new BreadcrumbItem { Text = "Owner Dashboard", Url = "/owner/dashboard" },
+        new BreadcrumbItem { Text = "Event Packages", Url = "/owner/event-packages" },
         new BreadcrumbItem { Text = "Create Package", IsActive = true }
     };
 
-    protected override void OnInitialized()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        package.ProviderId = currentProviderId;
-        package.IsActive = true;
-        package.IsApproved = false;
-        package.IsFeatured = false;
-        package.IsCustomizable = true;
-        package.CreatedAt = DateTime.UtcNow;
-        package.UpdatedAt = DateTime.UtcNow;
+        if (firstRender)
+        {
+            try
+            {
+                var token = await JSRuntime.InvokeAsync<string>("authHelpers.getCookie", "JWToken");
+                if (!string.IsNullOrEmpty(token))
+                {
+                    var customAuth = (CustomAuthenticationStateProvider)AuthStateProvider;
+                    await customAuth.MarkUserAsAuthenticated(token);
+                    currentProviderId = await GetCurrentUserIdAsync();
+                }
+
+                if (string.IsNullOrEmpty(currentProviderId))
+                {
+                    errorMessage = "You must be logged in to create a package.";
+                }
+                else
+                {
+                    package.ProviderId = currentProviderId;
+                    package.IsActive = false;
+                    package.IsApproved = false;
+                    package.IsFeatured = false;
+                    package.IsCustomizable = true;
+                    package.CreatedAt = DateTime.UtcNow;
+                    package.UpdatedAt = DateTime.UtcNow;
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Error: {ex.Message}";
+            }
+            StateHasChanged();
+        }
+    }
+
+    private async Task<string?> GetCurrentUserIdAsync()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState?.User;
+            if (user?.Identity?.IsAuthenticated == true)
+            {
+                var nameClaim = user.FindFirst(ClaimTypes.Name)?.Value;
+                if (!string.IsNullOrEmpty(nameClaim))
+                {
+                    var parts = nameClaim.Split(',');
+                    if (parts.Length > 0) return parts[0];
+                }
+            }
+        }
+        catch { }
+        return null;
+    }
+
+    private async Task OnImageSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file.Size > MaxFileSize) { errorMessage = "File exceeds 5MB limit."; return; }
+        if (!file.ContentType.StartsWith("image/")) { errorMessage = "Only image files are allowed."; return; }
+
+        selectedImage = file;
+        try
+        {
+            var resized = await file.RequestImageFileAsync(file.ContentType, 200, 150);
+            var buffer = new byte[resized.Size];
+            await resized.OpenReadStream(MaxFileSize).ReadAsync(buffer);
+            imagePreviewUrl = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
+        }
+        catch { }
+        StateHasChanged();
+    }
+
+    private void RemoveImage()
+    {
+        selectedImage = null;
+        imagePreviewUrl = null;
+        StateHasChanged();
+    }
+
+    private async Task<string?> SavePackageImage(int packageId)
+    {
+        if (selectedImage == null) return null;
+
+        var uploadsPath = Path.Combine(Environment.WebRootPath, "uploads", "packages");
+        Directory.CreateDirectory(uploadsPath);
+
+        var ext = Path.GetExtension(selectedImage.Name);
+        var fileName = $"{packageId}_{Guid.NewGuid():N}{ext}";
+        var filePath = Path.Combine(uploadsPath, fileName);
+
+        await using var stream = new FileStream(filePath, FileMode.Create);
+        await selectedImage.OpenReadStream(MaxFileSize).CopyToAsync(stream);
+
+        return $"/uploads/packages/{fileName}";
     }
 
     private async Task HandleSubmit()
     {
+        if (string.IsNullOrEmpty(currentProviderId))
+        {
+            errorMessage = "You must be logged in to create a package.";
+            return;
+        }
+
         isSubmitting = true;
+        errorMessage = null;
+        successMessage = null;
+
         try
         {
+            package.ProviderId = currentProviderId;
+            package.IsApproved = false;
+            package.IsActive = false;
+
             // Convert features text to JSON array
             if (!string.IsNullOrWhiteSpace(featuresText))
             {
@@ -288,17 +425,31 @@
                     .Select(f => f.Trim())
                     .Where(f => !string.IsNullOrEmpty(f))
                     .ToList();
-                
                 package.Features = System.Text.Json.JsonSerializer.Serialize(features);
             }
 
             await EventService.CreatePackageAsync(package);
-            await JSRuntime.InvokeVoidAsync("alert", "Package created successfully! It will be visible after admin approval.");
+
+            // Save image after we have the package ID
+            if (selectedImage != null)
+            {
+                var imageUrl = await SavePackageImage(package.Id);
+                if (imageUrl != null)
+                {
+                    package.ImageUrl = imageUrl;
+                    await EventService.UpdatePackageAsync(package);
+                }
+            }
+
+            successMessage = "Package created successfully! It will be visible after admin approval. Redirecting...";
+            StateHasChanged();
+            await Task.Delay(2000);
             Navigation.NavigateTo("/owner/event-packages");
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+            errorMessage = $"Error creating package: {ex.Message}";
+            if (ex.InnerException != null) errorMessage += $" | {ex.InnerException.Message}";
         }
         finally
         {
@@ -309,10 +460,5 @@
     private void Cancel()
     {
         Navigation.NavigateTo("/owner/event-packages");
-    }
-
-    private void HandleImageError()
-    {
-        // Handle image load error
     }
 }

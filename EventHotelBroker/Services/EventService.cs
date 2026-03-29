@@ -149,6 +149,7 @@ public class EventService : IEventService
         if (package == null) return false;
 
         package.IsApproved = true;
+        package.IsActive = true;
         package.UpdatedAt = DateTime.UtcNow;
         _unitOfWork.EventPackages.Update(package);
         await _unitOfWork.SaveChangesAsync();
@@ -161,6 +162,7 @@ public class EventService : IEventService
         if (package == null) return false;
 
         package.IsApproved = false;
+        package.IsActive = false;
         package.UpdatedAt = DateTime.UtcNow;
         _unitOfWork.EventPackages.Update(package);
         await _unitOfWork.SaveChangesAsync();

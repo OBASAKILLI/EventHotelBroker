@@ -19,22 +19,6 @@
 
 <link href="/css/create-hotel.css?v=1" rel="stylesheet" />
 
-<!-- Debug Info Section -->
-<div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 16px; margin: 16px 0; font-family: monospace; font-size: 0.85rem;">
-    <h6 style="margin: 0 0 12px 0; color: #495057;">Debug: Current User Info</h6>
-    <div><strong>User ID (strid):</strong> @(currentUserId ?? "NULL - NOT LOGGED IN")</div>
-    <div><strong>Is Authenticated:</strong> @(!string.IsNullOrEmpty(currentUserId))</div>
-    <div><strong>Debug Phase:</strong> @debugPhase</div>
-    <div><strong>Cookie Value:</strong> @(debugCookieValue ?? "EMPTY/NULL")</div>
-    <button @onclick="RefreshUserId" 
-            style="margin-top: 8px; padding: 4px 8px; background: #007bff; color: white; border: none; border-radius: 4px; font-size: 0.8rem;">
-        Refresh User ID
-    </button>
-    <button @onclick="ManualCookieCheck" 
-            style="margin-top: 8px; margin-left: 4px; padding: 4px 8px; background: #28a745; color: white; border: none; border-radius: 4px; font-size: 0.8rem;">
-        Check Cookie Now
-    </button>
-</div>
 
 <div class="ch">
     <Breadcrumb Items="@breadcrumbItems" />
@@ -267,9 +251,6 @@
                             <button type="button" class="ch-btn ch-btn-muted" @onclick="Cancel">
                                 <i class="bi bi-x-lg"></i> Cancel
                             </button>
-                            <button type="button" class="ch-btn ch-btn-submit" style="background: #28a745;" @onclick="TestSubmit" disabled="@isSubmitting">
-                                🧪 Test Submit (No Validation)
-                            </button>
                             <button type="submit" class="ch-btn ch-btn-submit" disabled="@isSubmitting">
                                 @if (isSubmitting)
                                 {
@@ -301,8 +282,6 @@
     private string? successMessage;
     private bool isSubmitting = false;
     private string? currentUserId;
-    private string debugPhase = "Initializing...";
-    private string? debugCookieValue;
     private List<IBrowserFile> selectedImages = new();
     private Dictionary<string, string> imagePreviewUrls = new();
     private string? primaryImageName;
@@ -331,30 +310,20 @@
     {
         if (firstRender)
         {
-            debugPhase = "OnAfterRender started...";
-            
             try
             {
                 var token = await JSRuntime.InvokeAsync<string>("authHelpers.getCookie", "JWToken");
-                debugCookieValue = string.IsNullOrEmpty(token) ? "COOKIE EMPTY" : $"Found ({token.Length} chars)";
-                debugPhase = "Cookie read complete";
                 
                 if (!string.IsNullOrEmpty(token))
                 {
                     var customAuth = (CustomAuthenticationStateProvider)AuthStateProvider;
                     await customAuth.MarkUserAsAuthenticated(token);
                     currentUserId = await GetCurrentUserIdAsync();
-                    debugPhase = $"Auth complete. UserId={currentUserId}";
-                }
-                else
-                {
-                    debugPhase = "No cookie found - not logged in";
                 }
             }
             catch (Exception ex)
             {
-                debugPhase = $"ERROR: {ex.Message}";
-                debugCookieValue = $"Error: {ex.Message}";
+                errorMessage = $"Authentication error: {ex.Message}";
             }
 
             if (string.IsNullOrEmpty(currentUserId))
@@ -400,35 +369,6 @@
         return null;
     }
 
-    private async Task RefreshUserId()
-    {
-        currentUserId = await GetCurrentUserIdAsync();
-        debugPhase = $"Refreshed. UserId={currentUserId}";
-        StateHasChanged();
-    }
-
-    private async Task ManualCookieCheck()
-    {
-        try
-        {
-            var token = await JSRuntime.InvokeAsync<string>("authHelpers.getCookie", "JWToken");
-            debugCookieValue = string.IsNullOrEmpty(token) ? "COOKIE EMPTY" : $"Found ({token.Length} chars)";
-            
-            if (!string.IsNullOrEmpty(token))
-            {
-                var customAuth = (CustomAuthenticationStateProvider)AuthStateProvider;
-                await customAuth.MarkUserAsAuthenticated(token);
-                currentUserId = await GetCurrentUserIdAsync();
-                debugPhase = $"Manual check: UserId={currentUserId}";
-                errorMessage = null;
-            }
-        }
-        catch (Exception ex)
-        {
-            debugCookieValue = $"Error: {ex.Message}";
-        }
-        StateHasChanged();
-    }
 
     private async Task OnImagesSelected(InputFileChangeEventArgs e)
     {
@@ -593,45 +533,6 @@
         }
     }
 
-    private async Task TestSubmit()
-    {
-        System.Diagnostics.Debug.WriteLine("[CreateHotel] TestSubmit called");
-        errorMessage = null;
-        successMessage = null;
-        
-        // Set minimal required data for testing
-        if (string.IsNullOrEmpty(hotel.Name))
-        {
-            hotel.Name = "Test Hotel " + DateTime.Now.Second;
-        }
-        if (string.IsNullOrEmpty(hotel.Description))
-        {
-            hotel.Description = "Test hotel description for debugging purposes.";
-        }
-        if (string.IsNullOrEmpty(hotel.Address))
-        {
-            hotel.Address = "Test Address";
-        }
-        if (string.IsNullOrEmpty(hotel.City))
-        {
-            hotel.City = "Nairobi";
-        }
-        if (string.IsNullOrEmpty(hotel.Country))
-        {
-            hotel.Country = "Kenya";
-        }
-        if (hotel.Capacity == 0)
-        {
-            hotel.Capacity = 10;
-        }
-        if (hotel.PricePerNight == 0)
-        {
-            hotel.PricePerNight = 1000;
-        }
-        
-        System.Diagnostics.Debug.WriteLine("[CreateHotel] Test data set, calling HandleSubmit");
-        await HandleSubmit();
-    }
 
     private void Cancel()
     {

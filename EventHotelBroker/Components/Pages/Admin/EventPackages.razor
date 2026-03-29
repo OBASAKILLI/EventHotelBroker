@@ -149,14 +149,20 @@
                                 <div class="ap-actions">
                                     @if (!package.IsApproved)
                                     {
-                                        <button class="ap-btn ap-btn-sm ap-btn-approve" @onclick="() => ApprovePackage(package.Id)">
+                                        <button class="ap-btn ap-btn-sm ap-btn-approve" @onclick="() => ShowApproveModal(package)">
                                             <i class="bi bi-check-lg"></i> Approve
                                         </button>
-                                        <button class="ap-btn ap-btn-sm ap-btn-reject" @onclick="() => RejectPackage(package.Id)">
+                                        <button class="ap-btn ap-btn-sm ap-btn-reject" @onclick="() => ShowRejectModal(package)">
                                             <i class="bi bi-x-lg"></i> Reject
                                         </button>
                                     }
-                                    <button class="ap-btn ap-btn-sm ap-btn-delete" @onclick="() => DeletePackage(package.Id)">
+                                    else
+                                    {
+                                        <button class="ap-btn ap-btn-sm ap-btn-reject" @onclick="() => ShowRejectModal(package)">
+                                            <i class="bi bi-x-lg"></i> Revoke
+                                        </button>
+                                    }
+                                    <button class="ap-btn ap-btn-sm ap-btn-delete" @onclick="() => ShowDeleteModal(package)">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </div>
@@ -176,6 +182,48 @@
         </div>
     }
 </div>
+
+@* --- Confirmation Modals --- *@
+@if (modalVisible)
+{
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1050;display:flex;align-items:center;justify-content:center;"
+         @onclick="CloseModal">
+        <div style="background:#fff;border-radius:14px;padding:1.75rem;max-width:420px;width:92%;box-shadow:0 12px 40px rgba(0,0,0,0.18);"
+             @onclick:stopPropagation="true">
+            <div style="text-align:center;">
+                <div style="width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.5rem;background:@modalIconBg;color:@modalIconColor;">
+                    <i class="bi @modalIcon"></i>
+                </div>
+                <h5 style="margin:0 0 0.4rem;font-size:1rem;color:#2A2A2A;font-weight:700;">@modalTitle</h5>
+                <p style="font-size:0.8rem;color:#8a8177;margin:0 0 0.25rem;">@modalMessage</p>
+                @if (selectedPackage != null)
+                {
+                    <div style="background:#faf8f5;border-radius:8px;padding:0.6rem 0.75rem;margin:0.75rem 0;text-align:left;border:1px solid #f0ebe4;">
+                        <div style="font-size:0.75rem;font-weight:700;color:#2A2A2A;">@selectedPackage.Name</div>
+                        <div style="font-size:0.65rem;color:#8a8177;margin-top:2px;">@selectedPackage.PackageType &middot; $@selectedPackage.TotalPrice.ToString("N2") &middot; @selectedPackage.MinGuests-@selectedPackage.MaxGuests guests</div>
+                    </div>
+                }
+            </div>
+            <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1.25rem;">
+                <button style="padding:0.45rem 1.1rem;border-radius:8px;border:1px solid #dee2e6;background:#fff;color:#5c5550;font-size:0.78rem;font-weight:600;cursor:pointer;" @onclick="CloseModal">
+                    Cancel
+                </button>
+                <button style="padding:0.45rem 1.1rem;border-radius:8px;border:none;background:@modalBtnBg;color:#fff;font-size:0.78rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;"
+                        disabled="@isProcessing" @onclick="ConfirmAction">
+                    @if (isProcessing)
+                    {
+                        <span class="ap-spinner" style="width:14px;height:14px;border-width:2px;"></span>
+                    }
+                    else
+                    {
+                        <i class="bi @modalBtnIcon"></i>
+                    }
+                    @modalBtnText
+                </button>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
     private bool isLoading = true;
@@ -236,22 +284,103 @@
         }
     }
 
-    private async Task ApprovePackage(int id)
+    // Modal state
+    private bool modalVisible = false;
+    private bool isProcessing = false;
+    private EventPackage? selectedPackage;
+    private string modalAction = "";
+    private string modalTitle = "";
+    private string modalMessage = "";
+    private string modalIcon = "";
+    private string modalIconBg = "";
+    private string modalIconColor = "";
+    private string modalBtnBg = "";
+    private string modalBtnText = "";
+    private string modalBtnIcon = "";
+
+    private void ShowApproveModal(EventPackage pkg)
     {
-        await EventService.ApprovePackageAsync(id);
-        await LoadData();
+        selectedPackage = pkg;
+        modalAction = "approve";
+        modalTitle = "Approve Package?";
+        modalMessage = "This package will become visible to all customers.";
+        modalIcon = "bi-check-circle";
+        modalIconBg = "rgba(72,140,130,0.12)";
+        modalIconColor = "#488C82";
+        modalBtnBg = "#488C82";
+        modalBtnText = "Approve";
+        modalBtnIcon = "bi-check-lg";
+        modalVisible = true;
     }
 
-    private async Task RejectPackage(int id)
+    private void ShowRejectModal(EventPackage pkg)
     {
-        await EventService.RejectPackageAsync(id);
-        await LoadData();
+        selectedPackage = pkg;
+        modalAction = "reject";
+        modalTitle = pkg.IsApproved ? "Revoke Approval?" : "Reject Package?";
+        modalMessage = pkg.IsApproved
+            ? "This package will be removed from public listings."
+            : "This package will remain hidden from customers.";
+        modalIcon = "bi-x-circle";
+        modalIconBg = "rgba(200,121,65,0.12)";
+        modalIconColor = "#C87941";
+        modalBtnBg = "#C87941";
+        modalBtnText = pkg.IsApproved ? "Revoke" : "Reject";
+        modalBtnIcon = "bi-x-lg";
+        modalVisible = true;
     }
 
-    private async Task DeletePackage(int id)
+    private void ShowDeleteModal(EventPackage pkg)
     {
-        await EventService.DeletePackageAsync(id);
-        await LoadData();
+        selectedPackage = pkg;
+        modalAction = "delete";
+        modalTitle = "Delete Package?";
+        modalMessage = "This action cannot be undone. The package and all its data will be permanently removed.";
+        modalIcon = "bi-trash";
+        modalIconBg = "rgba(220,53,69,0.1)";
+        modalIconColor = "#dc3545";
+        modalBtnBg = "#dc3545";
+        modalBtnText = "Delete";
+        modalBtnIcon = "bi-trash";
+        modalVisible = true;
+    }
+
+    private void CloseModal()
+    {
+        modalVisible = false;
+        selectedPackage = null;
+        isProcessing = false;
+    }
+
+    private async Task ConfirmAction()
+    {
+        if (selectedPackage == null) return;
+        isProcessing = true;
+
+        try
+        {
+            switch (modalAction)
+            {
+                case "approve":
+                    await EventService.ApprovePackageAsync(selectedPackage.Id);
+                    break;
+                case "reject":
+                    await EventService.RejectPackageAsync(selectedPackage.Id);
+                    break;
+                case "delete":
+                    await EventService.DeletePackageAsync(selectedPackage.Id);
+                    break;
+            }
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AdminPackages] Error: {ex.Message}");
+        }
+        finally
+        {
+            CloseModal();
+        }
     }
 
     private async Task RefreshData()
