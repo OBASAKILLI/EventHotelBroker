@@ -2,9 +2,16 @@
 @rendermode InteractiveServer
 @using EventHotelBroker.Models
 @using EventHotelBroker.Services
+@using EventHotelBroker.Utils
+@using EventHotelBroker.Repositories
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
 @inject IEventService EventService
+@inject IUnitOfWork UnitOfWork
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IWebHostEnvironment Environment
 
 <PageTitle>Add Event Equipment - Owner</PageTitle>
 
@@ -28,6 +35,22 @@
         <div class="col-lg-9">
             <div class="ce-card">
                 <div class="ce-card-body">
+                    @if (!string.IsNullOrEmpty(successMessage))
+                    {
+                        <div style="background: rgba(72,140,130,0.1); border: 1px solid rgba(72,140,130,0.3); border-radius: 8px; padding: 12px 16px; margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; font-size: 0.8rem; color: #488C82;">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span><strong>Success!</strong> @successMessage</span>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div style="background: rgba(220,53,69,0.08); border: 1px solid rgba(220,53,69,0.25); border-radius: 8px; padding: 12px 16px; margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; font-size: 0.8rem; color: #dc3545;">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <span><strong>Error!</strong> @errorMessage</span>
+                        </div>
+                    }
+
                     <EditForm Model="@equipment" OnValidSubmit="@HandleSubmit">
                         <DataAnnotationsValidator />
                         <ValidationSummary class="validation-errors" />
@@ -135,24 +158,53 @@
 
                         <hr class="ce-divider" />
 
-                        <!-- Image URL -->
+                        <!-- Equipment Images -->
                         <div class="ce-section">
-                            <div class="ce-section-icon ce-icon-bronze"><i class="bi bi-image"></i></div>
-                            <h5 class="ce-section-title">Equipment Image</h5>
+                            <div class="ce-section-icon ce-icon-bronze"><i class="bi bi-images"></i></div>
+                            <h5 class="ce-section-title">Equipment Images</h5>
                         </div>
 
                         <div class="ce-field">
-                            <label class="ce-label">Image URL</label>
-                            <InputText @bind-Value="imageUrl" class="ce-input" placeholder="https://example.com/image.jpg" />
-                            <span class="ce-hint">Optional: Add a URL to an image of your equipment</span>
-                        </div>
-
-                        @if (!string.IsNullOrEmpty(imageUrl))
-                        {
-                            <div class="ce-img-preview">
-                                <img src="@imageUrl" alt="Equipment preview" @onerror="HandleImageError" />
+                            <label class="ce-label">Upload Images (Max 5, up to 5MB each)</label>
+                            <div style="border: 2px dashed #c4b5a0; border-radius: 8px; padding: 24px; text-align: center; background: #faf8f5; cursor: pointer; position: relative;">
+                                <InputFile OnChange="OnImagesSelected" multiple accept="image/*"
+                                    style="position: absolute; inset: 0; opacity: 0; cursor: pointer;" />
+                                <i class="bi bi-cloud-arrow-up" style="font-size: 2rem; color: #8a8177;"></i>
+                                <div style="color: #5c5550; margin-top: 8px; font-size: 0.85rem;">Click or drag images here to upload</div>
+                                <div style="color: #8a8177; font-size: 0.75rem; margin-top: 4px;">Supported: JPG, PNG, WebP</div>
                             </div>
-                        }
+
+                            @if (selectedImages.Any())
+                            {
+                                <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px;">
+                                    @foreach (var img in selectedImages)
+                                    {
+                                        <div style="position: relative; border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden; width: 120px;">
+                                            @if (imagePreviewUrls.ContainsKey(img.Name))
+                                            {
+                                                <img src="@imagePreviewUrls[img.Name]" style="width: 120px; height: 90px; object-fit: cover;" />
+                                            }
+                                            else
+                                            {
+                                                <div style="width: 120px; height: 90px; display: flex; align-items: center; justify-content: center; background: #f0ebe4;">
+                                                    <i class="bi bi-image" style="font-size: 1.5rem; color: #8a8177;"></i>
+                                                </div>
+                                            }
+                                            <div style="padding: 4px 6px; font-size: 0.7rem; color: #5c5550; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">@img.Name</div>
+                                            <div style="padding: 0 6px 4px; display: flex; align-items: center; gap: 4px;">
+                                                <input type="radio" name="primaryImage" checked="@(primaryImageName == img.Name)"
+                                                    @onchange="() => primaryImageName = img.Name" />
+                                                <span style="font-size: 0.65rem; color: #8a8177;">Primary</span>
+                                            </div>
+                                            <button type="button" @onclick="() => RemoveImage(img.Name)"
+                                                style="position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 0.7rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                                <i class="bi bi-x"></i>
+                                            </button>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
 
                         <!-- Footer -->
                         <div class="ce-footer">
@@ -192,9 +244,15 @@
 
 @code {
     private EventEquipment equipment = new();
-    private string imageUrl = string.Empty;
     private bool isSubmitting = false;
-    private string currentProviderId = "temp-provider-id"; // In production, get from auth context
+    private string? currentProviderId;
+    private string? errorMessage;
+    private string? successMessage;
+
+    private List<IBrowserFile> selectedImages = new();
+    private Dictionary<string, string> imagePreviewUrls = new();
+    private string? primaryImageName;
+    private const long MaxFileSize = 5 * 1024 * 1024;
 
     private List<BreadcrumbItem> breadcrumbItems = new()
     {
@@ -203,44 +261,156 @@
         new BreadcrumbItem { Text = "Add Equipment", IsActive = true }
     };
 
-    protected override void OnInitialized()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        equipment.ProviderId = currentProviderId;
-        equipment.IsAvailable = true;
-        equipment.IsApproved = false;
-        equipment.CreatedAt = DateTime.UtcNow;
-        equipment.UpdatedAt = DateTime.UtcNow;
+        if (firstRender)
+        {
+            try
+            {
+                var token = await JSRuntime.InvokeAsync<string>("authHelpers.getCookie", "JWToken");
+                if (!string.IsNullOrEmpty(token))
+                {
+                    var customAuth = (CustomAuthenticationStateProvider)AuthStateProvider;
+                    await customAuth.MarkUserAsAuthenticated(token);
+                    currentProviderId = await GetCurrentUserIdAsync();
+                }
+
+                if (string.IsNullOrEmpty(currentProviderId))
+                {
+                    errorMessage = "You must be logged in to add equipment.";
+                }
+                else
+                {
+                    equipment.ProviderId = currentProviderId;
+                    equipment.IsAvailable = false;
+                    equipment.IsApproved = false;
+                    equipment.CreatedAt = DateTime.UtcNow;
+                    equipment.UpdatedAt = DateTime.UtcNow;
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Error: {ex.Message}";
+            }
+            StateHasChanged();
+        }
+    }
+
+    private async Task<string?> GetCurrentUserIdAsync()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState?.User;
+            if (user?.Identity?.IsAuthenticated == true)
+            {
+                var nameClaim = user.FindFirst(ClaimTypes.Name)?.Value;
+                if (!string.IsNullOrEmpty(nameClaim))
+                {
+                    var parts = nameClaim.Split(',');
+                    if (parts.Length > 0) return parts[0];
+                }
+            }
+        }
+        catch { }
+        return null;
+    }
+
+    private async Task OnImagesSelected(InputFileChangeEventArgs e)
+    {
+        var files = e.GetMultipleFiles(5);
+        foreach (var file in files)
+        {
+            if (selectedImages.Count >= 5) break;
+            if (file.Size > MaxFileSize) { errorMessage = $"File '{file.Name}' exceeds 5MB limit."; continue; }
+            if (!file.ContentType.StartsWith("image/")) continue;
+
+            selectedImages.Add(file);
+            try
+            {
+                var resized = await file.RequestImageFileAsync(file.ContentType, 200, 150);
+                var buffer = new byte[resized.Size];
+                await resized.OpenReadStream(MaxFileSize).ReadAsync(buffer);
+                imagePreviewUrls[file.Name] = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
+            }
+            catch { }
+
+            if (primaryImageName == null) primaryImageName = file.Name;
+        }
+        StateHasChanged();
+    }
+
+    private void RemoveImage(string name)
+    {
+        selectedImages.RemoveAll(f => f.Name == name);
+        imagePreviewUrls.Remove(name);
+        if (primaryImageName == name) primaryImageName = selectedImages.FirstOrDefault()?.Name;
+        StateHasChanged();
+    }
+
+    private async Task SaveEquipmentImages(int equipmentId)
+    {
+        var uploadsPath = Path.Combine(Environment.WebRootPath, "uploads", "equipment");
+        Directory.CreateDirectory(uploadsPath);
+
+        int order = 1;
+        foreach (var file in selectedImages)
+        {
+            var ext = Path.GetExtension(file.Name);
+            var fileName = $"{equipmentId}_{Guid.NewGuid():N}{ext}";
+            var filePath = Path.Combine(uploadsPath, fileName);
+
+            await using var stream = new FileStream(filePath, FileMode.Create);
+            await file.OpenReadStream(MaxFileSize).CopyToAsync(stream);
+
+            await UnitOfWork.EventEquipmentImages.AddAsync(new EventEquipmentImage
+            {
+                EquipmentId = equipmentId,
+                ImageUrl = $"/uploads/equipment/{fileName}",
+                IsPrimary = file.Name == primaryImageName,
+                DisplayOrder = order++,
+                UploadedAt = DateTime.UtcNow
+            });
+        }
+
+        if (selectedImages.Any())
+            await UnitOfWork.SaveChangesAsync();
     }
 
     private async Task HandleSubmit()
     {
+        if (string.IsNullOrEmpty(currentProviderId))
+        {
+            errorMessage = "You must be logged in to add equipment.";
+            return;
+        }
+
         isSubmitting = true;
+        errorMessage = null;
+        successMessage = null;
+
         try
         {
-            // Create the equipment
+            equipment.ProviderId = currentProviderId;
+            equipment.IsApproved = false;
+            equipment.IsAvailable = false;
+
             await EventService.CreateEquipmentAsync(equipment);
 
-            // If image URL is provided, add it
-            if (!string.IsNullOrWhiteSpace(imageUrl))
+            if (selectedImages.Any())
             {
-                var image = new EventEquipmentImage
-                {
-                    EquipmentId = equipment.Id,
-                    ImageUrl = imageUrl,
-                    IsPrimary = true,
-                    DisplayOrder = 1,
-                    UploadedAt = DateTime.UtcNow
-                };
-                // In production, you would have a method to add images
-                // await EventService.AddEquipmentImageAsync(image);
+                await SaveEquipmentImages(equipment.Id);
             }
 
-            await JSRuntime.InvokeVoidAsync("alert", "Equipment added successfully! It will be visible after admin approval.");
+            successMessage = "Equipment added successfully! It will be visible after admin approval. Redirecting...";
+            StateHasChanged();
+            await Task.Delay(2000);
             Navigation.NavigateTo("/owner/event-equipments");
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+            errorMessage = $"Error creating equipment: {ex.Message}";
+            if (ex.InnerException != null) errorMessage += $" | {ex.InnerException.Message}";
         }
         finally
         {
@@ -251,10 +421,5 @@
     private void Cancel()
     {
         Navigation.NavigateTo("/owner/event-equipments");
-    }
-
-    private void HandleImageError()
-    {
-        // Handle image load error
     }
 }

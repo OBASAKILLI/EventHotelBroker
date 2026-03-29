@@ -66,6 +66,7 @@ public class EventService : IEventService
         if (equipment == null) return false;
 
         equipment.IsApproved = true;
+        equipment.IsAvailable = true;
         equipment.UpdatedAt = DateTime.UtcNow;
         _unitOfWork.EventEquipments.Update(equipment);
         await _unitOfWork.SaveChangesAsync();
@@ -78,6 +79,7 @@ public class EventService : IEventService
         if (equipment == null) return false;
 
         equipment.IsApproved = false;
+        equipment.IsAvailable = false;
         equipment.UpdatedAt = DateTime.UtcNow;
         _unitOfWork.EventEquipments.Update(equipment);
         await _unitOfWork.SaveChangesAsync();

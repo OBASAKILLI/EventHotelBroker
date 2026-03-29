@@ -2,8 +2,13 @@
 @rendermode InteractiveServer
 @using EventHotelBroker.Models
 @using EventHotelBroker.Services
+@using EventHotelBroker.Utils
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
 @inject IEventService EventService
 @inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JSRuntime
 
 <PageTitle>My Event Equipments - Owner</PageTitle>
 
@@ -138,7 +143,7 @@
 @code {
     private bool isLoading = true;
     private List<EventEquipment> equipments = new();
-    private string currentProviderId = "temp-provider-id"; // In production, get from auth context
+    private string? currentProviderId;
 
     private List<BreadcrumbItem> breadcrumbItems = new()
     {
@@ -147,27 +152,56 @@
         new BreadcrumbItem { Text = "Event Equipments", IsActive = true }
     };
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await LoadEquipments();
+        if (firstRender)
+        {
+            try
+            {
+                var token = await JSRuntime.InvokeAsync<string>("authHelpers.getCookie", "JWToken");
+                if (!string.IsNullOrEmpty(token))
+                {
+                    var customAuth = (CustomAuthenticationStateProvider)AuthStateProvider;
+                    await customAuth.MarkUserAsAuthenticated(token);
+                    currentProviderId = await GetCurrentUserIdAsync();
+                }
+
+                if (!string.IsNullOrEmpty(currentProviderId))
+                {
+                    var allEquipments = await EventService.GetEquipmentsByProviderAsync(currentProviderId);
+                    equipments = allEquipments.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[EventEquipments] Error: {ex.Message}");
+            }
+            finally
+            {
+                isLoading = false;
+            }
+            StateHasChanged();
+        }
     }
 
-    private async Task LoadEquipments()
+    private async Task<string?> GetCurrentUserIdAsync()
     {
-        isLoading = true;
         try
         {
-            var allEquipments = await EventService.GetEquipmentsByProviderAsync(currentProviderId);
-            equipments = allEquipments.ToList();
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState?.User;
+            if (user?.Identity?.IsAuthenticated == true)
+            {
+                var nameClaim = user.FindFirst(ClaimTypes.Name)?.Value;
+                if (!string.IsNullOrEmpty(nameClaim))
+                {
+                    var parts = nameClaim.Split(',');
+                    if (parts.Length > 0) return parts[0];
+                }
+            }
         }
-        catch (Exception ex)
-        {
-            // Log error
-        }
-        finally
-        {
-            isLoading = false;
-        }
+        catch { }
+        return null;
     }
 
     private void ShowCreateModal()
@@ -182,17 +216,17 @@
 
     private async Task DeleteEquipment(int id)
     {
-        if (confirm("Are you sure you want to delete this equipment?"))
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this equipment?");
+        if (confirmed)
         {
             await EventService.DeleteEquipmentAsync(id);
-            await LoadEquipments();
+            if (!string.IsNullOrEmpty(currentProviderId))
+            {
+                var allEquipments = await EventService.GetEquipmentsByProviderAsync(currentProviderId);
+                equipments = allEquipments.ToList();
+                StateHasChanged();
+            }
         }
-    }
-
-    private bool confirm(string message)
-    {
-        // In production, use a proper modal dialog
-        return true;
     }
 
     private string GetCategoryIcon(string category)
