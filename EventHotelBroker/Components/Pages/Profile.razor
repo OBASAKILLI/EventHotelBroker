@@ -1,0 +1,442 @@
+@page "/profile"
+@rendermode InteractiveServer
+@using EventHotelBroker.Models
+@using EventHotelBroker.Services
+@using EventHotelBroker.Utils
+@using EventHotelBroker.Interfaces
+@using EventHotelBroker.Repositories
+@using EventHotelBroker.Data
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@inject ApplicationDbContext DbContext
+@inject IBookingService BookingService
+@inject IEventService EventService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>My Profile - EventHotelBroker</PageTitle>
+
+<link href="/css/profile.css?v=1" rel="stylesheet" />
+
+<div class="pf">
+    <Breadcrumb Items="@breadcrumbItems" />
+
+    @if (isLoading)
+    {
+        <div class="pf-loading">
+            <div class="pf-spinner"></div>
+            <span style="font-size: 0.8rem; color: #8a8177;">Loading your profile...</span>
+        </div>
+    }
+    else if (user == null)
+    {
+        <div style="text-align: center; padding: 4rem 2rem; min-height: 60vh; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <i class="bi bi-person-x" style="font-size: 3.5rem; color: #d5cfc6;"></i>
+            <h5 style="margin-top: 1rem; color: #2A2A2A; font-weight: 700;">Not Logged In</h5>
+            <p style="color: #8a8177; font-size: 0.9rem;">Please log in to view your profile.</p>
+            @if (!string.IsNullOrEmpty(debugInfo))
+            {
+                <p style="color: #c0392b; font-size: 0.75rem; margin-top: 0.5rem;">@debugInfo</p>
+            }
+            @if (!string.IsNullOrEmpty(currentUserId))
+            {
+                <p style="color: #C87941; font-size: 0.75rem;">User ID found: @currentUserId but user record not found in database.</p>
+            }
+            <a href="/login" style="display: inline-flex; align-items: center; gap: 6px; padding: 0.6rem 1.5rem; background: #2A2A2A; color: #fff; border-radius: 10px; font-size: 0.85rem; font-weight: 600; text-decoration: none; transition: all 0.2s; margin-top: 0.5rem;">
+                <i class="bi bi-box-arrow-in-right"></i> Log In
+            </a>
+        </div>
+    }
+    else
+    {
+        <!-- Profile Banner -->
+        <div class="pf-banner">
+            <div class="pf-banner-inner">
+                <div class="pf-avatar">
+                    @GetInitials()
+                </div>
+                <div class="pf-banner-info">
+                    <h1 class="pf-banner-name">@user.FullName</h1>
+                    <p class="pf-banner-email">@user.Email</p>
+                    <div class="pf-banner-badges">
+                        <span class="pf-badge pf-badge-role"><i class="bi bi-shield-check"></i> @user.Role</span>
+                        @if (user.IsEmailVerified)
+                        {
+                            <span class="pf-badge pf-badge-verified"><i class="bi bi-patch-check-fill"></i> Email Verified</span>
+                        }
+                        else
+                        {
+                            <span class="pf-badge pf-badge-unverified"><i class="bi bi-exclamation-circle"></i> Email Not Verified</span>
+                        }
+                        @if (user.IsActive)
+                        {
+                            <span class="pf-badge pf-badge-active"><i class="bi bi-circle-fill" style="font-size:0.4rem;"></i> Active</span>
+                        }
+                        else
+                        {
+                            <span class="pf-badge pf-badge-inactive"><i class="bi bi-circle-fill" style="font-size:0.4rem;"></i> Inactive</span>
+                        }
+                    </div>
+                </div>
+                <div class="pf-banner-actions">
+                    <a href="/settings" class="pf-banner-btn"><i class="bi bi-gear"></i> Settings</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="pf-stats">
+            <div class="pf-stat">
+                <div class="pf-stat-icon pf-stat-icon-blue"><i class="bi bi-building"></i></div>
+                <div class="pf-stat-value">@hotelBookingsCount</div>
+                <div class="pf-stat-label">Hotel Bookings</div>
+            </div>
+            <div class="pf-stat">
+                <div class="pf-stat-icon pf-stat-icon-gold"><i class="bi bi-calendar-event"></i></div>
+                <div class="pf-stat-value">@eventBookingsCount</div>
+                <div class="pf-stat-label">Event Bookings</div>
+            </div>
+            <div class="pf-stat">
+                <div class="pf-stat-icon pf-stat-icon-green"><i class="bi bi-clock-history"></i></div>
+                <div class="pf-stat-value">@memberDays</div>
+                <div class="pf-stat-label">Days as Member</div>
+            </div>
+            <div class="pf-stat">
+                <div class="pf-stat-icon pf-stat-icon-purple"><i class="bi bi-star"></i></div>
+                <div class="pf-stat-value">@(user.Role == "Owner" || user.Role == "Admin" ? "Pro" : "Basic")</div>
+                <div class="pf-stat-label">Account Tier</div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-7">
+                <!-- Personal Information -->
+                <div class="pf-card">
+                    <div class="pf-card-header">
+                        <h5 class="pf-card-title"><i class="bi bi-person"></i> Personal Information</h5>
+                    </div>
+                    <div class="pf-card-body">
+                        <div class="pf-info-grid">
+                            <div class="pf-info-item">
+                                <span class="pf-info-label">First Name</span>
+                                <span class="pf-info-value">@user.FirstName</span>
+                            </div>
+                            <div class="pf-info-item">
+                                <span class="pf-info-label">Last Name</span>
+                                <span class="pf-info-value">@user.LastName</span>
+                            </div>
+                            <div class="pf-info-item">
+                                <span class="pf-info-label">Middle Name</span>
+                                <span class="pf-info-value @(string.IsNullOrEmpty(user.MiddleName) ? "pf-muted" : "")">@(string.IsNullOrEmpty(user.MiddleName) ? "Not provided" : user.MiddleName)</span>
+                            </div>
+                            <div class="pf-info-item">
+                                <span class="pf-info-label">Full Name</span>
+                                <span class="pf-info-value">@user.FullName</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="pf-card">
+                    <div class="pf-card-header">
+                        <h5 class="pf-card-title"><i class="bi bi-envelope"></i> Contact Information</h5>
+                    </div>
+                    <div class="pf-card-body">
+                        <div class="pf-info-grid">
+                            <div class="pf-info-item">
+                                <span class="pf-info-label">Email Address</span>
+                                <span class="pf-info-value">@user.Email</span>
+                            </div>
+                            <div class="pf-info-item">
+                                <span class="pf-info-label">Phone Number</span>
+                                <span class="pf-info-value @(string.IsNullOrEmpty(user.PhoneNumber) ? "pf-muted" : "")">@(string.IsNullOrEmpty(user.PhoneNumber) ? "Not provided" : user.PhoneNumber)</span>
+                            </div>
+                            <div class="pf-info-item">
+                                <span class="pf-info-label">Contact Number</span>
+                                <span class="pf-info-value @(string.IsNullOrEmpty(user.Contact_No) ? "pf-muted" : "")">@(string.IsNullOrEmpty(user.Contact_No) ? "Not provided" : user.Contact_No)</span>
+                            </div>
+                            <div class="pf-info-item">
+                                <span class="pf-info-label">Email Status</span>
+                                <span class="pf-info-value">
+                                    @if (user.IsEmailVerified)
+                                    {
+                                        <span style="color: #488C82; font-weight: 700;"><i class="bi bi-check-circle-fill"></i> Verified</span>
+                                    }
+                                    else
+                                    {
+                                        <span style="color: #c0392b; font-weight: 700;"><i class="bi bi-x-circle-fill"></i> Not Verified</span>
+                                    }
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Business Information (if Owner) -->
+                @if (user.Role == "Owner")
+                {
+                    <div class="pf-card">
+                        <div class="pf-card-header">
+                            <h5 class="pf-card-title"><i class="bi bi-briefcase"></i> Business Information</h5>
+                        </div>
+                        <div class="pf-card-body">
+                            <div class="pf-info-grid">
+                                <div class="pf-info-item">
+                                    <span class="pf-info-label">Business Name</span>
+                                    <span class="pf-info-value @(string.IsNullOrEmpty(user.BusinessName) ? "pf-muted" : "")">@(string.IsNullOrEmpty(user.BusinessName) ? "Not provided" : user.BusinessName)</span>
+                                </div>
+                                <div class="pf-info-item">
+                                    <span class="pf-info-label">Registration Number</span>
+                                    <span class="pf-info-value @(string.IsNullOrEmpty(user.RegistrationNumber) ? "pf-muted" : "")">@(string.IsNullOrEmpty(user.RegistrationNumber) ? "Not provided" : user.RegistrationNumber)</span>
+                                </div>
+                                <div class="pf-info-item">
+                                    <span class="pf-info-label">Account Type</span>
+                                    <span class="pf-info-value @(string.IsNullOrEmpty(user.AccountType) ? "pf-muted" : "")">@(string.IsNullOrEmpty(user.AccountType) ? "Not set" : user.AccountType)</span>
+                                </div>
+                                <div class="pf-info-item">
+                                    <span class="pf-info-label">Owner Verified</span>
+                                    <span class="pf-info-value">
+                                        @if (user.IsOwnerVerified)
+                                        {
+                                            <span style="color: #488C82;"><i class="bi bi-check-circle-fill"></i> Verified</span>
+                                        }
+                                        else
+                                        {
+                                            <span style="color: #C87941;"><i class="bi bi-clock-history"></i> Pending</span>
+                                        }
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="col-lg-5">
+                <!-- Account & Security -->
+                <div class="pf-card">
+                    <div class="pf-card-header">
+                        <h5 class="pf-card-title"><i class="bi bi-shield-lock"></i> Account & Security</h5>
+                    </div>
+                    <div class="pf-card-body">
+                        <div class="pf-sec-item">
+                            <div class="pf-sec-left">
+                                <div class="pf-sec-icon"><i class="bi bi-key"></i></div>
+                                <div>
+                                    <div class="pf-sec-label">Password</div>
+                                    <div class="pf-sec-desc">Last changed: Unknown</div>
+                                </div>
+                            </div>
+                            <a href="/settings" class="pf-sec-status" style="background: rgba(200,121,65,0.1); color: #C87941; text-decoration: none;">Change</a>
+                        </div>
+                        <div class="pf-sec-item">
+                            <div class="pf-sec-left">
+                                <div class="pf-sec-icon"><i class="bi bi-phone"></i></div>
+                                <div>
+                                    <div class="pf-sec-label">Two-Factor Auth</div>
+                                    <div class="pf-sec-desc">Extra security layer</div>
+                                </div>
+                            </div>
+                            <span class="pf-sec-status @(user.IsTwoFAEnabled ? "pf-sec-on" : "pf-sec-off")">
+                                @(user.IsTwoFAEnabled ? "Enabled" : "Disabled")
+                            </span>
+                        </div>
+                        <div class="pf-sec-item">
+                            <div class="pf-sec-left">
+                                <div class="pf-sec-icon"><i class="bi bi-envelope-check"></i></div>
+                                <div>
+                                    <div class="pf-sec-label">Email Verification</div>
+                                    <div class="pf-sec-desc">@(user.EmailVerificationTimestamp.HasValue ? user.EmailVerificationTimestamp.Value.ToString("MMM dd, yyyy") : "Not verified")</div>
+                                </div>
+                            </div>
+                            <span class="pf-sec-status @(user.IsEmailVerified ? "pf-sec-on" : "pf-sec-off")">
+                                @(user.IsEmailVerified ? "Verified" : "Pending")
+                            </span>
+                        </div>
+                        <div class="pf-sec-item">
+                            <div class="pf-sec-left">
+                                <div class="pf-sec-icon"><i class="bi bi-person-badge"></i></div>
+                                <div>
+                                    <div class="pf-sec-label">Account Status</div>
+                                    <div class="pf-sec-desc">Current state of your account</div>
+                                </div>
+                            </div>
+                            <span class="pf-sec-status @(user.IsActive ? "pf-sec-on" : "pf-sec-off")">
+                                @(user.IsActive ? "Active" : "Suspended")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Details -->
+                <div class="pf-card">
+                    <div class="pf-card-header">
+                        <h5 class="pf-card-title"><i class="bi bi-info-circle"></i> Account Details</h5>
+                    </div>
+                    <div class="pf-card-body">
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <div class="pf-info-item">
+                                <span class="pf-info-label">Account ID</span>
+                                <span class="pf-info-value" style="font-size: 0.72rem; font-family: monospace; color: #8a8177;">@user.strid</span>
+                            </div>
+                            <div class="pf-info-item">
+                                <span class="pf-info-label">Role</span>
+                                <span class="pf-info-value">@user.Role</span>
+                            </div>
+                            <div class="pf-info-item">
+                                <span class="pf-info-label">Member Since</span>
+                                <span class="pf-info-value">@user.CreatedAt.ToString("MMMM dd, yyyy")</span>
+                            </div>
+                            <div class="pf-info-item">
+                                <span class="pf-info-label">Account Type</span>
+                                <span class="pf-info-value @(string.IsNullOrEmpty(user.AccountType) ? "pf-muted" : "")">@(string.IsNullOrEmpty(user.AccountType) ? "Standard" : user.AccountType)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="pf-card">
+                    <div class="pf-card-header">
+                        <h5 class="pf-card-title"><i class="bi bi-lightning"></i> Quick Actions</h5>
+                    </div>
+                    <div class="pf-card-body" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <a href="/settings" style="display: flex; align-items: center; gap: 10px; padding: 0.7rem 0.85rem; border-radius: 10px; text-decoration: none; color: #2A2A2A; font-size: 0.84rem; font-weight: 500; transition: all 0.2s; background: #faf8f5; border: 1px solid rgba(158,139,99,0.08);">
+                            <i class="bi bi-gear" style="color: #C87941;"></i> Account Settings
+                            <i class="bi bi-chevron-right" style="margin-left: auto; color: #d5cfc6; font-size: 0.7rem;"></i>
+                        </a>
+                        <a href="/my-bookings" style="display: flex; align-items: center; gap: 10px; padding: 0.7rem 0.85rem; border-radius: 10px; text-decoration: none; color: #2A2A2A; font-size: 0.84rem; font-weight: 500; transition: all 0.2s; background: #faf8f5; border: 1px solid rgba(158,139,99,0.08);">
+                            <i class="bi bi-journal-check" style="color: #9E8B63;"></i> My Bookings
+                            <i class="bi bi-chevron-right" style="margin-left: auto; color: #d5cfc6; font-size: 0.7rem;"></i>
+                        </a>
+                        <a href="/my-event-bookings" style="display: flex; align-items: center; gap: 10px; padding: 0.7rem 0.85rem; border-radius: 10px; text-decoration: none; color: #2A2A2A; font-size: 0.84rem; font-weight: 500; transition: all 0.2s; background: #faf8f5; border: 1px solid rgba(158,139,99,0.08);">
+                            <i class="bi bi-calendar-event" style="color: #488C82;"></i> My Event Bookings
+                            <i class="bi bi-chevron-right" style="margin-left: auto; color: #d5cfc6; font-size: 0.7rem;"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private Users? user;
+    private bool isLoading = true;
+    private string? currentUserId;
+    private int hotelBookingsCount = 0;
+    private int eventBookingsCount = 0;
+    private int memberDays = 0;
+    private string? debugInfo;
+
+    private List<BreadcrumbItem> breadcrumbItems = new()
+    {
+        new BreadcrumbItem { Text = "Home", Url = "/" },
+        new BreadcrumbItem { Text = "Profile", IsActive = true }
+    };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                // Step 1: Read JWT cookie via JS interop
+                string? token = null;
+                try
+                {
+                    token = await JSRuntime.InvokeAsync<string>("authHelpers.getCookie", "JWToken");
+                }
+                catch (Exception jsEx)
+                {
+                    debugInfo = $"JS cookie error: {jsEx.Message}";
+                }
+
+                // Step 2: Authenticate with the token
+                if (!string.IsNullOrEmpty(token))
+                {
+                    var customAuth = (CustomAuthenticationStateProvider)AuthStateProvider;
+                    await customAuth.MarkUserAsAuthenticated(token);
+
+                    // Step 3: Extract user ID from claims
+                    var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+                    var principal = authState?.User;
+                    if (principal?.Identity?.IsAuthenticated == true)
+                    {
+                        var nameClaim = principal.FindFirst(ClaimTypes.Name)?.Value;
+                        if (!string.IsNullOrEmpty(nameClaim))
+                        {
+                            var parts = nameClaim.Split(',');
+                            if (parts.Length > 0)
+                                currentUserId = parts[0];
+                        }
+                    }
+                }
+
+                // Step 4: Load user data
+                if (!string.IsNullOrEmpty(currentUserId))
+                {
+                    user = await DbContext.Users.FindAsync(currentUserId);
+
+                    if (user != null)
+                    {
+                        memberDays = (int)(DateTime.UtcNow - user.CreatedAt).TotalDays;
+
+                        try
+                        {
+                            var bookings = await BookingService.GetBookingsByUserAsync(currentUserId);
+                            hotelBookingsCount = bookings.Count();
+                        }
+                        catch { }
+
+                        try
+                        {
+                            var evtBookings = await EventService.GetBookingsByUserAsync(currentUserId);
+                            eventBookingsCount = evtBookings.Count();
+                        }
+                        catch { }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                debugInfo = $"Auth error: {ex.Message}";
+            }
+            finally
+            {
+                isLoading = false;
+            }
+            StateHasChanged();
+        }
+    }
+
+    private async Task<string?> GetCurrentUserIdAsync()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var u = authState?.User;
+            if (u?.Identity?.IsAuthenticated == true)
+            {
+                var nameClaim = u.FindFirst(ClaimTypes.Name)?.Value;
+                if (!string.IsNullOrEmpty(nameClaim))
+                {
+                    var parts = nameClaim.Split(',');
+                    if (parts.Length > 0) return parts[0];
+                }
+            }
+        }
+        catch { }
+        return null;
+    }
+
+    private string GetInitials()
+    {
+        if (user == null) return "?";
+        var first = !string.IsNullOrEmpty(user.FirstName) ? user.FirstName[0].ToString().ToUpper() : "";
+        var last = !string.IsNullOrEmpty(user.LastName) ? user.LastName[0].ToString().ToUpper() : "";
+        return first + last;
+    }
+}

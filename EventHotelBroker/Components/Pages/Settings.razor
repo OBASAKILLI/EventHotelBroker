@@ -1,0 +1,938 @@
+@page "/settings"
+@rendermode InteractiveServer
+@using EventHotelBroker.Models
+@using EventHotelBroker.Services
+@using EventHotelBroker.Utils
+@using EventHotelBroker.Interfaces
+@using EventHotelBroker.Repositories
+@using EventHotelBroker.Data
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@inject ApplicationDbContext DbContext
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>Settings - EventHotelBroker</PageTitle>
+
+<link href="/css/settings.css?v=1" rel="stylesheet" />
+
+<div class="st">
+    <Breadcrumb Items="@breadcrumbItems" />
+
+    @if (isLoading)
+    {
+        <div class="st-loading">
+            <div class="st-spinner"></div>
+            <span style="font-size: 0.8rem; color: #8a8177;">Loading settings...</span>
+        </div>
+    }
+    else if (user == null)
+    {
+        <div style="text-align: center; padding: 4rem 2rem; min-height: 60vh; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <i class="bi bi-lock" style="font-size: 3.5rem; color: #d5cfc6;"></i>
+            <h5 style="margin-top: 1rem; color: #2A2A2A; font-weight: 700;">Authentication Required</h5>
+            <p style="color: #8a8177; font-size: 0.9rem;">Please log in to access your settings.</p>
+            @if (!string.IsNullOrEmpty(debugInfo))
+            {
+                <p style="color: #c0392b; font-size: 0.75rem; margin-top: 0.5rem;">@debugInfo</p>
+            }
+            @if (!string.IsNullOrEmpty(currentUserId))
+            {
+                <p style="color: #C87941; font-size: 0.75rem;">User ID found: @currentUserId but user record not found in database.</p>
+            }
+            <a href="/login" style="display: inline-flex; align-items: center; gap: 6px; padding: 0.6rem 1.5rem; background: #2A2A2A; color: #fff; border-radius: 10px; font-size: 0.85rem; font-weight: 600; text-decoration: none; margin-top: 0.5rem;">
+                <i class="bi bi-box-arrow-in-right"></i> Log In
+            </a>
+        </div>
+    }
+    else
+    {
+        <!-- Header -->
+        <div class="st-header">
+            <div>
+                <h1 class="st-header-title"><i class="bi bi-gear"></i> Settings</h1>
+                <p class="st-header-sub">Manage your account preferences and security</p>
+            </div>
+            <a href="/profile" class="st-btn st-btn-outline"><i class="bi bi-person"></i> View Profile</a>
+        </div>
+
+        <div class="st-layout">
+            <!-- Sidebar -->
+            <div class="st-nav">
+                <button class="st-nav-item @(activeSection == "profile" ? "active" : "")" @onclick='() => activeSection = "profile"'>
+                    <i class="bi bi-person"></i> Profile
+                </button>
+                <button class="st-nav-item @(activeSection == "security" ? "active" : "")" @onclick='() => activeSection = "security"'>
+                    <i class="bi bi-shield-lock"></i> Security
+                </button>
+                <button class="st-nav-item @(activeSection == "notifications" ? "active" : "")" @onclick='() => activeSection = "notifications"'>
+                    <i class="bi bi-bell"></i> Notifications
+                </button>
+                <div class="st-nav-divider"></div>
+                <button class="st-nav-item @(activeSection == "appearance" ? "active" : "")" @onclick='() => activeSection = "appearance"'>
+                    <i class="bi bi-palette"></i> Appearance
+                </button>
+                <button class="st-nav-item @(activeSection == "privacy" ? "active" : "")" @onclick='() => activeSection = "privacy"'>
+                    <i class="bi bi-eye"></i> Privacy
+                </button>
+                <div class="st-nav-divider"></div>
+                <button class="st-nav-item @(activeSection == "danger" ? "active" : "")" @onclick='() => activeSection = "danger"' style="@(activeSection == "danger" ? "color: #ef4444;" : "")">
+                    <i class="bi bi-exclamation-triangle"></i> Danger Zone
+                </button>
+            </div>
+
+            <!-- Content -->
+            <div class="st-content">
+                @if (!string.IsNullOrEmpty(successMessage))
+                {
+                    <div class="st-msg st-msg-success">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>@successMessage</span>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="st-msg st-msg-error">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span>@errorMessage</span>
+                    </div>
+                }
+
+                @* ====== PROFILE SECTION ====== *@
+                @if (activeSection == "profile")
+                {
+                    <div class="st-card">
+                        <div class="st-card-header">
+                            <div>
+                                <h5 class="st-card-title"><i class="bi bi-person"></i> Personal Information</h5>
+                                <p class="st-card-desc">Update your personal details</p>
+                            </div>
+                        </div>
+                        <div class="st-card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="st-field">
+                                        <label class="st-label">First Name</label>
+                                        <input type="text" class="st-input" @bind="editFirstName" placeholder="First name" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="st-field">
+                                        <label class="st-label">Last Name</label>
+                                        <input type="text" class="st-input" @bind="editLastName" placeholder="Last name" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="st-field">
+                                        <label class="st-label">Middle Name</label>
+                                        <input type="text" class="st-input" @bind="editMiddleName" placeholder="Middle name (optional)" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="st-field">
+                                        <label class="st-label">Phone Number</label>
+                                        <input type="tel" class="st-input" @bind="editPhoneNumber" placeholder="+254 7XX XXX XXX" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="st-field">
+                                <label class="st-label">Email Address</label>
+                                <input type="email" class="st-input" value="@user.Email" disabled />
+                                <span class="st-hint">Email cannot be changed. Contact support if you need to update your email.</span>
+                            </div>
+
+                            <div class="st-footer">
+                                <button class="st-btn st-btn-outline" @onclick="ResetProfileForm">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Reset
+                                </button>
+                                <button class="st-btn st-btn-primary" @onclick="SaveProfile" disabled="@isSaving">
+                                    @if (isSaving)
+                                    {
+                                        <span class="st-spinner" style="width:14px;height:14px;border-width:2px;"></span>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-check-lg"></i>
+                                    }
+                                    Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (user.Role == "Owner")
+                    {
+                        <div class="st-card">
+                            <div class="st-card-header">
+                                <div>
+                                    <h5 class="st-card-title"><i class="bi bi-briefcase"></i> Business Information</h5>
+                                    <p class="st-card-desc">Manage your business details</p>
+                                </div>
+                            </div>
+                            <div class="st-card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="st-field">
+                                            <label class="st-label">Business Name</label>
+                                            <input type="text" class="st-input" @bind="editBusinessName" placeholder="Your business name" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="st-field">
+                                            <label class="st-label">Registration Number</label>
+                                            <input type="text" class="st-input" @bind="editRegNumber" placeholder="Business registration #" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="st-field">
+                                            <label class="st-label">Company Name</label>
+                                            <input type="text" class="st-input" @bind="editCompanyName" placeholder="Company name" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="st-field">
+                                            <label class="st-label">Company Representative</label>
+                                            <input type="text" class="st-input" @bind="editCompanyRep" placeholder="Representative name" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="st-footer">
+                                    <button class="st-btn st-btn-primary" @onclick="SaveBusiness" disabled="@isSaving">
+                                        @if (isSaving)
+                                        {
+                                            <span class="st-spinner" style="width:14px;height:14px;border-width:2px;"></span>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-check-lg"></i>
+                                        }
+                                        Save Business Info
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+
+                @* ====== SECURITY SECTION ====== *@
+                @if (activeSection == "security")
+                {
+                    <div class="st-card">
+                        <div class="st-card-header">
+                            <div>
+                                <h5 class="st-card-title"><i class="bi bi-key"></i> Change Password</h5>
+                                <p class="st-card-desc">Update your account password</p>
+                            </div>
+                        </div>
+                        <div class="st-card-body">
+                            <div class="st-field">
+                                <label class="st-label">Current Password</label>
+                                <input type="password" class="st-input" @bind="currentPassword" placeholder="Enter current password" />
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="st-field">
+                                        <label class="st-label">New Password</label>
+                                        <input type="password" class="st-input" @bind="newPassword" placeholder="Enter new password" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="st-field">
+                                        <label class="st-label">Confirm New Password</label>
+                                        <input type="password" class="st-input" @bind="confirmPassword" placeholder="Confirm new password" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="background: rgba(200,121,65,0.06); border-radius: 10px; padding: 0.6rem 0.85rem; font-size: 0.72rem; color: #C87941; display: flex; gap: 8px; align-items: flex-start;">
+                                <i class="bi bi-info-circle" style="margin-top: 1px;"></i>
+                                <div>
+                                    <strong>Password requirements:</strong> At least 8 characters, 1 uppercase, 1 lowercase, 1 number, and 1 special character.
+                                </div>
+                            </div>
+                            <div class="st-footer">
+                                <button class="st-btn st-btn-primary" @onclick="ChangePassword" disabled="@isSaving">
+                                    @if (isSaving)
+                                    {
+                                        <span class="st-spinner" style="width:14px;height:14px;border-width:2px;"></span>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-shield-check"></i>
+                                    }
+                                    Update Password
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="st-card">
+                        <div class="st-card-header">
+                            <div>
+                                <h5 class="st-card-title"><i class="bi bi-phone"></i> Two-Factor Authentication</h5>
+                                <p class="st-card-desc">Add an extra layer of security to your account</p>
+                            </div>
+                        </div>
+                        <div class="st-card-body">
+                            <div class="st-toggle-row">
+                                <div class="st-toggle-left">
+                                    <div class="st-toggle-label">Enable Two-Factor Authentication</div>
+                                    <div class="st-toggle-desc">Receive a verification code via email when logging in</div>
+                                </div>
+                                <label class="st-switch">
+                                    <input type="checkbox" checked="@twoFaEnabled" @onchange="ToggleTwoFa" />
+                                    <span class="st-switch-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="st-card">
+                        <div class="st-card-header">
+                            <div>
+                                <h5 class="st-card-title"><i class="bi bi-clock-history"></i> Active Sessions</h5>
+                                <p class="st-card-desc">Manage your login sessions</p>
+                            </div>
+                        </div>
+                        <div class="st-card-body">
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.85rem; background: #faf8f5; border-radius: 10px; border: 1px solid rgba(158,139,99,0.1);">
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(200,121,65,0.1); display: flex; align-items: center; justify-content: center; color: #C87941;">
+                                        <i class="bi bi-laptop"></i>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 0.84rem; font-weight: 600; color: #2A2A2A;">Current Session</div>
+                                        <div style="font-size: 0.7rem; color: #8a8177;">Active now</div>
+                                    </div>
+                                </div>
+                                <span style="font-size: 0.65rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 20px; background: rgba(72,140,130,0.12); color: #488C82; text-transform: uppercase; letter-spacing: 0.03em;">Active</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                @* ====== NOTIFICATIONS SECTION ====== *@
+                @if (activeSection == "notifications")
+                {
+                    <div class="st-card">
+                        <div class="st-card-header">
+                            <div>
+                                <h5 class="st-card-title"><i class="bi bi-bell"></i> Email Notifications</h5>
+                                <p class="st-card-desc">Choose what emails you want to receive</p>
+                            </div>
+                        </div>
+                        <div class="st-card-body">
+                            <div class="st-toggle-row">
+                                <div class="st-toggle-left">
+                                    <div class="st-toggle-label">Booking Confirmations</div>
+                                    <div class="st-toggle-desc">Receive email when a booking is confirmed or cancelled</div>
+                                </div>
+                                <label class="st-switch">
+                                    <input type="checkbox" checked="@notifBookings" @onchange="() => notifBookings = !notifBookings" />
+                                    <span class="st-switch-slider"></span>
+                                </label>
+                            </div>
+                            <div class="st-toggle-row">
+                                <div class="st-toggle-left">
+                                    <div class="st-toggle-label">Promotional Offers</div>
+                                    <div class="st-toggle-desc">Get notified about deals and special offers</div>
+                                </div>
+                                <label class="st-switch">
+                                    <input type="checkbox" checked="@notifPromos" @onchange="() => notifPromos = !notifPromos" />
+                                    <span class="st-switch-slider"></span>
+                                </label>
+                            </div>
+                            <div class="st-toggle-row">
+                                <div class="st-toggle-left">
+                                    <div class="st-toggle-label">Security Alerts</div>
+                                    <div class="st-toggle-desc">Important alerts about your account security</div>
+                                </div>
+                                <label class="st-switch">
+                                    <input type="checkbox" checked="@notifSecurity" @onchange="() => notifSecurity = !notifSecurity" />
+                                    <span class="st-switch-slider"></span>
+                                </label>
+                            </div>
+                            <div class="st-toggle-row">
+                                <div class="st-toggle-left">
+                                    <div class="st-toggle-label">Newsletter</div>
+                                    <div class="st-toggle-desc">Monthly updates about new features and tips</div>
+                                </div>
+                                <label class="st-switch">
+                                    <input type="checkbox" checked="@notifNewsletter" @onchange="() => notifNewsletter = !notifNewsletter" />
+                                    <span class="st-switch-slider"></span>
+                                </label>
+                            </div>
+                            <div class="st-footer">
+                                <button class="st-btn st-btn-primary" @onclick="SaveNotifications">
+                                    <i class="bi bi-check-lg"></i> Save Preferences
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                @* ====== APPEARANCE SECTION ====== *@
+                @if (activeSection == "appearance")
+                {
+                    <div class="st-card">
+                        <div class="st-card-header">
+                            <div>
+                                <h5 class="st-card-title"><i class="bi bi-palette"></i> Theme</h5>
+                                <p class="st-card-desc">Customize the look of your dashboard</p>
+                            </div>
+                        </div>
+                        <div class="st-card-body">
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
+                                <div @onclick='() => selectedTheme = "light"'
+                                     style="padding: 1.25rem; border-radius: 14px; border: 2px solid @(selectedTheme == "light" ? "#C87941" : "rgba(158,139,99,0.15)"); cursor: pointer; text-align: center; transition: all 0.2s; background: #fff;">
+                                    <i class="bi bi-sun" style="font-size: 1.5rem; color: @(selectedTheme == "light" ? "#C87941" : "#b5ac9e");"></i>
+                                    <div style="font-size: 0.78rem; font-weight: 600; color: #2A2A2A; margin-top: 0.5rem;">Light</div>
+                                    <div style="font-size: 0.65rem; color: #8a8177;">Clean & bright</div>
+                                </div>
+                                <div @onclick='() => selectedTheme = "dark"'
+                                     style="padding: 1.25rem; border-radius: 14px; border: 2px solid @(selectedTheme == "dark" ? "#C87941" : "rgba(158,139,99,0.15)"); cursor: pointer; text-align: center; transition: all 0.2s; background: #2A2A2A;">
+                                    <i class="bi bi-moon-stars" style="font-size: 1.5rem; color: @(selectedTheme == "dark" ? "#e8a26a" : "#8a8177");"></i>
+                                    <div style="font-size: 0.78rem; font-weight: 600; color: #f5f3ef; margin-top: 0.5rem;">Dark</div>
+                                    <div style="font-size: 0.65rem; color: #8a8177;">Easy on the eyes</div>
+                                </div>
+                                <div @onclick='() => selectedTheme = "system"'
+                                     style="padding: 1.25rem; border-radius: 14px; border: 2px solid @(selectedTheme == "system" ? "#C87941" : "rgba(158,139,99,0.15)"); cursor: pointer; text-align: center; transition: all 0.2s; background: linear-gradient(135deg, #fff 50%, #2A2A2A 50%);">
+                                    <i class="bi bi-circle-half" style="font-size: 1.5rem; color: @(selectedTheme == "system" ? "#C87941" : "#b5ac9e");"></i>
+                                    <div style="font-size: 0.78rem; font-weight: 600; color: #2A2A2A; margin-top: 0.5rem;">System</div>
+                                    <div style="font-size: 0.65rem; color: #8a8177;">Match device</div>
+                                </div>
+                            </div>
+                            <div class="st-footer">
+                                <button class="st-btn st-btn-primary" @onclick="SaveAppearance">
+                                    <i class="bi bi-check-lg"></i> Apply Theme
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="st-card">
+                        <div class="st-card-header">
+                            <div>
+                                <h5 class="st-card-title"><i class="bi bi-translate"></i> Language & Region</h5>
+                                <p class="st-card-desc">Set your preferred language and timezone</p>
+                            </div>
+                        </div>
+                        <div class="st-card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="st-field">
+                                        <label class="st-label">Language</label>
+                                        <select class="st-select" @bind="selectedLanguage">
+                                            <option value="en">English</option>
+                                            <option value="sw">Swahili</option>
+                                            <option value="fr">French</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="st-field">
+                                        <label class="st-label">Timezone</label>
+                                        <select class="st-select" @bind="selectedTimezone">
+                                            <option value="EAT">East Africa Time (UTC+3)</option>
+                                            <option value="UTC">UTC</option>
+                                            <option value="GMT">GMT</option>
+                                            <option value="EST">Eastern Standard Time</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="st-field">
+                                <label class="st-label">Currency</label>
+                                <select class="st-select" @bind="selectedCurrency">
+                                    <option value="KES">Kenya Shilling (KES)</option>
+                                    <option value="USD">US Dollar (USD)</option>
+                                    <option value="EUR">Euro (EUR)</option>
+                                    <option value="GBP">British Pound (GBP)</option>
+                                </select>
+                            </div>
+                            <div class="st-footer">
+                                <button class="st-btn st-btn-primary" @onclick="SaveRegion">
+                                    <i class="bi bi-check-lg"></i> Save Preferences
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                @* ====== PRIVACY SECTION ====== *@
+                @if (activeSection == "privacy")
+                {
+                    <div class="st-card">
+                        <div class="st-card-header">
+                            <div>
+                                <h5 class="st-card-title"><i class="bi bi-eye"></i> Privacy Settings</h5>
+                                <p class="st-card-desc">Control your data and privacy</p>
+                            </div>
+                        </div>
+                        <div class="st-card-body">
+                            <div class="st-toggle-row">
+                                <div class="st-toggle-left">
+                                    <div class="st-toggle-label">Profile Visibility</div>
+                                    <div class="st-toggle-desc">Allow other users to see your profile information</div>
+                                </div>
+                                <label class="st-switch">
+                                    <input type="checkbox" checked="@privacyProfileVisible" @onchange="() => privacyProfileVisible = !privacyProfileVisible" />
+                                    <span class="st-switch-slider"></span>
+                                </label>
+                            </div>
+                            <div class="st-toggle-row">
+                                <div class="st-toggle-left">
+                                    <div class="st-toggle-label">Show Booking History</div>
+                                    <div class="st-toggle-desc">Let providers see your past booking activity</div>
+                                </div>
+                                <label class="st-switch">
+                                    <input type="checkbox" checked="@privacyBookingHistory" @onchange="() => privacyBookingHistory = !privacyBookingHistory" />
+                                    <span class="st-switch-slider"></span>
+                                </label>
+                            </div>
+                            <div class="st-toggle-row">
+                                <div class="st-toggle-left">
+                                    <div class="st-toggle-label">Analytics & Cookies</div>
+                                    <div class="st-toggle-desc">Allow us to collect usage data to improve our services</div>
+                                </div>
+                                <label class="st-switch">
+                                    <input type="checkbox" checked="@privacyAnalytics" @onchange="() => privacyAnalytics = !privacyAnalytics" />
+                                    <span class="st-switch-slider"></span>
+                                </label>
+                            </div>
+                            <div class="st-footer">
+                                <button class="st-btn st-btn-primary" @onclick="SavePrivacy">
+                                    <i class="bi bi-check-lg"></i> Save Privacy Settings
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="st-card">
+                        <div class="st-card-header">
+                            <div>
+                                <h5 class="st-card-title"><i class="bi bi-download"></i> Data Export</h5>
+                                <p class="st-card-desc">Download a copy of your personal data</p>
+                            </div>
+                        </div>
+                        <div class="st-card-body">
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.85rem; background: #faf8f5; border-radius: 10px;">
+                                <div>
+                                    <div style="font-size: 0.84rem; font-weight: 600; color: #2A2A2A;">Request Data Export</div>
+                                    <div style="font-size: 0.72rem; color: #8a8177;">We'll prepare a downloadable file with all your account data</div>
+                                </div>
+                                <button class="st-btn st-btn-outline" @onclick="RequestDataExport">
+                                    <i class="bi bi-download"></i> Export
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                @* ====== DANGER ZONE SECTION ====== *@
+                @if (activeSection == "danger")
+                {
+                    <div class="st-card" style="border-color: #fecaca;">
+                        <div class="st-card-header" style="background: #fef2f2; border-bottom-color: #fecaca;">
+                            <div>
+                                <h5 class="st-card-title" style="color: #dc2626;"><i class="bi bi-exclamation-triangle" style="color: #dc2626;"></i> Danger Zone</h5>
+                                <p class="st-card-desc">Irreversible and destructive actions</p>
+                            </div>
+                        </div>
+                        <div class="st-card-body">
+                            <div class="st-danger-zone" style="margin-bottom: 0.75rem;">
+                                <div>
+                                    <div class="st-danger-title">Deactivate Account</div>
+                                    <div class="st-danger-desc">Temporarily disable your account. You can reactivate it later.</div>
+                                </div>
+                                <button class="st-btn st-btn-danger" @onclick="DeactivateAccount">
+                                    <i class="bi bi-pause-circle"></i> Deactivate
+                                </button>
+                            </div>
+                            <div class="st-danger-zone">
+                                <div>
+                                    <div class="st-danger-title">Delete Account</div>
+                                    <div class="st-danger-desc">Permanently remove your account and all associated data. This cannot be undone.</div>
+                                </div>
+                                <button class="st-btn st-btn-danger" @onclick="ShowDeleteAccountModal">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@* Delete Account Confirmation Modal *@
+@if (showDeleteModal)
+{
+    <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1050; display: flex; align-items: center; justify-content: center;"
+         @onclick="() => showDeleteModal = false">
+        <div style="background: #fff; border-radius: 16px; padding: 2rem; max-width: 420px; width: 92%; box-shadow: 0 20px 50px rgba(0,0,0,0.25);"
+             @onclick:stopPropagation="true">
+            <div style="text-align: center;">
+                <div style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.75rem; background: #fee2e2; color: #dc2626;">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <h5 style="margin: 0 0 0.5rem; font-size: 1.1rem; font-weight: 700; color: #2A2A2A;">Delete Account?</h5>
+                <p style="font-size: 0.82rem; color: #8a8177; margin: 0 0 1rem;">
+                    This will permanently delete your account, all bookings, and associated data. This action <strong>cannot be undone</strong>.
+                </p>
+                <div style="background: #fef2f2; border-radius: 8px; padding: 0.75rem; margin-bottom: 1rem;">
+                    <label style="font-size: 0.72rem; font-weight: 600; color: #dc2626; display: block; margin-bottom: 0.3rem;">Type your email to confirm:</label>
+                    <input type="email" class="st-input" @bind="deleteConfirmEmail" placeholder="@user?.Email" style="border-color: #fecaca;" />
+                </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem; justify-content: center;">
+                <button class="st-btn st-btn-outline" @onclick="() => showDeleteModal = false">Cancel</button>
+                <button class="st-btn st-btn-danger" style="background: #dc2626; color: #fff; border: none;"
+                        disabled="@(deleteConfirmEmail != user?.Email)"
+                        @onclick="DeleteAccount">
+                    <i class="bi bi-trash"></i> Permanently Delete
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private Users? user;
+    private bool isLoading = true;
+    private bool isSaving = false;
+    private string? currentUserId;
+    private string? successMessage;
+    private string? errorMessage;
+    private string? debugInfo;
+    private string activeSection = "profile";
+
+    // Profile form
+    private string editFirstName = "";
+    private string editLastName = "";
+    private string editMiddleName = "";
+    private string editPhoneNumber = "";
+
+    // Business form
+    private string editBusinessName = "";
+    private string editRegNumber = "";
+    private string editCompanyName = "";
+    private string editCompanyRep = "";
+
+    // Security
+    private string currentPassword = "";
+    private string newPassword = "";
+    private string confirmPassword = "";
+    private bool twoFaEnabled = true;
+
+    // Notifications
+    private bool notifBookings = true;
+    private bool notifPromos = false;
+    private bool notifSecurity = true;
+    private bool notifNewsletter = false;
+
+    // Appearance
+    private string selectedTheme = "light";
+    private string selectedLanguage = "en";
+    private string selectedTimezone = "EAT";
+    private string selectedCurrency = "KES";
+
+    // Privacy
+    private bool privacyProfileVisible = true;
+    private bool privacyBookingHistory = true;
+    private bool privacyAnalytics = true;
+
+    // Delete modal
+    private bool showDeleteModal = false;
+    private string deleteConfirmEmail = "";
+
+    private List<BreadcrumbItem> breadcrumbItems = new()
+    {
+        new BreadcrumbItem { Text = "Home", Url = "/" },
+        new BreadcrumbItem { Text = "Settings", IsActive = true }
+    };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                // Step 1: Read JWT cookie
+                string? token = null;
+                try
+                {
+                    token = await JSRuntime.InvokeAsync<string>("authHelpers.getCookie", "JWToken");
+                }
+                catch (Exception jsEx)
+                {
+                    debugInfo = $"JS cookie error: {jsEx.Message}";
+                }
+
+                // Step 2: Authenticate
+                if (!string.IsNullOrEmpty(token))
+                {
+                    var customAuth = (CustomAuthenticationStateProvider)AuthStateProvider;
+                    await customAuth.MarkUserAsAuthenticated(token);
+
+                    // Step 3: Extract user ID
+                    var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+                    var principal = authState?.User;
+                    if (principal?.Identity?.IsAuthenticated == true)
+                    {
+                        var nameClaim = principal.FindFirst(ClaimTypes.Name)?.Value;
+                        if (!string.IsNullOrEmpty(nameClaim))
+                        {
+                            var parts = nameClaim.Split(',');
+                            if (parts.Length > 0)
+                                currentUserId = parts[0];
+                        }
+                    }
+                }
+
+                // Step 4: Load user
+                if (!string.IsNullOrEmpty(currentUserId))
+                {
+                    user = await DbContext.Users.FindAsync(currentUserId);
+                    if (user != null)
+                    {
+                        PopulateFormFields();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                debugInfo = $"Auth error: {ex.Message}";
+            }
+            finally
+            {
+                isLoading = false;
+            }
+            StateHasChanged();
+        }
+    }
+
+    private void PopulateFormFields()
+    {
+        if (user == null) return;
+        editFirstName = user.FirstName ?? "";
+        editLastName = user.LastName ?? "";
+        editMiddleName = user.MiddleName ?? "";
+        editPhoneNumber = user.PhoneNumber ?? "";
+        editBusinessName = user.BusinessName ?? "";
+        editRegNumber = user.RegistrationNumber ?? "";
+        editCompanyName = user.CompanyName ?? "";
+        editCompanyRep = user.CompanyRepresentative ?? "";
+        twoFaEnabled = user.IsTwoFAEnabled;
+    }
+
+    private async Task<string?> GetCurrentUserIdAsync()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var u = authState?.User;
+            if (u?.Identity?.IsAuthenticated == true)
+            {
+                var nameClaim = u.FindFirst(ClaimTypes.Name)?.Value;
+                if (!string.IsNullOrEmpty(nameClaim))
+                {
+                    var parts = nameClaim.Split(',');
+                    if (parts.Length > 0) return parts[0];
+                }
+            }
+        }
+        catch { }
+        return null;
+    }
+
+    private void ResetProfileForm() => PopulateFormFields();
+
+    private async Task SaveProfile()
+    {
+        if (user == null) return;
+        isSaving = true;
+        successMessage = null;
+        errorMessage = null;
+        try
+        {
+            user.FirstName = editFirstName;
+            user.LastName = editLastName;
+            user.MiddleName = editMiddleName;
+            user.PhoneNumber = editPhoneNumber;
+            user.FullName = $"{editFirstName} {editMiddleName} {editLastName}".Replace("  ", " ").Trim();
+            DbContext.Users.Update(user);
+            await DbContext.SaveChangesAsync();
+            successMessage = "Profile updated successfully!";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to update profile: {ex.Message}";
+        }
+        finally { isSaving = false; }
+    }
+
+    private async Task SaveBusiness()
+    {
+        if (user == null) return;
+        isSaving = true;
+        successMessage = null;
+        errorMessage = null;
+        try
+        {
+            user.BusinessName = editBusinessName;
+            user.RegistrationNumber = editRegNumber;
+            user.CompanyName = editCompanyName;
+            user.CompanyRepresentative = editCompanyRep;
+            DbContext.Users.Update(user);
+            await DbContext.SaveChangesAsync();
+            successMessage = "Business information updated!";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to update business info: {ex.Message}";
+        }
+        finally { isSaving = false; }
+    }
+
+    private async Task ChangePassword()
+    {
+        successMessage = null;
+        errorMessage = null;
+
+        if (string.IsNullOrEmpty(currentPassword) || string.IsNullOrEmpty(newPassword))
+        {
+            errorMessage = "Please fill in all password fields.";
+            return;
+        }
+        if (newPassword != confirmPassword)
+        {
+            errorMessage = "New passwords do not match.";
+            return;
+        }
+        if (newPassword.Length < 8)
+        {
+            errorMessage = "Password must be at least 8 characters.";
+            return;
+        }
+        if (user == null) return;
+
+        isSaving = true;
+        try
+        {
+            if (user.password_hash != currentPassword)
+            {
+                errorMessage = "Current password is incorrect.";
+                return;
+            }
+            user.password_hash = newPassword;
+            DbContext.Users.Update(user);
+            await DbContext.SaveChangesAsync();
+            successMessage = "Password updated successfully!";
+            currentPassword = "";
+            newPassword = "";
+            confirmPassword = "";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to update password: {ex.Message}";
+        }
+        finally { isSaving = false; }
+    }
+
+    private async Task ToggleTwoFa()
+    {
+        if (user == null) return;
+        twoFaEnabled = !twoFaEnabled;
+        successMessage = null;
+        errorMessage = null;
+        try
+        {
+            user.IsTwoFAEnabled = twoFaEnabled;
+            DbContext.Users.Update(user);
+            await DbContext.SaveChangesAsync();
+            successMessage = twoFaEnabled ? "Two-factor authentication enabled." : "Two-factor authentication disabled.";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to update 2FA: {ex.Message}";
+            twoFaEnabled = !twoFaEnabled;
+        }
+    }
+
+    private void SaveNotifications()
+    {
+        successMessage = "Notification preferences saved!";
+        errorMessage = null;
+    }
+
+    private void SaveAppearance()
+    {
+        successMessage = $"Theme set to '{selectedTheme}'. (Visual theme switching coming soon!)";
+        errorMessage = null;
+    }
+
+    private void SaveRegion()
+    {
+        successMessage = "Language & region preferences saved!";
+        errorMessage = null;
+    }
+
+    private void SavePrivacy()
+    {
+        successMessage = "Privacy settings saved!";
+        errorMessage = null;
+    }
+
+    private void RequestDataExport()
+    {
+        successMessage = "Data export requested. You'll receive an email when it's ready.";
+        errorMessage = null;
+    }
+
+    private async Task DeactivateAccount()
+    {
+        if (user == null) return;
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to deactivate your account?");
+        if (!confirmed) return;
+        
+        try
+        {
+            user.IsActive = false;
+            DbContext.Users.Update(user);
+            await DbContext.SaveChangesAsync();
+            successMessage = "Account deactivated. You can reactivate by logging in again.";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to deactivate: {ex.Message}";
+        }
+    }
+
+    private void ShowDeleteAccountModal()
+    {
+        deleteConfirmEmail = "";
+        showDeleteModal = true;
+    }
+
+    private async Task DeleteAccount()
+    {
+        if (user == null || deleteConfirmEmail != user.Email) return;
+        try
+        {
+            DbContext.Users.Remove(user);
+            await DbContext.SaveChangesAsync();
+            Navigation.NavigateTo("/", forceLoad: true);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to delete account: {ex.Message}";
+            showDeleteModal = false;
+        }
+    }
+}

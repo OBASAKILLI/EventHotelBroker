@@ -2,8 +2,14 @@
 @rendermode InteractiveServer
 @inject NavigationManager Navigation
 @inject IHotelService HotelService
+@inject IBookingService BookingService
+@inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider AuthStateProvider
 @using EventHotelBroker.Services
 @using EventHotelBroker.Models
+@using EventHotelBroker.Utils
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
 
 <PageTitle>Checkout - EventHotelBroker</PageTitle>
 
@@ -412,7 +418,37 @@
         // Simulate payment processing
         await Task.Delay(3000);
         
-        paymentComplete = true;
+        // Create booking record after successful payment
+        try
+        {
+            var userId = await GetCurrentUserIdAsync();
+            if (!string.IsNullOrEmpty(userId) && hotel != null)
+            {
+                var booking = new Booking
+                {
+                    UserId = userId,
+                    HotelId = HotelId,
+                    StartDate = checkInDate,
+                    EndDate = checkOutDate,
+                    HeadCount = numberOfGuests,
+                    Notes = string.IsNullOrEmpty(specialRequests) ? null : specialRequests,
+                    Status = BookingStatus.Confirmed // Payment successful, so confirmed
+                };
+                
+                await BookingService.CreateBookingAsync(booking);
+                paymentComplete = true;
+            }
+            else
+            {
+                // Handle error - user not authenticated
+                paymentComplete = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            // Handle error
+            paymentComplete = false;
+        }
     }
 
     private void ViewBookings()
@@ -423,5 +459,41 @@
     private void GoHome()
     {
         Navigation.NavigateTo("/");
+    }
+
+    private async Task<string?> GetCurrentUserIdAsync()
+    {
+        try
+        {
+            // First try to get token from cookie
+            string? token = null;
+            try
+            {
+                token = await JSRuntime.InvokeAsync<string>("authHelpers.getCookie", "JWToken");
+            }
+            catch { }
+
+            // If we have a token, authenticate with it
+            if (!string.IsNullOrEmpty(token))
+            {
+                var customAuth = (CustomAuthenticationStateProvider)AuthStateProvider;
+                await customAuth.MarkUserAsAuthenticated(token);
+            }
+
+            // Get user ID from claims
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState?.User;
+            if (user?.Identity?.IsAuthenticated == true)
+            {
+                var nameClaim = user.FindFirst(ClaimTypes.Name)?.Value;
+                if (!string.IsNullOrEmpty(nameClaim))
+                {
+                    var parts = nameClaim.Split(',');
+                    if (parts.Length > 0) return parts[0];
+                }
+            }
+        }
+        catch { }
+        return null;
     }
 }
