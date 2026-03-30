@@ -446,6 +446,7 @@ textarea.co-form-input {
 .co-pay-icon.mpesa { background: rgba(72, 140, 130, 0.12); color: #488C82; }
 .co-pay-icon.card { background: rgba(42, 42, 42, 0.08); color: #2A2A2A; }
 .co-pay-icon.paypal { background: rgba(158, 139, 99, 0.1); color: #9E8B63; }
+.co-pay-icon.cash { background: rgba(200, 121, 65, 0.12); color: #C87941; }
 
 .co-pay-info {
     flex: 1;

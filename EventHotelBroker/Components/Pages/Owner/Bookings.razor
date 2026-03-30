@@ -2,12 +2,17 @@
 @rendermode InteractiveServer
 @using EventHotelBroker.Models
 @using EventHotelBroker.Services
+@using EventHotelBroker.Utils
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
 @inject IHotelService HotelService
 @inject IBookingService BookingService
+@inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>Booking Requests - EventHotelBroker</PageTitle>
 
-<link href="/css/owner-bookings.css?v=1" rel="stylesheet" />
+<link href="/css/owner-bookings.css?v=2" rel="stylesheet" />
 
 <div class="ob">
     <Breadcrumb Items="@breadcrumbItems" />
@@ -145,17 +150,20 @@
                                     </span>
                                 </td>
                                 <td>
-                                    @if (booking.Status == BookingStatus.Pending)
-                                    {
-                                        <div class="ob-actions">
-                                            <button class="ob-btn ob-btn-sm ob-btn-confirm" @onclick="() => ConfirmBooking(booking.Id)" title="Confirm">
-                                                <i class="bi bi-check-lg"></i> Confirm
+                                    <div class="ob-actions">
+                                        <button class="ob-btn ob-btn-sm ob-btn-view" @onclick="() => ViewBooking(booking)" title="View Details">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        @if (booking.Status == BookingStatus.Pending)
+                                        {
+                                            <button class="ob-btn ob-btn-sm ob-btn-confirm" @onclick="() => OpenConfirmModal(booking)" title="Confirm">
+                                                <i class="bi bi-check-lg"></i>
                                             </button>
-                                            <button class="ob-btn ob-btn-sm ob-btn-reject" @onclick="() => RejectBooking(booking.Id)" title="Reject">
-                                                <i class="bi bi-x-lg"></i> Reject
+                                            <button class="ob-btn ob-btn-sm ob-btn-reject" @onclick="() => OpenRejectModal(booking)" title="Reject">
+                                                <i class="bi bi-x-lg"></i>
                                             </button>
-                                        </div>
-                                    }
+                                        }
+                                    </div>
                                 </td>
                             </tr>
                         }
@@ -177,14 +185,147 @@
     }
 </div>
 
+@* ── Modals (outside .ob container to avoid overflow clip) ── *@
+
+<div class="modal-overlay" style="display:@(showViewModal ? "flex" : "none")">
+    <div class="modal-dialog">
+        <div class="modal-header-custom">
+            <h5><i class="bi bi-eye"></i> Booking Details</h5>
+            <button class="modal-close" @onclick="CloseModals"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="modal-body-custom">
+            @if (selectedBooking != null)
+            {
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Booking ID</span>
+                        <span class="detail-value">#@selectedBooking.Id</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Status</span>
+                        <span class="ob-badge @GetObStatusBadge(selectedBooking.Status)"><i class="bi @GetStatusIcon(selectedBooking.Status)"></i> @selectedBooking.Status</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Hotel</span>
+                        <span class="detail-value">@(selectedBooking.Hotel?.Name ?? "N/A")</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Location</span>
+                        <span class="detail-value">@(selectedBooking.Hotel?.City ?? "N/A"), @(selectedBooking.Hotel?.Country ?? "")</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Guest</span>
+                        <span class="detail-value">@(selectedBooking.User?.FullName ?? "N/A")</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Email</span>
+                        <span class="detail-value">@(selectedBooking.User?.Email ?? "N/A")</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Check-In</span>
+                        <span class="detail-value">@selectedBooking.StartDate.ToString("MMM dd, yyyy")</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Check-Out</span>
+                        <span class="detail-value">@selectedBooking.EndDate.ToString("MMM dd, yyyy")</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Guests</span>
+                        <span class="detail-value">@selectedBooking.HeadCount</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Booked On</span>
+                        <span class="detail-value">@selectedBooking.CreatedAt.ToString("MMM dd, yyyy HH:mm")</span>
+                    </div>
+                </div>
+                @if (!string.IsNullOrEmpty(selectedBooking.Notes))
+                {
+                    <div class="detail-notes">
+                        <span class="detail-label">Notes</span>
+                        <p>@selectedBooking.Notes</p>
+                    </div>
+                }
+                @if (selectedBooking.Status == BookingStatus.Rejected)
+                {
+                    <div class="detail-rejection">
+                        <span class="detail-label"><i class="bi bi-x-circle"></i> Rejection Info</span>
+                        <p class="rejection-reason">@(selectedBooking.RejectionReason ?? "No reason provided")</p>
+                        @if (selectedBooking.RejectedAt.HasValue)
+                        {
+                            <small class="rejection-date">Rejected on @selectedBooking.RejectedAt.Value.ToString("MMM dd, yyyy HH:mm")</small>
+                        }
+                    </div>
+                }
+            }
+        </div>
+        <div class="modal-footer-custom">
+            <button class="ob-btn ob-btn-outline" @onclick="CloseModals">Close</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" style="display:@(showConfirmModal ? "flex" : "none")">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-body-custom text-center" style="padding:2rem;">
+            <div class="modal-alert-icon confirm-icon"><i class="bi bi-check-circle"></i></div>
+            <h4 style="margin:1rem 0 0.5rem;">Confirm Booking?</h4>
+            <p style="color:#8a8177;margin-bottom:0.5rem;">You are about to confirm the booking for:</p>
+            <div class="modal-alert-detail">
+                <strong>@(selectedBooking?.Hotel?.Name ?? "N/A")</strong><br/>
+                <span>@(selectedBooking?.User?.FullName ?? "Guest") &middot; @(selectedBooking?.StartDate.ToString("MMM dd") ?? "") - @(selectedBooking?.EndDate.ToString("MMM dd, yyyy") ?? "")</span>
+            </div>
+        </div>
+        <div class="modal-footer-custom">
+            <button class="ob-btn ob-btn-outline" @onclick="CloseModals">Cancel</button>
+            <button class="ob-btn ob-btn-confirm" @onclick="ConfirmBooking" disabled="@isProcessing">
+                @if (isProcessing) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                <i class="bi bi-check-lg"></i> Confirm
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" style="display:@(showRejectModal ? "flex" : "none")">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-body-custom text-center" style="padding:2rem;">
+            <div class="modal-alert-icon reject-icon"><i class="bi bi-x-circle"></i></div>
+            <h4 style="margin:1rem 0 0.5rem;">Reject Booking?</h4>
+            <p style="color:#8a8177;margin-bottom:0.5rem;">You are about to reject the booking for:</p>
+            <div class="modal-alert-detail">
+                <strong>@(selectedBooking?.Hotel?.Name ?? "N/A")</strong><br/>
+                <span>@(selectedBooking?.User?.FullName ?? "Guest") &middot; @(selectedBooking?.StartDate.ToString("MMM dd") ?? "") - @(selectedBooking?.EndDate.ToString("MMM dd, yyyy") ?? "")</span>
+            </div>
+            <div class="mt-3" style="text-align:left;">
+                <label class="detail-label">Reason for rejection (optional)</label>
+                <textarea class="modal-textarea" @bind="rejectionReason" @bind:event="oninput" placeholder="Enter reason for rejection..."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer-custom">
+            <button class="ob-btn ob-btn-outline" @onclick="CloseModals">Cancel</button>
+            <button class="ob-btn ob-btn-reject" @onclick="RejectBooking" disabled="@isProcessing">
+                @if (isProcessing) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                <i class="bi bi-x-lg"></i> Reject
+            </button>
+        </div>
+    </div>
+</div>
+
 @code {
     private bool isLoading = true;
     private List<Booking> bookings = new();
-    private string currentUserId = "1"; // Default owner ID
+    private string? currentUserId;
     private string? message;
     private string messageType = "success";
     private string searchTerm = "";
     private string statusFilter = "";
+
+    // Modal state
+    private bool showViewModal = false;
+    private bool showConfirmModal = false;
+    private bool showRejectModal = false;
+    private Booking? selectedBooking;
+    private string rejectionReason = "";
+    private bool isProcessing = false;
 
     private List<BreadcrumbItem> breadcrumbItems = new()
     {
@@ -212,9 +353,14 @@
         return true;
     });
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await LoadBookings();
+        if (firstRender)
+        {
+            currentUserId = await GetCurrentUserIdAsync();
+            await LoadBookings();
+            StateHasChanged();
+        }
     }
 
     private async Task LoadBookings()
@@ -222,16 +368,19 @@
         isLoading = true;
         try
         {
-            var myHotels = await HotelService.GetHotelsByOwnerAsync(currentUserId);
-            bookings = new List<Booking>();
-            
-            foreach (var hotel in myHotels)
+            if (!string.IsNullOrEmpty(currentUserId))
             {
-                var hotelBookings = await BookingService.GetBookingsByHotelAsync(hotel.Id);
-                bookings.AddRange(hotelBookings);
+                var myHotels = await HotelService.GetHotelsByOwnerAsync(currentUserId);
+                bookings = new List<Booking>();
+                
+                foreach (var hotel in myHotels)
+                {
+                    var hotelBookings = await BookingService.GetBookingsByHotelAsync(hotel.Id);
+                    bookings.AddRange(hotelBookings);
+                }
+                
+                bookings = bookings.OrderByDescending(b => b.CreatedAt).ToList();
             }
-            
-            bookings = bookings.OrderByDescending(b => b.CreatedAt).ToList();
         }
         catch (Exception)
         {
@@ -243,19 +392,77 @@
         }
     }
 
+    private async Task<string?> GetCurrentUserIdAsync()
+    {
+        try
+        {
+            string? token = null;
+            try { token = await JSRuntime.InvokeAsync<string>("authHelpers.getCookie", "JWToken"); } catch { }
+            if (!string.IsNullOrEmpty(token))
+            {
+                var customAuth = (CustomAuthenticationStateProvider)AuthStateProvider;
+                await customAuth.MarkUserAsAuthenticated(token);
+            }
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState?.User;
+            if (user?.Identity?.IsAuthenticated == true)
+            {
+                var nameClaim = user.FindFirst(ClaimTypes.Name)?.Value;
+                if (!string.IsNullOrEmpty(nameClaim))
+                {
+                    var parts = nameClaim.Split(',');
+                    if (parts.Length > 0) return parts[0];
+                }
+            }
+        }
+        catch { }
+        return null;
+    }
+
     private async Task RefreshData()
     {
         await LoadBookings();
     }
 
-    private async Task ConfirmBooking(int bookingId)
+    private void ViewBooking(Booking booking)
     {
+        selectedBooking = booking;
+        showViewModal = true;
+    }
+
+    private void OpenConfirmModal(Booking booking)
+    {
+        selectedBooking = booking;
+        showConfirmModal = true;
+    }
+
+    private void OpenRejectModal(Booking booking)
+    {
+        selectedBooking = booking;
+        rejectionReason = "";
+        showRejectModal = true;
+    }
+
+    private void CloseModals()
+    {
+        showViewModal = false;
+        showConfirmModal = false;
+        showRejectModal = false;
+        selectedBooking = null;
+        rejectionReason = "";
+    }
+
+    private async Task ConfirmBooking()
+    {
+        if (selectedBooking == null) return;
+        isProcessing = true;
         try
         {
-            var result = await BookingService.ConfirmBookingAsync(bookingId);
+            var result = await BookingService.ConfirmBookingAsync(selectedBooking.Id);
             if (result)
             {
                 ShowMessage("Booking confirmed successfully!", "success");
+                CloseModals();
                 await LoadBookings();
             }
             else
@@ -267,16 +474,20 @@
         {
             ShowMessage($"Error: {ex.Message}", "error");
         }
+        finally { isProcessing = false; }
     }
 
-    private async Task RejectBooking(int bookingId)
+    private async Task RejectBooking()
     {
+        if (selectedBooking == null) return;
+        isProcessing = true;
         try
         {
-            var result = await BookingService.RejectBookingAsync(bookingId);
+            var result = await BookingService.RejectBookingAsync(selectedBooking.Id, string.IsNullOrWhiteSpace(rejectionReason) ? null : rejectionReason.Trim());
             if (result)
             {
                 ShowMessage("Booking rejected.", "success");
+                CloseModals();
                 await LoadBookings();
             }
             else
@@ -288,6 +499,7 @@
         {
             ShowMessage($"Error: {ex.Message}", "error");
         }
+        finally { isProcessing = false; }
     }
 
     private void ShowMessage(string msg, string type)

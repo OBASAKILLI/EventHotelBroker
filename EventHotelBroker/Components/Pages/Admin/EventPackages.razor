@@ -6,7 +6,7 @@
 
 <PageTitle>Event Packages - Admin</PageTitle>
 
-<link href="/css/admin-event-packages.css?v=1" rel="stylesheet" />
+<link href="/css/admin-event-packages.css?v=2" rel="stylesheet" />
 
 <div class="ap">
     <Breadcrumb Items="@breadcrumbItems" />
@@ -130,17 +130,23 @@
                                 </div>
                                 <h6 class="ap-item-name">@package.Name</h6>
                                 <p class="ap-item-desc">@package.Description</p>
+                                
+                                <div class="ap-owner-info">
+                                    <i class="bi bi-person-fill"></i>
+                                    <span class="ap-owner-name">@(package.Provider?.FirstName + " " + package.Provider?.LastName)</span>
+                                    <span class="ap-owner-email">@(package.Provider?.Email)</span>
+                                </div>
 
                                 <div class="ap-price-row">
                                     <div>
                                         @if (package.DiscountedPrice.HasValue)
                                         {
-                                            <span class="ap-price-old">$@package.TotalPrice.ToString("N2")</span>
-                                            <span class="ap-price">$@package.DiscountedPrice.Value.ToString("N2")</span>
+                                            <span class="ap-price-old">KES @package.TotalPrice.ToString("N2")</span>
+                                            <span class="ap-price">KES @package.DiscountedPrice.Value.ToString("N2")</span>
                                         }
                                         else
                                         {
-                                            <span class="ap-price">$@package.TotalPrice.ToString("N2")</span>
+                                            <span class="ap-price">KES @package.TotalPrice.ToString("N2")</span>
                                         }
                                     </div>
                                     <span class="ap-guests"><i class="bi bi-people"></i> @package.MinGuests-@package.MaxGuests</span>
@@ -200,7 +206,7 @@
                 {
                     <div style="background:#faf8f5;border-radius:8px;padding:0.6rem 0.75rem;margin:0.75rem 0;text-align:left;border:1px solid #f0ebe4;">
                         <div style="font-size:0.75rem;font-weight:700;color:#2A2A2A;">@selectedPackage.Name</div>
-                        <div style="font-size:0.65rem;color:#8a8177;margin-top:2px;">@selectedPackage.PackageType &middot; $@selectedPackage.TotalPrice.ToString("N2") &middot; @selectedPackage.MinGuests-@selectedPackage.MaxGuests guests</div>
+                        <div style="font-size:0.65rem;color:#8a8177;margin-top:2px;">@selectedPackage.PackageType &middot; KES @selectedPackage.TotalPrice.ToString("N2") &middot; @selectedPackage.MinGuests-@selectedPackage.MaxGuests guests</div>
                     </div>
                 }
             </div>

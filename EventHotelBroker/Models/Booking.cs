@@ -10,6 +10,8 @@ public class Booking
     public int HeadCount { get; set; }
     public BookingStatus Status { get; set; } = BookingStatus.Pending;
     public string? Notes { get; set; }
+    public string? RejectionReason { get; set; }
+    public DateTime? RejectedAt { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
 

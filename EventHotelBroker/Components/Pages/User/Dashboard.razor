@@ -71,7 +71,7 @@
                 <div class="ud-stat">
                     <div class="ud-stat-icon ud-icon-teal"><i class="bi bi-wallet2"></i></div>
                     <div>
-                        <div class="ud-stat-value">$@GetTotalSpend().ToString("N0")</div>
+                        <div class="ud-stat-value">KES @GetTotalSpend().ToString("N0")</div>
                         <div class="ud-stat-label">Total Spent</div>
                     </div>
                 </div>
@@ -137,7 +137,7 @@
                                             <span class="ud-badge ud-badge-@(booking.Status == BookingStatus.Confirmed ? "ok" : booking.Status == BookingStatus.Pending ? "warn" : "muted")">@booking.Status</span>
                                         </div>
                                         <div class="ud-row-right">
-                                            <span class="ud-row-amount">$@CalculateBookingTotal(booking).ToString("N0")</span>
+                                            <span class="ud-row-amount">KES @CalculateBookingTotal(booking).ToString("N0")</span>
                                             <i class="bi bi-chevron-right ud-chevron"></i>
                                         </div>
                                     </div>
@@ -167,7 +167,7 @@
                                             <span class="ud-badge ud-badge-@(booking.Status == EventBookingStatus.Confirmed ? "ok" : booking.Status == EventBookingStatus.Pending ? "warn" : "muted")">@booking.Status</span>
                                         </div>
                                         <div class="ud-row-right">
-                                            <span class="ud-row-amount">$@booking.TotalAmount.ToString("N0")</span>
+                                            <span class="ud-row-amount">KES @booking.TotalAmount.ToString("N0")</span>
                                             <i class="bi bi-chevron-right ud-chevron"></i>
                                         </div>
                                     </div>

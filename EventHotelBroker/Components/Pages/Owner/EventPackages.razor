@@ -132,12 +132,12 @@
                                         <div>
                                             @if (package.DiscountedPrice.HasValue)
                                             {
-                                                <span class="ep-price-old">$@package.TotalPrice.ToString("N2")</span>
-                                                <span class="ep-price">$@package.DiscountedPrice.Value.ToString("N2")</span>
+                                                <span class="ep-price-old">KES @package.TotalPrice.ToString("N2")</span>
+                                                <span class="ep-price">KES @package.DiscountedPrice.Value.ToString("N2")</span>
                                             }
                                             else
                                             {
-                                                <span class="ep-price">$@package.TotalPrice.ToString("N2")</span>
+                                                <span class="ep-price">KES @package.TotalPrice.ToString("N2")</span>
                                             }
                                         </div>
                                         <span class="ep-guests"><i class="bi bi-people"></i> @package.MinGuests-@package.MaxGuests</span>

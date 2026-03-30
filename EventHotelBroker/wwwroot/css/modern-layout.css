@@ -373,6 +373,8 @@ body {
     min-height: calc(100vh - 56px);
     transition: margin-left 0.3s ease;
     overflow-y: auto;
+    position: relative;
+    z-index: 1050;
 }
 
 .modern-sidebar.collapsed ~ .modern-main-content {

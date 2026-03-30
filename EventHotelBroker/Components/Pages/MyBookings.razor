@@ -2,8 +2,13 @@
 @rendermode InteractiveServer
 @using EventHotelBroker.Models
 @using EventHotelBroker.Services
+@using EventHotelBroker.Utils
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
 @inject IBookingService BookingService
 @inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>My Bookings - EventHotelBroker</PageTitle>
 
@@ -131,6 +136,17 @@
                                             <i class="bi @GetStatusIcon(booking.Status)"></i>
                                             @booking.Status
                                         </span>
+                                        @if (booking.Status == BookingStatus.Rejected && !string.IsNullOrEmpty(booking.RejectionReason))
+                                        {
+                                            <div class="rejection-info-inline">
+                                                <i class="bi bi-info-circle"></i>
+                                                <span>@(booking.RejectionReason.Length > 40 ? booking.RejectionReason.Substring(0, 40) + "..." : booking.RejectionReason)</span>
+                                            </div>
+                                        }
+                                        @if (booking.Status == BookingStatus.Rejected && booking.RejectedAt.HasValue)
+                                        {
+                                            <div class="rejection-date-inline">@booking.RejectedAt.Value.ToString("MMM dd, yyyy")</div>
+                                        }
                                     </td>
                                     <td>
                                         <div class="cell-actions">
@@ -192,7 +208,7 @@
 @code {
     private bool isLoading = true;
     private List<Booking> bookings = new();
-    private string currentUserId = "1";
+    private string? currentUserId;
     private int upcomingBookings = 0;
 
     // Search & filter
@@ -231,23 +247,30 @@
             currentPage = page;
     }
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadBookings();
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadBookings()
     {
         try
         {
-            bookings = (await BookingService.GetBookingsByUserAsync(currentUserId)).ToList();
-            if (!bookings.Any())
+            currentUserId = await GetCurrentUserIdAsync();
+            if (!string.IsNullOrEmpty(currentUserId))
             {
-                bookings = GetSampleBookings();
+                bookings = (await BookingService.GetBookingsByUserAsync(currentUserId)).ToList();
             }
             upcomingBookings = bookings.Count(b => b.StartDate >= DateTime.Today && 
                                                    (b.Status == BookingStatus.Confirmed || b.Status == BookingStatus.Pending));
         }
         catch (Exception)
         {
-            bookings = GetSampleBookings();
-            upcomingBookings = bookings.Count(b => b.StartDate >= DateTime.Today && 
-                                                   (b.Status == BookingStatus.Confirmed || b.Status == BookingStatus.Pending));
+            bookings = new List<Booking>();
         }
         finally
         {
@@ -255,137 +278,31 @@
         }
     }
 
-    private List<Booking> GetSampleBookings()
+    private async Task<string?> GetCurrentUserIdAsync()
     {
-        return new List<Booking>
+        try
         {
-            new Booking
+            string? token = null;
+            try { token = await JSRuntime.InvokeAsync<string>("authHelpers.getCookie", "JWToken"); } catch { }
+            if (!string.IsNullOrEmpty(token))
             {
-                Id = 1,
-                UserId = currentUserId,
-                HotelId = 1,
-                Hotel = new Hotel
-                {
-                    Id = 1,
-                    Name = "Grand Plaza Hotel Nairobi",
-                    City = "Nairobi",
-                    Country = "Kenya",
-                    PricePerNight = 25000,
-                    Currency = "KES"
-                },
-                StartDate = DateTime.Now.AddDays(15),
-                EndDate = DateTime.Now.AddDays(17),
-                HeadCount = 150,
-                Status = BookingStatus.Confirmed,
-                Notes = "Corporate annual general meeting. Need projector and sound system.",
-                CreatedAt = DateTime.Now.AddDays(-5)
-            },
-            new Booking
-            {
-                Id = 2,
-                UserId = currentUserId,
-                HotelId = 2,
-                Hotel = new Hotel
-                {
-                    Id = 2,
-                    Name = "Serena Beach Resort & Spa",
-                    City = "Mombasa",
-                    Country = "Kenya",
-                    PricePerNight = 35000,
-                    Currency = "KES"
-                },
-                StartDate = DateTime.Now.AddDays(30),
-                EndDate = DateTime.Now.AddDays(33),
-                HeadCount = 100,
-                Status = BookingStatus.Pending,
-                Notes = "Beach wedding ceremony and reception. Need setup for 100 guests.",
-                CreatedAt = DateTime.Now.AddDays(-3)
-            },
-            new Booking
-            {
-                Id = 3,
-                UserId = currentUserId,
-                HotelId = 3,
-                Hotel = new Hotel
-                {
-                    Id = 3,
-                    Name = "Mount Kenya Safari Lodge",
-                    City = "Nanyuki",
-                    Country = "Kenya",
-                    PricePerNight = 18000,
-                    Currency = "KES"
-                },
-                StartDate = DateTime.Now.AddDays(-10),
-                EndDate = DateTime.Now.AddDays(-8),
-                HeadCount = 50,
-                Status = BookingStatus.Confirmed,
-                Notes = "Team building retreat for 50 employees.",
-                CreatedAt = DateTime.Now.AddDays(-20)
-            },
-            new Booking
-            {
-                Id = 4,
-                UserId = currentUserId,
-                HotelId = 4,
-                Hotel = new Hotel
-                {
-                    Id = 4,
-                    Name = "Westlands Conference Center",
-                    City = "Nairobi",
-                    Country = "Kenya",
-                    PricePerNight = 50000,
-                    Currency = "KES"
-                },
-                StartDate = DateTime.Now.AddDays(7),
-                EndDate = DateTime.Now.AddDays(7),
-                HeadCount = 300,
-                Status = BookingStatus.Pending,
-                Notes = "Product launch event. Full day conference.",
-                CreatedAt = DateTime.Now.AddDays(-2)
-            },
-            new Booking
-            {
-                Id = 5,
-                UserId = currentUserId,
-                HotelId = 5,
-                Hotel = new Hotel
-                {
-                    Id = 5,
-                    Name = "Lake Nakuru View Hotel",
-                    City = "Nakuru",
-                    Country = "Kenya",
-                    PricePerNight = 15000,
-                    Currency = "KES"
-                },
-                StartDate = DateTime.Now.AddDays(-30),
-                EndDate = DateTime.Now.AddDays(-28),
-                HeadCount = 40,
-                Status = BookingStatus.Cancelled,
-                Notes = "Weekend getaway for family reunion. Cancelled due to schedule conflict.",
-                CreatedAt = DateTime.Now.AddDays(-45)
-            },
-            new Booking
-            {
-                Id = 6,
-                UserId = currentUserId,
-                HotelId = 1,
-                Hotel = new Hotel
-                {
-                    Id = 1,
-                    Name = "Grand Plaza Hotel Nairobi",
-                    City = "Nairobi",
-                    Country = "Kenya",
-                    PricePerNight = 25000,
-                    Currency = "KES"
-                },
-                StartDate = DateTime.Now.AddDays(45),
-                EndDate = DateTime.Now.AddDays(46),
-                HeadCount = 200,
-                Status = BookingStatus.Confirmed,
-                Notes = "Annual gala dinner and awards ceremony.",
-                CreatedAt = DateTime.Now.AddDays(-1)
+                var customAuth = (CustomAuthenticationStateProvider)AuthStateProvider;
+                await customAuth.MarkUserAsAuthenticated(token);
             }
-        };
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState?.User;
+            if (user?.Identity?.IsAuthenticated == true)
+            {
+                var nameClaim = user.FindFirst(ClaimTypes.Name)?.Value;
+                if (!string.IsNullOrEmpty(nameClaim))
+                {
+                    var parts = nameClaim.Split(',');
+                    if (parts.Length > 0) return parts[0];
+                }
+            }
+        }
+        catch { }
+        return null;
     }
 
     private string GetStatusColor(BookingStatus status)

@@ -1,5 +1,6 @@
 using EventHotelBroker.Models;
 using EventHotelBroker.Repositories;
+using EventHotelBroker.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventHotelBroker.Services;
@@ -7,10 +8,12 @@ namespace EventHotelBroker.Services;
 public class EventService : IEventService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ApplicationDbContext _context;
 
-    public EventService(IUnitOfWork unitOfWork)
+    public EventService(IUnitOfWork unitOfWork, ApplicationDbContext context)
     {
         _unitOfWork = unitOfWork;
+        _context = context;
     }
 
     // Equipment Management
@@ -89,7 +92,9 @@ public class EventService : IEventService
     // Package Management
     public async Task<IEnumerable<EventPackage>> GetAllPackagesAsync()
     {
-        return await _unitOfWork.EventPackages.GetAllAsync();
+        return await _context.EventPackages
+            .Include(p => p.Provider)
+            .ToListAsync();
     }
 
     public async Task<IEnumerable<EventPackage>> GetApprovedPackagesAsync()

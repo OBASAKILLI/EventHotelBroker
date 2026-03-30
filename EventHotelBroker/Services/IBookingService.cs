@@ -9,6 +9,7 @@ public interface IBookingService
     Task<IEnumerable<Booking>> GetBookingsByUserAsync(string userId);
     Task<IEnumerable<Booking>> GetBookingsByHotelAsync(int hotelId);
     Task<bool> ConfirmBookingAsync(int id);
-    Task<bool> RejectBookingAsync(int id);
+    Task<bool> RejectBookingAsync(int id, string? reason = null);
     Task<bool> CancelBookingAsync(int id);
+    Task<List<Booking>> GetAllBookingsAsync();
 }

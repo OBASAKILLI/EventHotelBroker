@@ -180,6 +180,9 @@
 </div>
 
 @code {
+    [SupplyParameterFromQuery(Name = "tab")]
+    public string? TabParam { get; set; }
+
     private bool isLoading = true;
     private string activeTab = "packages";
     private string selectedEventType = "";
@@ -192,6 +195,10 @@
 
     protected override async Task OnInitializedAsync()
     {
+        if (!string.IsNullOrEmpty(TabParam))
+        {
+            activeTab = TabParam;
+        }
         await LoadData();
     }
 

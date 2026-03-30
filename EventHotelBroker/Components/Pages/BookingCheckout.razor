@@ -147,6 +147,17 @@
                                 </div>
                             </div>
 
+                            <div class="co-payment-option @(selectedPayment == "cash" ? "selected" : "")" @onclick='() => SelectPayment("cash")'>
+                                <div class="co-pay-icon cash"><i class="bi bi-cash-stack"></i></div>
+                                <div class="co-pay-info">
+                                    <h6>Cash Payment</h6>
+                                    <small>Pay at the venue on check-in</small>
+                                </div>
+                                <div class="co-pay-check">
+                                    <i class="bi @(selectedPayment == "cash" ? "bi-check-circle-fill checked" : "bi-circle unchecked")"></i>
+                                </div>
+                            </div>
+
                             @if (!string.IsNullOrEmpty(selectedPayment))
                             {
                                 @if (selectedPayment == "mpesa")
@@ -194,6 +205,14 @@
                                         </div>
                                     </div>
                                 }
+                                else if (selectedPayment == "cash")
+                                {
+                                    <div class="co-pay-details">
+                                        <div class="co-pay-alert" style="background: rgba(200,121,65,0.08); border-color: rgba(200,121,65,0.2); color: #C87941;">
+                                            <i class="bi bi-info-circle"></i> Your booking will be reserved with <strong>Pending</strong> status. Payment is expected at the venue on check-in day.
+                                        </div>
+                                    </div>
+                                }
                             }
                         </div>
                         <div class="co-card-footer">
@@ -202,7 +221,14 @@
                                     <i class="bi bi-arrow-left"></i> Back
                                 </button>
                                 <button type="button" class="co-btn-success" @onclick="ProcessPayment" disabled="@(string.IsNullOrEmpty(selectedPayment))">
-                                    Pay @hotel.Currency @totalAmount.ToString("N0") <i class="bi bi-lock-fill"></i>
+                                    @if (selectedPayment == "cash")
+                                    {
+                                        <span>Reserve Booking <i class="bi bi-calendar-check"></i></span>
+                                    }
+                                    else
+                                    {
+                                        <span>Pay @hotel.Currency @totalAmount.ToString("N0") <i class="bi bi-lock-fill"></i></span>
+                                    }
                                 </button>
                             </div>
                         </div>
@@ -226,14 +252,29 @@
                                             <i class="bi bi-phone"></i> Check your phone for M-Pesa prompt
                                         </div>
                                     }
+                                    else if (selectedPayment == "cash")
+                                    {
+                                        <div class="co-pay-alert">
+                                            <i class="bi bi-cash-stack"></i> Reserving your booking...
+                                        </div>
+                                    }
                                 </div>
                             }
                             else
                             {
                                 <div class="co-success">
-                                    <div class="co-success-icon"><i class="bi bi-check-circle-fill"></i></div>
-                                    <h2>Booking Confirmed!</h2>
-                                    <p class="co-success-sub">Your payment was successful</p>
+                                    @if (selectedPayment == "cash")
+                                    {
+                                        <div class="co-success-icon" style="background: rgba(200,121,65,0.1);"><i class="bi bi-calendar-check" style="color: #C87941;"></i></div>
+                                        <h2>Booking Reserved!</h2>
+                                        <p class="co-success-sub">Your booking is pending — pay at the venue on check-in</p>
+                                    }
+                                    else
+                                    {
+                                        <div class="co-success-icon"><i class="bi bi-check-circle-fill"></i></div>
+                                        <h2>Booking Confirmed!</h2>
+                                        <p class="co-success-sub">Your payment was successful</p>
+                                    }
 
                                     <div class="co-confirm-card">
                                         <div class="co-confirm-row">
@@ -242,8 +283,8 @@
                                                 <div class="co-confirm-val">BK-@bookingReference</div>
                                             </div>
                                             <div class="co-confirm-item right">
-                                                <small>Amount Paid</small>
-                                                <div class="co-confirm-val success">@hotel.Currency @totalAmount.ToString("N0")</div>
+                                                <small>@(selectedPayment == "cash" ? "Amount Due" : "Amount Paid")</small>
+                                                <div class="co-confirm-val @(selectedPayment == "cash" ? "" : "success")">@hotel.Currency @totalAmount.ToString("N0")</div>
                                             </div>
                                         </div>
                                         <div class="co-confirm-divider"></div>
@@ -260,7 +301,15 @@
                                     </div>
 
                                     <div class="co-email-note">
-                                        <i class="bi bi-envelope"></i> A confirmation email has been sent to your email address
+                                        <i class="bi bi-envelope"></i>
+                                        @if (selectedPayment == "cash")
+                                        {
+                                            <span>A reservation confirmation has been sent to your email. Status: <strong>Pending</strong></span>
+                                        }
+                                        else
+                                        {
+                                            <span>A confirmation email has been sent to your email address. Status: <strong>Confirmed</strong></span>
+                                        }
                                     </div>
 
                                     <div class="co-success-actions">
@@ -432,7 +481,7 @@
                     EndDate = checkOutDate,
                     HeadCount = numberOfGuests,
                     Notes = string.IsNullOrEmpty(specialRequests) ? null : specialRequests,
-                    Status = BookingStatus.Confirmed // Payment successful, so confirmed
+                    Status = selectedPayment == "cash" ? BookingStatus.Pending : BookingStatus.Confirmed
                 };
                 
                 await BookingService.CreateBookingAsync(booking);
