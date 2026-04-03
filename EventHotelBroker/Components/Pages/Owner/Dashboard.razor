@@ -80,7 +80,7 @@
             <div class="od-stat">
                 <div class="od-stat-icon od-icon-terracotta"><i class="bi bi-calendar-check"></i></div>
                 <div>
-                    <div class="od-stat-value">@bookingRequests.Count()</div>
+                    <div class="od-stat-value">@(bookingRequests.Count() + eventBookingRequests.Count())</div>
                     <div class="od-stat-label">Requests</div>
                 </div>
             </div>
@@ -147,16 +147,26 @@
                         <a href="/owner/bookings" class="od-link">View All <i class="bi bi-arrow-right"></i></a>
                     </div>
                     <div class="od-card-body">
-                        @if (bookingRequests.Any())
+                        @if (bookingRequests.Any() || eventBookingRequests.Any())
                         {
-                            @foreach (var booking in bookingRequests.Take(5))
+                            @foreach (var booking in bookingRequests.Take(3))
                             {
                                 <div class="od-bk-row">
                                     <div class="od-bk-left">
-                                        <span class="od-bk-id">Booking #@booking.Id</span>
+                                        <span class="od-bk-id">Hotel Booking #@booking.Id</span>
                                         <span class="od-bk-meta"><i class="bi bi-calendar"></i> @booking.StartDate.ToString("MMM dd") – @booking.EndDate.ToString("MMM dd") · @booking.HeadCount guests</span>
                                     </div>
                                     <span class="od-badge od-badge-warn">@booking.Status</span>
+                                </div>
+                            }
+                            @foreach (var evtBooking in eventBookingRequests.Take(2))
+                            {
+                                <div class="od-bk-row">
+                                    <div class="od-bk-left">
+                                        <span class="od-bk-id">Event Booking #@evtBooking.Id</span>
+                                        <span class="od-bk-meta"><i class="bi bi-calendar"></i> @evtBooking.EventDate.ToString("MMM dd") · @evtBooking.ExpectedGuests guests</span>
+                                    </div>
+                                    <span class="od-badge od-badge-warn">@evtBooking.Status</span>
                                 </div>
                             }
                         }
@@ -227,6 +237,7 @@
     private bool isLoading = true;
     private List<Hotel> myHotels = new();
     private List<Booking> bookingRequests = new();
+    private List<EventBooking> eventBookingRequests = new();
     private string? currentUserId;
     private int eventEquipmentsCount = 0;
     private int eventPackagesCount = 0;
@@ -268,6 +279,13 @@
 
                     var packages = await EventService.GetPackagesByProviderAsync(currentUserId);
                     eventPackagesCount = packages.Count();
+
+                    var packageIds = packages.Select(p => p.Id).ToHashSet();
+                    var allEventBookings = await EventService.GetAllBookingsAsync();
+                    eventBookingRequests = allEventBookings
+                        .Where(b => b.PackageId.HasValue && packageIds.Contains(b.PackageId.Value) && b.Status == EventBookingStatus.Pending)
+                        .OrderByDescending(b => b.CreatedAt)
+                        .ToList();
                 }
             }
             catch (Exception ex)

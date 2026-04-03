@@ -1,508 +1,508 @@
 @page "/event/checkout"
 @rendermode InteractiveServer
 @inject NavigationManager Navigation
+@inject IEventService EventService
+@inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider AuthStateProvider
+@using EventHotelBroker.Services
+@using EventHotelBroker.Models
+@using EventHotelBroker.Utils
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
 
 <PageTitle>Event Checkout - EventHotelBroker</PageTitle>
 
 <link href="/css/event-checkout.css" rel="stylesheet" />
 
 <div class="ec-shell">
-    <!-- Step Indicator -->
-    <div class="ec-steps">
-        <div class="ec-step @(currentStep >= 1 ? (currentStep > 1 ? "done" : "active") : "")">
-            <div class="ec-step-dot">
-                @if (currentStep > 1) { <i class="bi bi-check"></i> } else { <span>1</span> }
-            </div>
-            <span class="ec-step-label">Details</span>
+    @if (isLoading)
+    {
+        <div class="ec-loading">
+            <div class="ec-spinner"></div>
+            <p>Loading package details...</p>
         </div>
-        <div class="ec-step-line @(currentStep >= 2 ? "active" : "")"></div>
-        <div class="ec-step @(currentStep >= 2 ? (currentStep > 2 ? "done" : "active") : "")">
-            <div class="ec-step-dot">
-                @if (currentStep > 2) { <i class="bi bi-check"></i> } else { <span>2</span> }
-            </div>
-            <span class="ec-step-label">Payment</span>
+    }
+    else if (package == null)
+    {
+        <div class="ec-card" style="text-align:center; padding:3rem;">
+            <div style="font-size:3rem; color:#c4b99a; margin-bottom:1rem;"><i class="bi bi-exclamation-circle"></i></div>
+            <h4>Package Not Found</h4>
+            <p style="color:#8a8177;">The event package you selected could not be found.</p>
+            <button type="button" class="ec-btn-primary" style="margin-top:1rem;" @onclick='() => Navigation.NavigateTo("/")'>
+                <i class="bi bi-house"></i> Back to Home
+            </button>
         </div>
-        <div class="ec-step-line @(currentStep >= 3 ? "active" : "")"></div>
-        <div class="ec-step @(currentStep >= 3 ? "active" : "")">
-            <div class="ec-step-dot">
-                @if (paymentComplete) { <i class="bi bi-check"></i> } else { <span>3</span> }
+    }
+    else
+    {
+        <!-- Step Indicator -->
+        <div class="ec-steps">
+            <div class="ec-step @(currentStep >= 1 ? (currentStep > 1 ? "done" : "active") : "")">
+                <div class="ec-step-dot">
+                    @if (currentStep > 1) { <i class="bi bi-check"></i> } else { <span>1</span> }
+                </div>
+                <span class="ec-step-label">Details</span>
             </div>
-            <span class="ec-step-label">Confirm</span>
+            <div class="ec-step-line @(currentStep >= 2 ? "active" : "")"></div>
+            <div class="ec-step @(currentStep >= 2 ? (currentStep > 2 ? "done" : "active") : "")">
+                <div class="ec-step-dot">
+                    @if (currentStep > 2) { <i class="bi bi-check"></i> } else { <span>2</span> }
+                </div>
+                <span class="ec-step-label">Payment</span>
+            </div>
+            <div class="ec-step-line @(currentStep >= 3 ? "active" : "")"></div>
+            <div class="ec-step @(currentStep >= 3 ? "active" : "")">
+                <div class="ec-step-dot">
+                    @if (paymentComplete) { <i class="bi bi-check"></i> } else { <span>3</span> }
+                </div>
+                <span class="ec-step-label">Confirm</span>
+            </div>
         </div>
-    </div>
 
-    <div class="ec-layout">
-        <!-- ═══ LEFT: Checkout Flow ═══ -->
-        <div class="ec-main">
-            @if (currentStep == 1)
-            {
-                <!-- Step 1: Event Booking Summary -->
-                <div class="ec-card">
-                    <div class="ec-card-head">
-                        <i class="bi bi-calendar-event"></i>
-                        <h5>Event Booking Summary</h5>
-                    </div>
-                    <div class="ec-card-body">
-                        <div class="ec-summary-grid">
-                            <div class="ec-summary-item">
-                                <span class="ec-summary-label">Event Type</span>
-                                <span class="ec-summary-value">@eventType</span>
-                            </div>
-                            <div class="ec-summary-item">
-                                <span class="ec-summary-label">Package</span>
-                                <span class="ec-summary-value">@packageName</span>
-                            </div>
-                            <div class="ec-summary-item">
-                                <span class="ec-summary-label">Event Date</span>
-                                <span class="ec-summary-value"><i class="bi bi-calendar3"></i> @eventDate.ToString("MMM dd, yyyy")</span>
-                            </div>
-                            <div class="ec-summary-item">
-                                <span class="ec-summary-label">Number of Guests</span>
-                                <span class="ec-summary-value"><i class="bi bi-people"></i> @numberOfGuests guests</span>
-                            </div>
-                            <div class="ec-summary-item full">
-                                <span class="ec-summary-label">Venue</span>
-                                <span class="ec-summary-value"><i class="bi bi-geo-alt"></i> @venueName</span>
-                            </div>
+        <div class="ec-layout">
+            <!-- ═══ LEFT: Checkout Flow ═══ -->
+            <div class="ec-main">
+                @if (currentStep == 1)
+                {
+                    <!-- Step 1: Event Details Form -->
+                    <div class="ec-card">
+                        <div class="ec-card-head">
+                            <i class="bi bi-calendar-event"></i>
+                            <h5>Event Details</h5>
                         </div>
-
-                        <div class="ec-divider"></div>
-
-                        <div class="ec-price-row">
-                            <span>Package Price</span>
-                            <span>KES @packagePrice.ToString("N0")</span>
-                        </div>
-                        <div class="ec-price-row">
-                            <span>Additional Services</span>
-                            <span>KES @additionalServices.ToString("N0")</span>
-                        </div>
-
-                        <div class="ec-divider"></div>
-
-                        <div class="ec-price-row ec-total">
-                            <span>Total Amount</span>
-                            <span>KES @totalAmount.ToString("N0")</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Detail Tabs -->
-                <div class="ec-tabs">
-                    <button class="ec-tab @(activeTab == "included" ? "active" : "")" @onclick='() => SelectTab("included")'>
-                        <i class="bi bi-box-seam"></i> What's Included
-                    </button>
-                    <button class="ec-tab @(activeTab == "timeline" ? "active" : "")" @onclick='() => SelectTab("timeline")'>
-                        <i class="bi bi-clock-history"></i> Timeline
-                    </button>
-                    <button class="ec-tab @(activeTab == "reviews" ? "active" : "")" @onclick='() => SelectTab("reviews")'>
-                        <i class="bi bi-chat-quote"></i> Reviews
-                    </button>
-                    <button class="ec-tab @(activeTab == "trust" ? "active" : "")" @onclick='() => SelectTab("trust")'>
-                        <i class="bi bi-shield-check"></i> Trust & Support
-                    </button>
-                </div>
-
-                <div class="ec-tab-content">
-                    @if (activeTab == "included")
-                    {
-                        <div class="ec-included-list">
-                            <div class="ec-included-item"><i class="bi bi-check-circle-fill"></i> Venue hire & exclusive access</div>
-                            <div class="ec-included-item"><i class="bi bi-check-circle-fill"></i> Tables, chairs & linen for @numberOfGuests</div>
-                            <div class="ec-included-item"><i class="bi bi-check-circle-fill"></i> Professional event coordinator</div>
-                            <div class="ec-included-item"><i class="bi bi-check-circle-fill"></i> Sound system & lighting setup</div>
-                            <div class="ec-included-item"><i class="bi bi-check-circle-fill"></i> Floral centerpieces & decor</div>
-                            <div class="ec-included-item"><i class="bi bi-check-circle-fill"></i> Parking for 80+ vehicles</div>
-                            <div class="ec-included-item"><i class="bi bi-check-circle-fill"></i> Post-event cleanup</div>
-                        </div>
-                    }
-                    else if (activeTab == "timeline")
-                    {
-                        <div class="ec-timeline">
-                            <div class="ec-timeline-item done">
-                                <div class="ec-timeline-dot"><i class="bi bi-check"></i></div>
-                                <div class="ec-timeline-content">
-                                    <div class="ec-timeline-title">Booking Created</div>
-                                    <div class="ec-timeline-desc">Today</div>
-                                </div>
-                            </div>
-                            <div class="ec-timeline-item active">
-                                <div class="ec-timeline-dot"><span>2</span></div>
-                                <div class="ec-timeline-content">
-                                    <div class="ec-timeline-title">Payment & Confirmation</div>
-                                    <div class="ec-timeline-desc">Complete checkout</div>
-                                </div>
-                            </div>
-                            <div class="ec-timeline-item">
-                                <div class="ec-timeline-dot"><span>3</span></div>
-                                <div class="ec-timeline-content">
-                                    <div class="ec-timeline-title">Planning Call</div>
-                                    <div class="ec-timeline-desc">Within 48 hours</div>
-                                </div>
-                            </div>
-                            <div class="ec-timeline-item">
-                                <div class="ec-timeline-dot"><span>4</span></div>
-                                <div class="ec-timeline-content">
-                                    <div class="ec-timeline-title">Menu & Decor Finalization</div>
-                                    <div class="ec-timeline-desc">2 weeks before event</div>
-                                </div>
-                            </div>
-                            <div class="ec-timeline-item">
-                                <div class="ec-timeline-dot"><span>5</span></div>
-                                <div class="ec-timeline-content">
-                                    <div class="ec-timeline-title">Venue Walkthrough</div>
-                                    <div class="ec-timeline-desc">1 week before event</div>
-                                </div>
-                            </div>
-                            <div class="ec-timeline-item">
-                                <div class="ec-timeline-dot"><i class="bi bi-star-fill"></i></div>
-                                <div class="ec-timeline-content">
-                                    <div class="ec-timeline-title">Event Day</div>
-                                    <div class="ec-timeline-desc">@eventDate.ToString("MMM dd, yyyy")</div>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                    else if (activeTab == "reviews")
-                    {
-                        <div class="ec-review">
-                            <div class="ec-review-head">
-                                <div class="ec-review-avatar">AK</div>
-                                <div>
-                                    <div class="ec-review-name">Amani K.</div>
-                                    <div class="ec-review-stars">
-                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="ec-review-text">"Absolutely stunning wedding setup. The coordination team was flawless and our guests couldn't stop complimenting the decor!"</div>
-                        </div>
-                        <div class="ec-review">
-                            <div class="ec-review-head">
-                                <div class="ec-review-avatar">JM</div>
-                                <div>
-                                    <div class="ec-review-name">James M.</div>
-                                    <div class="ec-review-stars">
-                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="ec-review-text">"Great value for money. The venue was beautiful and the team handled everything professionally."</div>
-                        </div>
-                        <div class="ec-review">
-                            <div class="ec-review-head">
-                                <div class="ec-review-avatar">SW</div>
-                                <div>
-                                    <div class="ec-review-name">Sarah W.</div>
-                                    <div class="ec-review-stars">
-                                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="ec-review-text">"From planning to execution, everything was seamless. Highly recommend for any special occasion."</div>
-                        </div>
-                    }
-                    else if (activeTab == "trust")
-                    {
-                        <div class="ec-trust-grid">
-                            <div class="ec-trust-item">
-                                <div class="ec-trust-icon"><i class="bi bi-shield-lock-fill"></i></div>
-                                <div class="ec-trust-label">Secure Payment</div>
-                            </div>
-                            <div class="ec-trust-item">
-                                <div class="ec-trust-icon"><i class="bi bi-arrow-counterclockwise"></i></div>
-                                <div class="ec-trust-label">Free Cancellation</div>
-                            </div>
-                            <div class="ec-trust-item">
-                                <div class="ec-trust-icon"><i class="bi bi-patch-check-fill"></i></div>
-                                <div class="ec-trust-label">Verified Venue</div>
-                            </div>
-                            <div class="ec-trust-item">
-                                <div class="ec-trust-icon"><i class="bi bi-headset"></i></div>
-                                <div class="ec-trust-label">24/7 Support</div>
-                            </div>
-                        </div>
-                        <div class="ec-divider"></div>
-                        <div class="ec-help-inline">
-                            <div class="ec-help-inline-head">
-                                <i class="bi bi-headset"></i>
-                                <span>Need Help? Our event specialists are ready to assist you</span>
-                            </div>
-                            <div class="ec-help-contacts">
-                                <a href="tel:+254700000000" class="ec-help-link"><i class="bi bi-telephone-fill"></i> +254 700 000 000</a>
-                                <a href="mailto:events@eventhotelbroker.com" class="ec-help-link"><i class="bi bi-envelope-fill"></i> events@eventhotelbroker.com</a>
-                                <a href="/chat" class="ec-help-link"><i class="bi bi-chat-dots-fill"></i> Live Chat</a>
-                            </div>
-                        </div>
-                    }
-                </div>
-            }
-            else if (currentStep == 2)
-            {
-                <!-- Step 2: Payment Method -->
-                <div class="ec-card">
-                    <div class="ec-card-head ec-head-pay">
-                        <i class="bi bi-credit-card"></i>
-                        <h5>Select Payment Method</h5>
-                    </div>
-                    <div class="ec-card-body">
-                        <div class="ec-notice">
-                            <i class="bi bi-shield-check"></i> Your payment is secure and encrypted
-                        </div>
-
-                        <!-- M-Pesa -->
-                        <div class="ec-pay-option @(selectedPayment == "mpesa" ? "selected" : "")" @onclick='() => SelectPayment("mpesa")'>
-                            <div class="ec-pay-icon mpesa"><i class="bi bi-phone"></i></div>
-                            <div class="ec-pay-body">
-                                <div class="ec-pay-name">M-Pesa</div>
-                                <div class="ec-pay-desc">Pay with your mobile money</div>
-                            </div>
-                            <div class="ec-pay-check">
-                                @if (selectedPayment == "mpesa")
-                                { <i class="bi bi-check-circle-fill checked"></i> }
-                                else
-                                { <i class="bi bi-circle unchecked"></i> }
-                            </div>
-                        </div>
-
-                        <!-- Credit/Debit Card -->
-                        <div class="ec-pay-option @(selectedPayment == "card" ? "selected" : "")" @onclick='() => SelectPayment("card")'>
-                            <div class="ec-pay-icon card"><i class="bi bi-credit-card"></i></div>
-                            <div class="ec-pay-body">
-                                <div class="ec-pay-name">Credit/Debit Card</div>
-                                <div class="ec-pay-desc">Visa, Mastercard, Amex</div>
-                            </div>
-                            <div class="ec-pay-check">
-                                @if (selectedPayment == "card")
-                                { <i class="bi bi-check-circle-fill checked"></i> }
-                                else
-                                { <i class="bi bi-circle unchecked"></i> }
-                            </div>
-                        </div>
-
-                        <!-- PayPal -->
-                        <div class="ec-pay-option @(selectedPayment == "paypal" ? "selected" : "")" @onclick='() => SelectPayment("paypal")'>
-                            <div class="ec-pay-icon paypal"><i class="bi bi-paypal"></i></div>
-                            <div class="ec-pay-body">
-                                <div class="ec-pay-name">PayPal</div>
-                                <div class="ec-pay-desc">Pay with your PayPal account</div>
-                            </div>
-                            <div class="ec-pay-check">
-                                @if (selectedPayment == "paypal")
-                                { <i class="bi bi-check-circle-fill checked"></i> }
-                                else
-                                { <i class="bi bi-circle unchecked"></i> }
-                            </div>
-                        </div>
-
-                        @if (!string.IsNullOrEmpty(selectedPayment))
-                        {
-                            @if (selectedPayment == "mpesa")
-                            {
-                                <div class="ec-pay-form">
-                                    <h6>Enter M-Pesa Details</h6>
-                                    <div class="ec-form-group">
-                                        <label class="ec-form-label">Phone Number</label>
-                                        <input type="tel" class="ec-form-input" @bind="phoneNumber" placeholder="254712345678" />
-                                    </div>
-                                    <div class="ec-info-box">
-                                        <i class="bi bi-info-circle"></i> You will receive an STK push to complete payment
-                                    </div>
-                                </div>
-                            }
-                            else if (selectedPayment == "card")
-                            {
-                                <div class="ec-pay-form">
-                                    <h6>Enter Card Details</h6>
-                                    <div class="ec-form-group">
-                                        <label class="ec-form-label">Card Number</label>
-                                        <input type="text" class="ec-form-input" @bind="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" />
-                                    </div>
-                                    <div class="ec-form-row">
-                                        <div class="ec-form-group">
-                                            <label class="ec-form-label">Expiry Date</label>
-                                            <input type="text" class="ec-form-input" @bind="expiryDate" placeholder="MM/YY" maxlength="5" />
-                                        </div>
-                                        <div class="ec-form-group">
-                                            <label class="ec-form-label">CVV</label>
-                                            <input type="text" class="ec-form-input" @bind="cvv" placeholder="123" maxlength="3" />
-                                        </div>
-                                    </div>
-                                    <div class="ec-form-group">
-                                        <label class="ec-form-label">Cardholder Name</label>
-                                        <input type="text" class="ec-form-input" @bind="cardholderName" placeholder="John Doe" />
-                                    </div>
-                                </div>
-                            }
-                            else if (selectedPayment == "paypal")
-                            {
-                                <div class="ec-pay-form">
-                                    <div class="ec-info-box">
-                                        <i class="bi bi-info-circle"></i> You will be redirected to PayPal to complete your payment
-                                    </div>
-                                </div>
-                            }
-                        }
-                    </div>
-                    <div class="ec-card-footer">
-                        <div class="ec-footer-grid">
-                            <button type="button" class="ec-btn-secondary" @onclick="() => currentStep = 1">
-                                <i class="bi bi-arrow-left"></i> Back
-                            </button>
-                            <button type="button" class="ec-btn-primary"
-                                    @onclick="ProcessPayment"
-                                    disabled="@(string.IsNullOrEmpty(selectedPayment))">
-                                Pay KES @totalAmount.ToString("N0") <i class="bi bi-lock-fill"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            }
-            else if (currentStep == 3)
-            {
-                <div class="ec-card">
-                    @if (!paymentComplete)
-                    {
                         <div class="ec-card-body">
-                            <div class="ec-processing">
-                                <div class="ec-spinner"></div>
-                                <h4>Processing Your Payment</h4>
-                                <p>Please wait while we confirm your payment...</p>
+                            <div class="ec-summary-grid">
+                                <div class="ec-summary-item">
+                                    <span class="ec-summary-label">Package</span>
+                                    <span class="ec-summary-value">@package.Name</span>
+                                </div>
+                                <div class="ec-summary-item">
+                                    <span class="ec-summary-label">Type</span>
+                                    <span class="ec-summary-value">@package.PackageType</span>
+                                </div>
+                                <div class="ec-summary-item">
+                                    <span class="ec-summary-label">Guest Capacity</span>
+                                    <span class="ec-summary-value">@package.MinGuests – @package.MaxGuests guests</span>
+                                </div>
+                                <div class="ec-summary-item">
+                                    <span class="ec-summary-label">Package Price</span>
+                                    <span class="ec-summary-value">KES @(package.DiscountedPrice ?? package.TotalPrice).ToString("N0")</span>
+                                </div>
+                            </div>
+
+                            <div class="ec-divider"></div>
+                            <h6 style="font-size:0.8125rem; font-weight:700; color:#2A2A2A; margin-bottom:1rem;"><i class="bi bi-pencil"></i> Fill In Your Event Info</h6>
+
+                            <div class="ec-form-row">
+                                <div class="ec-form-group">
+                                    <label class="ec-form-label">Event Name *</label>
+                                    <input type="text" class="ec-form-input" @bind="eventName" placeholder="e.g. John & Jane's Wedding" />
+                                </div>
+                                <div class="ec-form-group">
+                                    <label class="ec-form-label">Event Date *</label>
+                                    <input type="date" class="ec-form-input" @bind="eventDate" min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" />
+                                </div>
+                            </div>
+                            <div class="ec-form-row">
+                                <div class="ec-form-group">
+                                    <label class="ec-form-label">Number of Guests *</label>
+                                    <input type="number" class="ec-form-input" @bind="numberOfGuests"
+                                           min="@package.MinGuests" max="@package.MaxGuests"
+                                           placeholder="@package.MinGuests – @package.MaxGuests" />
+                                </div>
+                                <div class="ec-form-group">
+                                    <label class="ec-form-label">Venue / Location *</label>
+                                    <input type="text" class="ec-form-input" @bind="venueName" placeholder="e.g. Grand Hotel Ballroom, Nairobi" />
+                                </div>
+                            </div>
+
+                            <div class="ec-divider"></div>
+                            <h6 style="font-size:0.8125rem; font-weight:700; color:#2A2A2A; margin-bottom:1rem;"><i class="bi bi-person"></i> Contact Information</h6>
+
+                            <div class="ec-form-row">
+                                <div class="ec-form-group">
+                                    <label class="ec-form-label">Contact Name *</label>
+                                    <input type="text" class="ec-form-input" @bind="contactName" placeholder="Your full name" />
+                                </div>
+                                <div class="ec-form-group">
+                                    <label class="ec-form-label">Contact Phone *</label>
+                                    <input type="tel" class="ec-form-input" @bind="contactPhone" placeholder="254712345678" />
+                                </div>
+                            </div>
+                            <div class="ec-form-group" style="margin-bottom:1rem;">
+                                <label class="ec-form-label">Contact Email (optional)</label>
+                                <input type="email" class="ec-form-input" @bind="contactEmail" placeholder="you@example.com" />
+                            </div>
+                            <div class="ec-form-group">
+                                <label class="ec-form-label">Special Requests (optional)</label>
+                                <textarea class="ec-form-input" @bind="specialRequests" rows="3" placeholder="Any special requirements or notes..."></textarea>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(validationError))
+                            {
+                                <div class="ec-info-box" style="background: rgba(200,80,60,0.08); border-color: rgba(200,80,60,0.2); color:#c8503c; margin-top:0.75rem;">
+                                    <i class="bi bi-exclamation-circle"></i> @validationError
+                                </div>
+                            }
+                        </div>
+                        <div class="ec-card-footer">
+                            <div class="ec-footer-grid">
+                                <button type="button" class="ec-btn-secondary" @onclick='() => Navigation.NavigateTo("/book-event")'>
+                                    <i class="bi bi-arrow-left"></i> Back
+                                </button>
+                                <button type="button" class="ec-btn-primary" @onclick="ProceedToPayment">
+                                    Proceed to Payment <i class="bi bi-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else if (currentStep == 2)
+                {
+                    <!-- Step 2: Payment Method -->
+                    <div class="ec-card">
+                        <div class="ec-card-head ec-head-pay">
+                            <i class="bi bi-credit-card"></i>
+                            <h5>Select Payment Method</h5>
+                        </div>
+                        <div class="ec-card-body">
+                            <div class="ec-notice">
+                                <i class="bi bi-shield-check"></i> Your payment is secure and encrypted
+                            </div>
+
+                            <div class="ec-pay-option @(selectedPayment == "mpesa" ? "selected" : "")" @onclick='() => SelectPayment("mpesa")'>
+                                <div class="ec-pay-icon mpesa"><i class="bi bi-phone"></i></div>
+                                <div class="ec-pay-body">
+                                    <div class="ec-pay-name">M-Pesa</div>
+                                    <div class="ec-pay-desc">Pay with your mobile money</div>
+                                </div>
+                                <div class="ec-pay-check">
+                                    @if (selectedPayment == "mpesa") { <i class="bi bi-check-circle-fill checked"></i> }
+                                    else { <i class="bi bi-circle unchecked"></i> }
+                                </div>
+                            </div>
+
+                            <div class="ec-pay-option @(selectedPayment == "card" ? "selected" : "")" @onclick='() => SelectPayment("card")'>
+                                <div class="ec-pay-icon card"><i class="bi bi-credit-card"></i></div>
+                                <div class="ec-pay-body">
+                                    <div class="ec-pay-name">Credit/Debit Card</div>
+                                    <div class="ec-pay-desc">Visa, Mastercard, Amex</div>
+                                </div>
+                                <div class="ec-pay-check">
+                                    @if (selectedPayment == "card") { <i class="bi bi-check-circle-fill checked"></i> }
+                                    else { <i class="bi bi-circle unchecked"></i> }
+                                </div>
+                            </div>
+
+                            <div class="ec-pay-option @(selectedPayment == "paypal" ? "selected" : "")" @onclick='() => SelectPayment("paypal")'>
+                                <div class="ec-pay-icon paypal"><i class="bi bi-paypal"></i></div>
+                                <div class="ec-pay-body">
+                                    <div class="ec-pay-name">PayPal</div>
+                                    <div class="ec-pay-desc">Pay with your PayPal account</div>
+                                </div>
+                                <div class="ec-pay-check">
+                                    @if (selectedPayment == "paypal") { <i class="bi bi-check-circle-fill checked"></i> }
+                                    else { <i class="bi bi-circle unchecked"></i> }
+                                </div>
+                            </div>
+
+                            <div class="ec-pay-option @(selectedPayment == "cash" ? "selected" : "")" @onclick='() => SelectPayment("cash")'>
+                                <div class="ec-pay-icon cash"><i class="bi bi-cash-stack"></i></div>
+                                <div class="ec-pay-body">
+                                    <div class="ec-pay-name">Cash / Pay Later</div>
+                                    <div class="ec-pay-desc">Reserve now, pay at the event</div>
+                                </div>
+                                <div class="ec-pay-check">
+                                    @if (selectedPayment == "cash") { <i class="bi bi-check-circle-fill checked"></i> }
+                                    else { <i class="bi bi-circle unchecked"></i> }
+                                </div>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(selectedPayment))
+                            {
                                 @if (selectedPayment == "mpesa")
                                 {
-                                    <div class="ec-info-box">
-                                        <i class="bi bi-phone"></i> Check your phone for M-Pesa prompt
+                                    <div class="ec-pay-form">
+                                        <h6>Enter M-Pesa Details</h6>
+                                        <div class="ec-form-group">
+                                            <label class="ec-form-label">Phone Number</label>
+                                            <input type="tel" class="ec-form-input" @bind="phoneNumber" placeholder="254712345678" />
+                                        </div>
+                                        <div class="ec-info-box">
+                                            <i class="bi bi-info-circle"></i> You will receive an STK push to complete payment
+                                        </div>
                                     </div>
                                 }
-                            </div>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="ec-card-body">
-                            <div class="ec-success">
-                                <div class="ec-success-icon">
-                                    <i class="bi bi-check-lg"></i>
-                                </div>
-                                <h2>Event Booking Confirmed!</h2>
-                                <p class="ec-success-sub">Your payment was successful</p>
-
-                                <div class="ec-confirm-box">
-                                    <div class="ec-confirm-row">
-                                        <div class="ec-confirm-item">
-                                            <span class="ec-summary-label">Booking Reference</span>
-                                            <span class="ec-summary-value">EVT-@bookingReference</span>
+                                else if (selectedPayment == "card")
+                                {
+                                    <div class="ec-pay-form">
+                                        <h6>Enter Card Details</h6>
+                                        <div class="ec-form-group">
+                                            <label class="ec-form-label">Card Number</label>
+                                            <input type="text" class="ec-form-input" @bind="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" />
                                         </div>
-                                        <div class="ec-confirm-item right">
-                                            <span class="ec-summary-label">Amount Paid</span>
-                                            <span class="ec-summary-value highlight">KES @totalAmount.ToString("N0")</span>
+                                        <div class="ec-form-row">
+                                            <div class="ec-form-group">
+                                                <label class="ec-form-label">Expiry Date</label>
+                                                <input type="text" class="ec-form-input" @bind="expiryDate" placeholder="MM/YY" maxlength="5" />
+                                            </div>
+                                            <div class="ec-form-group">
+                                                <label class="ec-form-label">CVV</label>
+                                                <input type="text" class="ec-form-input" @bind="cvv" placeholder="123" maxlength="3" />
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="ec-divider"></div>
-                                    <div class="ec-confirm-row">
-                                        <div class="ec-confirm-item">
-                                            <span class="ec-summary-label">Event Date</span>
-                                            <span class="ec-summary-value">@eventDate.ToString("MMM dd, yyyy")</span>
-                                        </div>
-                                        <div class="ec-confirm-item right">
-                                            <span class="ec-summary-label">Guests</span>
-                                            <span class="ec-summary-value">@numberOfGuests people</span>
+                                        <div class="ec-form-group">
+                                            <label class="ec-form-label">Cardholder Name</label>
+                                            <input type="text" class="ec-form-input" @bind="cardholderName" placeholder="John Doe" />
                                         </div>
                                     </div>
+                                }
+                                else if (selectedPayment == "paypal")
+                                {
+                                    <div class="ec-pay-form">
+                                        <div class="ec-info-box">
+                                            <i class="bi bi-info-circle"></i> You will be redirected to PayPal to complete your payment
+                                        </div>
+                                    </div>
+                                }
+                                else if (selectedPayment == "cash")
+                                {
+                                    <div class="ec-pay-form">
+                                        <div class="ec-info-box" style="background: rgba(200,121,65,0.08); border-color: rgba(200,121,65,0.2); color: #C87941;">
+                                            <i class="bi bi-info-circle"></i> Your booking will be reserved with <strong>Pending</strong> status. Payment is expected at the venue on the event day.
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                        <div class="ec-card-footer">
+                            <div class="ec-footer-grid">
+                                <button type="button" class="ec-btn-secondary" @onclick="() => currentStep = 1">
+                                    <i class="bi bi-arrow-left"></i> Back
+                                </button>
+                                <button type="button" class="ec-btn-primary"
+                                        @onclick="ProcessPayment"
+                                        disabled="@(string.IsNullOrEmpty(selectedPayment))">
+                                    @if (selectedPayment == "cash")
+                                    {
+                                        <span>Reserve Event <i class="bi bi-calendar-check"></i></span>
+                                    }
+                                    else
+                                    {
+                                        <span>Pay KES @totalAmount.ToString("N0") <i class="bi bi-lock-fill"></i></span>
+                                    }
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else if (currentStep == 3)
+                {
+                    <div class="ec-card">
+                        @if (!paymentComplete)
+                        {
+                            <div class="ec-card-body">
+                                <div class="ec-processing">
+                                    <div class="ec-spinner"></div>
+                                    <h4>Processing Your Booking</h4>
+                                    <p>Please wait while we confirm your event booking...</p>
+                                    @if (selectedPayment == "mpesa")
+                                    {
+                                        <div class="ec-info-box">
+                                            <i class="bi bi-phone"></i> Check your phone for M-Pesa prompt
+                                        </div>
+                                    }
+                                    else if (selectedPayment == "cash")
+                                    {
+                                        <div class="ec-info-box">
+                                            <i class="bi bi-cash-stack"></i> Reserving your event booking...
+                                        </div>
+                                    }
                                 </div>
-
-                                <div class="ec-email-notice">
-                                    <i class="bi bi-envelope"></i> A confirmation email has been sent to your email address
-                                </div>
-
-                                <div class="ec-success-actions">
-                                    <button type="button" class="ec-btn-primary" @onclick="ViewBookings">
-                                        <i class="bi bi-eye"></i> View My Event Bookings
-                                    </button>
-                                    <button type="button" class="ec-btn-secondary" @onclick="GoHome">
-                                        <i class="bi bi-house"></i> Back to Home
+                            </div>
+                        }
+                        else if (bookingError)
+                        {
+                            <div class="ec-card-body">
+                                <div class="ec-processing" style="text-align:center;">
+                                    <div style="font-size:3rem; color:#c8503c; margin-bottom:1rem;"><i class="bi bi-x-circle"></i></div>
+                                    <h4>Booking Failed</h4>
+                                    <p style="color:#8a8177;">Something went wrong while saving your booking. Please try again.</p>
+                                    <button type="button" class="ec-btn-secondary" style="margin-top:1rem;" @onclick="() => { currentStep = 2; bookingError = false; paymentComplete = false; }">
+                                        <i class="bi bi-arrow-left"></i> Try Again
                                     </button>
                                 </div>
                             </div>
+                        }
+                        else
+                        {
+                            <div class="ec-card-body">
+                                <div class="ec-success">
+                                    @if (selectedPayment == "cash")
+                                    {
+                                        <div class="ec-success-icon" style="background: rgba(200,121,65,0.1);">
+                                            <i class="bi bi-calendar-check" style="color: #C87941;"></i>
+                                        </div>
+                                        <h2>Event Reserved!</h2>
+                                        <p class="ec-success-sub">Your booking is pending — payment expected at the venue</p>
+                                    }
+                                    else
+                                    {
+                                        <div class="ec-success-icon">
+                                            <i class="bi bi-check-lg"></i>
+                                        </div>
+                                        <h2>Event Booking Confirmed!</h2>
+                                        <p class="ec-success-sub">Your payment was successful</p>
+                                    }
+
+                                    <div class="ec-confirm-box">
+                                        <div class="ec-confirm-row">
+                                            <div class="ec-confirm-item">
+                                                <span class="ec-summary-label">Booking Reference</span>
+                                                <span class="ec-summary-value">EVT-@bookingReference</span>
+                                            </div>
+                                            <div class="ec-confirm-item right">
+                                                <span class="ec-summary-label">@(selectedPayment == "cash" ? "Amount Due" : "Amount Paid")</span>
+                                                <span class="ec-summary-value highlight">KES @totalAmount.ToString("N0")</span>
+                                            </div>
+                                        </div>
+                                        <div class="ec-divider"></div>
+                                        <div class="ec-confirm-row">
+                                            <div class="ec-confirm-item">
+                                                <span class="ec-summary-label">Event</span>
+                                                <span class="ec-summary-value">@eventName</span>
+                                            </div>
+                                            <div class="ec-confirm-item right">
+                                                <span class="ec-summary-label">Event Date</span>
+                                                <span class="ec-summary-value">@eventDate.ToString("MMM dd, yyyy")</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="ec-email-notice">
+                                        <i class="bi bi-envelope"></i>
+                                        @if (selectedPayment == "cash")
+                                        {
+                                            <span>A reservation confirmation has been saved. Status: <strong>Pending</strong></span>
+                                        }
+                                        else
+                                        {
+                                            <span>A confirmation has been saved to your bookings. Status: <strong>Confirmed</strong></span>
+                                        }
+                                    </div>
+
+                                    <div class="ec-success-actions">
+                                        <button type="button" class="ec-btn-primary" @onclick="ViewBookings">
+                                            <i class="bi bi-eye"></i> View My Event Bookings
+                                        </button>
+                                        <button type="button" class="ec-btn-secondary" @onclick="GoHome">
+                                            <i class="bi bi-house"></i> Back to Home
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- ═══ RIGHT: Sidebar ═══ -->
+            <div class="ec-sidebar">
+                <!-- Package Card -->
+                <div class="ec-side-card">
+                    <div class="ec-side-head">
+                        <div class="ec-pkg-badge">@package.PackageType.ToUpper()</div>
+                        <h5 class="ec-side-title">@package.Name</h5>
+                    </div>
+                    <div class="ec-side-body">
+                        <div class="ec-pkg-price">
+                            <span class="ec-pkg-amount">KES @totalAmount.ToString("N0")</span>
+                            <span class="ec-pkg-per">for @numberOfGuests guests</span>
                         </div>
-                    }
-                </div>
-            }
-        </div>
-
-        <!-- ═══ RIGHT: Sidebar ═══ -->
-        <div class="ec-sidebar">
-
-            <!-- Package Card -->
-            <div class="ec-side-card">
-                <div class="ec-side-head">
-                    <div class="ec-pkg-badge">PREMIUM</div>
-                    <h5 class="ec-side-title">@packageName</h5>
-                    <div class="ec-pkg-rating">
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-half"></i>
-                        <span>4.8 (126 reviews)</span>
+                        <div class="ec-pkg-meta">
+                            <div class="ec-pkg-meta-item">
+                                <i class="bi bi-calendar-check"></i> @eventDate.ToString("ddd, MMM dd, yyyy")
+                            </div>
+                            <div class="ec-pkg-meta-item">
+                                <i class="bi bi-people"></i> @package.MinGuests – @package.MaxGuests guests capacity
+                            </div>
+                            @if (!string.IsNullOrEmpty(package.Description))
+                            {
+                                <div class="ec-pkg-meta-item" style="margin-top:0.5rem; color:#5a5450; font-size:0.75rem; line-height:1.5;">
+                                    @package.Description
+                                </div>
+                            }
+                        </div>
                     </div>
                 </div>
-                <div class="ec-side-body">
-                    <div class="ec-pkg-price">
-                        <span class="ec-pkg-amount">KES @totalAmount.ToString("N0")</span>
-                        <span class="ec-pkg-per">for @numberOfGuests guests</span>
+
+                <!-- Price Breakdown -->
+                @if (currentStep < 3)
+                {
+                    <div class="ec-side-card">
+                        <div class="ec-side-head" style="padding-bottom:0.5rem;">
+                            <h5 class="ec-side-title" style="font-size:0.8125rem;">Price Breakdown</h5>
+                        </div>
+                        <div class="ec-side-body">
+                            <div class="ec-pkg-meta">
+                                <div class="ec-pkg-meta-item" style="justify-content:space-between;">
+                                    <span>Package Price</span>
+                                    <span>KES @packageBasePrice.ToString("N0")</span>
+                                </div>
+                                <div class="ec-pkg-meta-item" style="justify-content:space-between;">
+                                    <span>Service Fee (5%)</span>
+                                    <span>KES @serviceFee.ToString("N0")</span>
+                                </div>
+                                <div class="ec-pkg-meta-item" style="justify-content:space-between;">
+                                    <span>VAT (16%)</span>
+                                    <span>KES @taxes.ToString("N0")</span>
+                                </div>
+                                <div class="ec-divider" style="margin:0.5rem 0;"></div>
+                                <div class="ec-pkg-meta-item" style="justify-content:space-between; font-weight:700; color:#2A2A2A;">
+                                    <span>Total</span>
+                                    <span>KES @totalAmount.ToString("N0")</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="ec-pkg-meta">
-                        <div class="ec-pkg-meta-item">
-                            <i class="bi bi-geo-alt-fill"></i> @venueName
-                        </div>
-                        <div class="ec-pkg-meta-item">
-                            <i class="bi bi-calendar-check"></i> @eventDate.ToString("ddd, MMM dd, yyyy")
-                        </div>
-                        <div class="ec-pkg-meta-item">
-                            <i class="bi bi-clock"></i> Full Day (10:00 AM – 11:00 PM)
-                        </div>
+                }
+
+                <!-- Need Help? -->
+                <div class="ec-side-card ec-help-card">
+                    <div class="ec-help-icon"><i class="bi bi-headset"></i></div>
+                    <div class="ec-help-title">Need Help?</div>
+                    <div class="ec-help-desc">Our event specialists are ready to assist you</div>
+                    <div class="ec-help-contacts">
+                        <a href="tel:+254700000000" class="ec-help-link"><i class="bi bi-telephone-fill"></i> +254 700 000 000</a>
+                        <a href="mailto:events@eventhotelbroker.com" class="ec-help-link"><i class="bi bi-envelope-fill"></i> events@eventhotelbroker.com</a>
                     </div>
                 </div>
             </div>
-
-            <!-- Need Help? -->
-            <div class="ec-side-card ec-help-card">
-                <div class="ec-help-icon"><i class="bi bi-headset"></i></div>
-                <div class="ec-help-title">Need Help?</div>
-                <div class="ec-help-desc">Our event specialists are ready to assist you</div>
-                <div class="ec-help-contacts">
-                    <a href="tel:+254700000000" class="ec-help-link"><i class="bi bi-telephone-fill"></i> +254 700 000 000</a>
-                    <a href="mailto:events@eventhotelbroker.com" class="ec-help-link"><i class="bi bi-envelope-fill"></i> events@eventhotelbroker.com</a>
-                    <a href="/chat" class="ec-help-link"><i class="bi bi-chat-dots-fill"></i> Live Chat</a>
-                </div>
-            </div>
-
-            <!-- Proceed to Payment -->
-            @if (currentStep == 1)
-            {
-                <button type="button" class="ec-btn-primary ec-btn-proceed" @onclick="ProceedToPayment">
-                    Proceed to Payment <i class="bi bi-arrow-right"></i>
-                </button>
-            }
         </div>
-    </div>
+    }
 </div>
 
 @code {
+    [SupplyParameterFromQuery(Name = "packageId")]
+    public int PackageId { get; set; }
+
+    private bool isLoading = true;
+    private EventPackage? package;
     private int currentStep = 1;
-    private string activeTab = "included";
+    private string validationError = "";
+    private bool bookingError = false;
 
-    // Event details (dummy data)
-    private string eventType = "Wedding";
-    private string packageName = "Premium Wedding Package";
+    // Step 1: Event details
+    private string eventName = "";
     private DateTime eventDate = DateTime.Today.AddDays(30);
-    private int numberOfGuests = 150;
-    private string venueName = "Grand Plaza Hotel, Nairobi";
-    private decimal packagePrice = 250000;
-    private decimal additionalServices = 50000;
-    private decimal totalAmount = 300000;
+    private int numberOfGuests = 50;
+    private string venueName = "";
+    private string contactName = "";
+    private string contactPhone = "";
+    private string contactEmail = "";
+    private string specialRequests = "";
 
-    // Payment details
+    // Step 2: Payment
     private string selectedPayment = "";
     private string phoneNumber = "";
     private string cardNumber = "";
@@ -510,47 +510,137 @@
     private string cvv = "";
     private string cardholderName = "";
 
-    // Payment status
+    // Calculated
+    private decimal packageBasePrice => package != null ? (package.DiscountedPrice ?? package.TotalPrice) : 0;
+    private decimal serviceFee => packageBasePrice * 0.05m;
+    private decimal taxes => packageBasePrice * 0.16m;
+    private decimal totalAmount => packageBasePrice + serviceFee + taxes;
+
+    // Status
     private bool paymentComplete = false;
     private string bookingReference = "";
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        try
+        {
+            if (PackageId > 0)
+                package = await EventService.GetPackageByIdAsync(PackageId);
+        }
+        catch { }
+        finally
+        {
+            isLoading = false;
+        }
+
+        if (package != null)
+        {
+            numberOfGuests = package.MinGuests > 0 ? package.MinGuests : 50;
+        }
+
         bookingReference = $"{DateTime.Now:yyyyMMdd}{new Random().Next(1000, 9999)}";
     }
 
     private void ProceedToPayment()
     {
+        validationError = "";
+
+        if (string.IsNullOrWhiteSpace(eventName))        { validationError = "Please enter your event name."; return; }
+        if (string.IsNullOrWhiteSpace(venueName))        { validationError = "Please enter the venue / location."; return; }
+        if (string.IsNullOrWhiteSpace(contactName))      { validationError = "Please enter a contact name."; return; }
+        if (string.IsNullOrWhiteSpace(contactPhone))     { validationError = "Please enter a contact phone number."; return; }
+        if (package != null && package.MaxGuests > 0 && (numberOfGuests < package.MinGuests || numberOfGuests > package.MaxGuests))
+        {
+            validationError = $"Guest count must be between {package.MinGuests} and {package.MaxGuests}.";
+            return;
+        }
+        if (eventDate <= DateTime.Today)
+        {
+            validationError = "Event date must be in the future.";
+            return;
+        }
+
         currentStep = 2;
     }
 
-    private void SelectTab(string tab)
-    {
-        activeTab = tab;
-    }
-
-    private void SelectPayment(string method)
-    {
-        selectedPayment = method;
-    }
+    private void SelectPayment(string method) => selectedPayment = method;
 
     private async Task ProcessPayment()
     {
         currentStep = 3;
-        
-        // Simulate payment processing
-        await Task.Delay(3000);
-        
-        paymentComplete = true;
+        bookingError = false;
+
+        // Simulate payment processing delay
+        await Task.Delay(2500);
+
+        try
+        {
+            var userId = await GetCurrentUserIdAsync();
+            if (!string.IsNullOrEmpty(userId) && package != null)
+            {
+                var booking = new EventBooking
+                {
+                    UserId = userId,
+                    PackageId = package.Id,
+                    EventName = eventName,
+                    EventType = package.PackageType,
+                    EventDate = eventDate,
+                    Venue = venueName,
+                    ExpectedGuests = numberOfGuests,
+                    TotalAmount = totalAmount,
+                    DepositAmount = selectedPayment == "cash" ? 0 : totalAmount,
+                    Status = selectedPayment == "cash" ? EventBookingStatus.Pending : EventBookingStatus.Pending,
+                    SpecialRequests = string.IsNullOrWhiteSpace(specialRequests) ? null : specialRequests,
+                    ContactName = contactName,
+                    ContactPhone = contactPhone,
+                    ContactEmail = string.IsNullOrWhiteSpace(contactEmail) ? null : contactEmail
+                };
+
+                await EventService.CreateBookingAsync(booking);
+                paymentComplete = true;
+            }
+            else
+            {
+                bookingError = true;
+                paymentComplete = true;
+            }
+        }
+        catch
+        {
+            bookingError = true;
+            paymentComplete = true;
+        }
     }
 
-    private void ViewBookings()
-    {
-        Navigation.NavigateTo("/my-event-bookings");
-    }
+    private void ViewBookings() => Navigation.NavigateTo("/my-event-bookings");
+    private void GoHome() => Navigation.NavigateTo("/");
 
-    private void GoHome()
+    private async Task<string?> GetCurrentUserIdAsync()
     {
-        Navigation.NavigateTo("/");
+        try
+        {
+            string? token = null;
+            try { token = await JSRuntime.InvokeAsync<string>("authHelpers.getCookie", "JWToken"); } catch { }
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                var customAuth = (CustomAuthenticationStateProvider)AuthStateProvider;
+                await customAuth.MarkUserAsAuthenticated(token);
+            }
+
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState?.User;
+            if (user?.Identity?.IsAuthenticated == true)
+            {
+                var nameClaim = user.FindFirst(ClaimTypes.Name)?.Value;
+                if (!string.IsNullOrEmpty(nameClaim))
+                {
+                    var parts = nameClaim.Split(',');
+                    if (parts.Length > 0) return parts[0];
+                }
+            }
+        }
+        catch { }
+        return null;
     }
 }

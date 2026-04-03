@@ -2,10 +2,15 @@
 @rendermode InteractiveServer
 @using EventHotelBroker.Models
 @using EventHotelBroker.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using EventHotelBroker.Utils
 @inject IBookingService BookingService
 @inject IEventService EventService
 @inject NavigationManager Navigation
 @inject ToastService ToastService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JSRuntime
 
 <PageTitle>My Dashboard - EventHotelBroker</PageTitle>
 
@@ -589,7 +594,7 @@
     private List<Booking> hotelBookings = new();
     private List<EventBooking> eventBookings = new();
     private List<UserMessage> messages = new();
-    private string currentUserId = "user-1"; // In production, get from auth context
+    private string? currentUserId;
 
     private List<BreadcrumbItem> breadcrumbItems = new()
     {
@@ -597,9 +602,13 @@
         new BreadcrumbItem { Text = "Dashboard", IsActive = true }
     };
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await LoadDashboardData();
+        if (firstRender)
+        {
+            await LoadDashboardData();
+            StateHasChanged();
+        }
     }
 
     private async Task LoadDashboardData()
@@ -607,8 +616,12 @@
         isLoading = true;
         try
         {
-            // Load hotel bookings
-            hotelBookings = (await BookingService.GetBookingsByUserAsync(currentUserId)).ToList();
+            currentUserId = await GetCurrentUserIdAsync();
+            if (!string.IsNullOrEmpty(currentUserId))
+            {
+                // Load hotel bookings
+                hotelBookings = (await BookingService.GetBookingsByUserAsync(currentUserId)).ToList();
+            }
             
             // Add dummy hotel bookings if none exist
             if (!hotelBookings.Any())
@@ -624,7 +637,7 @@
                         EndDate = DateTime.Now.AddDays(12),
                         HeadCount = 2,
                         Status = BookingStatus.Confirmed,
-                        UserId = currentUserId
+                        UserId = currentUserId ?? "guest"
                     },
                     new Booking
                     {
@@ -635,7 +648,7 @@
                         EndDate = DateTime.Now.AddDays(23),
                         HeadCount = 4,
                         Status = BookingStatus.Pending,
-                        UserId = currentUserId
+                        UserId = currentUserId ?? "guest"
                     },
                     new Booking
                     {
@@ -646,13 +659,16 @@
                         EndDate = DateTime.Now.AddDays(-3),
                         HeadCount = 2,
                         Status = BookingStatus.Confirmed,
-                        UserId = currentUserId
+                        UserId = currentUserId ?? "guest"
                     }
                 };
             }
             
             // Load event bookings
-            eventBookings = (await EventService.GetBookingsByUserAsync(currentUserId)).ToList();
+            if (!string.IsNullOrEmpty(currentUserId))
+            {
+                eventBookings = (await EventService.GetBookingsByUserAsync(currentUserId)).ToList();
+            }
             
             // Add dummy event bookings if none exist
             if (!eventBookings.Any())
@@ -797,6 +813,33 @@
             EventBookingStatus.Cancelled => "bg-secondary",
             _ => "bg-secondary"
         };
+    }
+
+    private async Task<string?> GetCurrentUserIdAsync()
+    {
+        try
+        {
+            string? token = null;
+            try { token = await JSRuntime.InvokeAsync<string>("authHelpers.getCookie", "JWToken"); } catch { }
+            if (!string.IsNullOrEmpty(token))
+            {
+                var customAuth = (CustomAuthenticationStateProvider)AuthStateProvider;
+                await customAuth.MarkUserAsAuthenticated(token);
+            }
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState?.User;
+            if (user?.Identity?.IsAuthenticated == true)
+            {
+                var nameClaim = user.FindFirst(ClaimTypes.Name)?.Value;
+                if (!string.IsNullOrEmpty(nameClaim))
+                {
+                    var parts = nameClaim.Split(',');
+                    if (parts.Length > 0) return parts[0];
+                }
+            }
+        }
+        catch { }
+        return null;
     }
 
     private void ViewHotelBooking(int bookingId)

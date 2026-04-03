@@ -2,9 +2,14 @@
 @rendermode InteractiveServer
 @using EventHotelBroker.Models
 @using EventHotelBroker.Services
+@using EventHotelBroker.Utils
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
 @inject IEventService EventService
 @inject NavigationManager Navigation
 @inject ToastService ToastService
+@inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>My Event Bookings - EventHotelBroker</PageTitle>
 
@@ -202,7 +207,7 @@
     private bool isLoading = true;
     private List<EventBooking> bookings = new();
     private int upcomingEvents = 0;
-    private string currentUserId = "temp-user-id";
+    private string? currentUserId;
     private bool showCancelModal = false;
     private int cancelBookingId = 0;
 
@@ -242,9 +247,13 @@
             currentPage = page;
     }
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await LoadBookings();
+        if (firstRender)
+        {
+            await LoadBookings();
+            StateHasChanged();
+        }
     }
 
     private async Task LoadBookings()
@@ -252,8 +261,13 @@
         isLoading = true;
         try
         {
-            var allBookings = await EventService.GetBookingsByUserAsync(currentUserId);
-            bookings = allBookings.ToList();
+            currentUserId = await GetCurrentUserIdAsync();
+
+            if (!string.IsNullOrEmpty(currentUserId))
+            {
+                var allBookings = await EventService.GetBookingsByUserAsync(currentUserId);
+                bookings = allBookings.ToList();
+            }
             
             // If no bookings found, add sample hardcoded data
             if (!bookings.Any())
@@ -470,5 +484,32 @@
             EventBookingStatus.Completed => "bi-check-circle-fill",
             _ => "bi-circle"
         };
+    }
+
+    private async Task<string?> GetCurrentUserIdAsync()
+    {
+        try
+        {
+            string? token = null;
+            try { token = await JSRuntime.InvokeAsync<string>("authHelpers.getCookie", "JWToken"); } catch { }
+            if (!string.IsNullOrEmpty(token))
+            {
+                var customAuth = (CustomAuthenticationStateProvider)AuthStateProvider;
+                await customAuth.MarkUserAsAuthenticated(token);
+            }
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState?.User;
+            if (user?.Identity?.IsAuthenticated == true)
+            {
+                var nameClaim = user.FindFirst(ClaimTypes.Name)?.Value;
+                if (!string.IsNullOrEmpty(nameClaim))
+                {
+                    var parts = nameClaim.Split(',');
+                    if (parts.Length > 0) return parts[0];
+                }
+            }
+        }
+        catch { }
+        return null;
     }
 }

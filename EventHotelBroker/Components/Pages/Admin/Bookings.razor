@@ -6,7 +6,7 @@
 
 <PageTitle>All Bookings - Admin</PageTitle>
 
-<link href="/css/admin-bookings.css?v=2" rel="stylesheet" />
+<link href="/css/admin-bookings.css?v=3" rel="stylesheet" />
 
 <div class="ab">
     <Breadcrumb Items="@breadcrumbItems" />
@@ -163,6 +163,18 @@
                                                 <i class="bi bi-x-lg"></i>
                                             </button>
                                         }
+                                        else if (booking.Status == BookingStatus.Confirmed)
+                                        {
+                                            <button class="ab-btn ab-btn-sm ab-btn-reject" @onclick="() => OpenRejectModal(booking)" title="Reject">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
+                                        }
+                                        else if (booking.Status == BookingStatus.Rejected)
+                                        {
+                                            <button class="ab-btn ab-btn-sm ab-btn-confirm" @onclick="() => OpenConfirmModal(booking)" title="Approve">
+                                                <i class="bi bi-check-lg"></i>
+                                            </button>
+                                        }
                                     </div>
                                 </td>
                             </tr>
@@ -187,15 +199,16 @@
 
 @* ── Modals (outside .ab container to avoid overflow clip) ── *@
 
-<div class="modal-overlay" style="display:@(showViewModal ? "flex" : "none")">
-    <div class="modal-dialog">
-        <div class="modal-header-custom">
-            <h5><i class="bi bi-eye"></i> Booking Details</h5>
-            <button class="modal-close" @onclick="CloseModals"><i class="bi bi-x-lg"></i></button>
-        </div>
-        <div class="modal-body-custom">
-            @if (selectedBooking != null)
-            {
+@if (showViewModal && selectedBooking != null)
+{
+    <div class="bk-backdrop" @onclick="CloseModals"></div>
+    <div class="bk-modal-wrap">
+        <div class="bk-modal bk-modal-lg">
+            <div class="bk-modal-header">
+                <h5><i class="bi bi-eye"></i> Booking Details</h5>
+                <button type="button" class="bk-close-btn" @onclick="CloseModals"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="bk-modal-body">
                 <div class="detail-grid">
                     <div class="detail-item">
                         <span class="detail-label">Booking ID</span>
@@ -242,73 +255,81 @@
                 {
                     <div class="detail-notes">
                         <span class="detail-label">Notes</span>
-                        <p>@selectedBooking.Notes</p>
+                        <p style="word-break: break-word; white-space: pre-wrap;">@selectedBooking.Notes</p>
                     </div>
                 }
                 @if (selectedBooking.Status == BookingStatus.Rejected)
                 {
                     <div class="detail-rejection">
                         <span class="detail-label"><i class="bi bi-x-circle"></i> Rejection Info</span>
-                        <p class="rejection-reason">@(selectedBooking.RejectionReason ?? "No reason provided")</p>
+                        <p class="rejection-reason" style="word-break: break-word; white-space: pre-wrap;">@(selectedBooking.RejectionReason ?? "No reason provided")</p>
                         @if (selectedBooking.RejectedAt.HasValue)
                         {
                             <small class="rejection-date">Rejected on @selectedBooking.RejectedAt.Value.ToString("MMM dd, yyyy HH:mm")</small>
                         }
                     </div>
                 }
-            }
-        </div>
-        <div class="modal-footer-custom">
-            <button class="ab-btn ab-btn-outline" @onclick="CloseModals">Close</button>
+            </div>
+            <div class="bk-modal-footer">
+                <button type="button" class="ab-btn ab-btn-outline" @onclick="CloseModals">Close</button>
+            </div>
         </div>
     </div>
-</div>
+}
 
-<div class="modal-overlay" style="display:@(showConfirmModal ? "flex" : "none")">
-    <div class="modal-dialog modal-sm">
-        <div class="modal-body-custom text-center" style="padding:2rem;">
-            <div class="modal-alert-icon confirm-icon"><i class="bi bi-check-circle"></i></div>
-            <h4 style="margin:1rem 0 0.5rem;">Confirm Booking?</h4>
-            <p style="color:#8a8177;margin-bottom:0.5rem;">You are about to confirm the booking for:</p>
-            <div class="modal-alert-detail">
-                <strong>@(selectedBooking?.Hotel?.Name ?? "N/A")</strong><br/>
-                <span>@(selectedBooking?.User?.FullName ?? "Guest") &middot; @(selectedBooking?.StartDate.ToString("MMM dd") ?? "") - @(selectedBooking?.EndDate.ToString("MMM dd, yyyy") ?? "")</span>
+@if (showConfirmModal && selectedBooking != null)
+{
+    <div class="bk-backdrop" @onclick="CloseModals"></div>
+    <div class="bk-modal-wrap">
+        <div class="bk-modal">
+            <div class="bk-modal-body text-center">
+                <div class="bk-modal-icon bk-icon-confirm"><i class="bi bi-check-circle"></i></div>
+                <h4 class="bk-modal-title">Confirm Booking?</h4>
+                <p class="bk-modal-sub">You are about to confirm the booking for:</p>
+                <div class="bk-modal-detail">
+                    <strong>@(selectedBooking.Hotel?.Name ?? "N/A")</strong><br/>
+                    <span>@(selectedBooking.User?.FullName ?? "Guest") &middot; @(selectedBooking.StartDate.ToString("MMM dd")) - @(selectedBooking.EndDate.ToString("MMM dd, yyyy"))</span>
+                </div>
+            </div>
+            <div class="bk-modal-footer">
+                <button type="button" class="ab-btn ab-btn-outline" @onclick="CloseModals">Cancel</button>
+                <button type="button" class="ab-btn ab-btn-confirm" @onclick="ConfirmBooking" disabled="@isProcessing">
+                    @if (isProcessing) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                    <i class="bi bi-check-lg"></i> Confirm
+                </button>
             </div>
         </div>
-        <div class="modal-footer-custom">
-            <button class="ab-btn ab-btn-outline" @onclick="CloseModals">Cancel</button>
-            <button class="ab-btn ab-btn-confirm" @onclick="ConfirmBooking" disabled="@isProcessing">
-                @if (isProcessing) { <span class="spinner-border spinner-border-sm me-1"></span> }
-                <i class="bi bi-check-lg"></i> Confirm
-            </button>
-        </div>
     </div>
-</div>
+}
 
-<div class="modal-overlay" style="display:@(showRejectModal ? "flex" : "none")">
-    <div class="modal-dialog modal-sm">
-        <div class="modal-body-custom text-center" style="padding:2rem;">
-            <div class="modal-alert-icon reject-icon"><i class="bi bi-x-circle"></i></div>
-            <h4 style="margin:1rem 0 0.5rem;">Reject Booking?</h4>
-            <p style="color:#8a8177;margin-bottom:0.5rem;">You are about to reject the booking for:</p>
-            <div class="modal-alert-detail">
-                <strong>@(selectedBooking?.Hotel?.Name ?? "N/A")</strong><br/>
-                <span>@(selectedBooking?.User?.FullName ?? "Guest") &middot; @(selectedBooking?.StartDate.ToString("MMM dd") ?? "") - @(selectedBooking?.EndDate.ToString("MMM dd, yyyy") ?? "")</span>
+@if (showRejectModal && selectedBooking != null)
+{
+    <div class="bk-backdrop" @onclick="CloseModals"></div>
+    <div class="bk-modal-wrap">
+        <div class="bk-modal">
+            <div class="bk-modal-body text-center">
+                <div class="bk-modal-icon bk-icon-reject"><i class="bi bi-x-circle"></i></div>
+                <h4 class="bk-modal-title">Reject Booking?</h4>
+                <p class="bk-modal-sub">You are about to reject the booking for:</p>
+                <div class="bk-modal-detail">
+                    <strong>@(selectedBooking.Hotel?.Name ?? "N/A")</strong><br/>
+                    <span>@(selectedBooking.User?.FullName ?? "Guest") &middot; @(selectedBooking.StartDate.ToString("MMM dd")) - @(selectedBooking.EndDate.ToString("MMM dd, yyyy"))</span>
+                </div>
+                <div style="text-align:left; margin-top:1rem;">
+                    <label class="detail-label">Reason for rejection (optional)</label>
+                    <textarea class="modal-textarea" @bind="rejectionReason" @bind:event="oninput" placeholder="Enter reason for rejection..."></textarea>
+                </div>
             </div>
-            <div class="mt-3" style="text-align:left;">
-                <label class="detail-label">Reason for rejection (optional)</label>
-                <textarea class="modal-textarea" @bind="rejectionReason" @bind:event="oninput" placeholder="Enter reason for rejection..."></textarea>
+            <div class="bk-modal-footer">
+                <button type="button" class="ab-btn ab-btn-outline" @onclick="CloseModals">Cancel</button>
+                <button type="button" class="ab-btn ab-btn-reject" @onclick="RejectBooking" disabled="@isProcessing">
+                    @if (isProcessing) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                    <i class="bi bi-x-lg"></i> Reject
+                </button>
             </div>
-        </div>
-        <div class="modal-footer-custom">
-            <button class="ab-btn ab-btn-outline" @onclick="CloseModals">Cancel</button>
-            <button class="ab-btn ab-btn-reject" @onclick="RejectBooking" disabled="@isProcessing">
-                @if (isProcessing) { <span class="spinner-border spinner-border-sm me-1"></span> }
-                <i class="bi bi-x-lg"></i> Reject
-            </button>
         </div>
     </div>
-</div>
+}
 
 @code {
     private bool isLoading = true;
@@ -388,13 +409,14 @@
         showRejectModal = true;
     }
 
-    private void CloseModals()
+    private async Task CloseModals()
     {
         showViewModal = false;
         showConfirmModal = false;
         showRejectModal = false;
         selectedBooking = null;
         rejectionReason = "";
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task ConfirmBooking()

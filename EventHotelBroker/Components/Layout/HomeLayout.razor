@@ -26,6 +26,16 @@
                     <i class="bi bi-bell"></i>
                     <span class="notification-badge">5</span>
                 </button>
+                <button class="app-bar-btn" title="Toggle Theme" @onclick="ToggleTheme">
+                    @if (isDarkMode)
+                    {
+                        <i class="bi bi-sun"></i>
+                    }
+                    else
+                    {
+                        <i class="bi bi-moon"></i>
+                    }
+                </button>
                 <button class="app-bar-btn" title="Settings">
                     <i class="bi bi-gear"></i>
                 </button>
@@ -162,6 +172,110 @@
     }
 </style>
 
+@if (isDarkMode)
+{
+    <style>
+        body, html, .modern-layout.home-layout {
+            background-color: #000000 !important;
+            color: #d1d5db !important;
+        }
+
+        /* Hero / General Backgrounds */
+        .modern-hero {
+            background: linear-gradient(160deg, #111111 0%, #000000 40%, #050505 100%) !important;
+        }
+        .how-it-works-section, .explore-section, .cta-section, .featured-section {
+            background-color: #000000 !important;
+            color: #d1d5db !important;
+        }
+        
+        /* Typography overrides */
+        .hero-title, .stat-number, .stat-value, .section-title, .feature-title, .card-title, .venue-title,
+        .price-amount, .equip-title-home, .hotel-name, .package-title, .cta-title {
+            color: #f9fafb !important;
+        }
+        .hero-subtitle, .stat-label, .section-subtitle, .feature-text, .card-subtitle, 
+        .venue-location, .cta-text, .hotel-description, .package-description, .equip-desc-home,
+        .price-label, .price-period {
+            color: #9ca3af !important;
+        }
+
+        /* Cards and Elements */
+        .modern-app-bar.home-app-bar,
+        .modern-card,
+        #logoutModalHome > div,
+        .search-box, 
+        .floating-card, 
+        .feature-card, 
+        .venue-card, 
+        .hotel-card, 
+        .package-card-home, 
+        .equip-card-home, 
+        .cta-card, 
+        .cta-stat {
+            background-color: #111111 !important;
+            border-color: #2a2a2a !important;
+            color: #f9fafb !important;
+            box-shadow: 0 4px 16px rgba(234, 88, 12, 0.05) !important;
+            transition: all 0.3s ease;
+        }
+        
+        .floating-card:hover, .feature-card:hover, .venue-card:hover, .hotel-card:hover, .package-card-home:hover, .equip-card-home:hover {
+            border-color: #ea580c !important;
+            box-shadow: 0 8px 24px rgba(234, 88, 12, 0.15) !important;
+            transform: translateY(-4px);
+        }
+
+        .search-box input {
+            color: #f9fafb !important;
+        }
+        .search-box input::placeholder {
+            color: #6b7280 !important;
+        }
+
+        /* Tabs */
+        .modern-tabs {
+            background-color: transparent !important;
+        }
+        .modern-tabs .nav-link {
+            background-color: #111111 !important;
+            color: #9ca3af !important;
+            border: 1px solid #2a2a2a !important;
+        }
+        .modern-tabs .nav-link:hover {
+            color: #ea580c !important;
+            border-color: #ea580c !important;
+        }
+        .modern-tabs .nav-link.active {
+            color: #ffffff !important;
+            background-color: #ea580c !important;
+            border-color: #ea580c !important;
+        }
+
+        .venue-capacity, .venue-footer, .hotel-footer, .package-footer, .equip-footer-home {
+            background-color: #0d0d0d !important;
+            color: #d1d5db !important;
+            border-top: 1px solid #2a2a2a !important;
+        }
+        
+        /* App Bar specific */
+        .app-bar-btn, .brand-text {
+            color: #f9fafb !important;
+            transition: color 0.2s;
+        }
+        .app-bar-btn:hover {
+            color: #ea580c !important;
+        }
+        .user-profile {
+            color: #f9fafb !important;
+        }
+        .hotel-meta-row .hotel-rating i,
+        .hotel-location i, .package-meta i {
+            color: #ea580c !important;
+        }
+    </style>
+}
+
 @code {
     private bool showUserMenu = false;
     private bool isLoggedIn = false;
@@ -169,6 +283,8 @@
     private string userEmail = "";
     private string userRole = "";
     private string userInitials = "";
+    private bool isDarkMode = false;
+
 
     protected override void OnInitialized()
     {
@@ -252,6 +368,11 @@
     private void ToggleUserMenu()
     {
         showUserMenu = !showUserMenu;
+    }
+
+    private void ToggleTheme()
+    {
+        isDarkMode = !isDarkMode;
     }
 
 }
