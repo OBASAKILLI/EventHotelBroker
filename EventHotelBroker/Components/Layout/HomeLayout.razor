@@ -7,6 +7,7 @@
 @using EventHotelBroker.Utils
 
 <link href="/css/design-system.css" rel="stylesheet" />
+<link href="/css/dark-mode.css" rel="stylesheet" />
 
 <ToastContainer />
 
@@ -296,6 +297,7 @@
         if (firstRender)
         {
             await LoadUserFromCookieAsync();
+            await LoadThemePreference();
         }
     }
 
@@ -373,6 +375,50 @@
     private void ToggleTheme()
     {
         isDarkMode = !isDarkMode;
+        // Save preference to localStorage for persistence
+        JSRuntime.InvokeVoidAsync("localStorage.setItem", "darkMode", isDarkMode.ToString());
+        
+        // Apply or remove dark-mode class on body
+        if (isDarkMode)
+        {
+            JSRuntime.InvokeVoidAsync("document.body.classList.add", "dark-mode");
+        }
+        else
+        {
+            JSRuntime.InvokeVoidAsync("document.body.classList.remove", "dark-mode");
+        }
+    }
+
+    private async Task LoadThemePreference()
+    {
+        try
+        {
+            var darkModeStr = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "darkMode");
+            if (!string.IsNullOrEmpty(darkModeStr))
+            {
+                isDarkMode = darkModeStr.ToLower() == "true";
+                
+                // Apply dark-mode class to body
+                if (isDarkMode)
+                {
+                    await JSRuntime.InvokeVoidAsync("document.body.classList.add", "dark-mode");
+                }
+                
+                StateHasChanged();
+            }
+        }
+        catch
+        {
+            // Fallback to system preference if localStorage fails
+            isDarkMode = await JSRuntime.InvokeAsync<bool>("window.matchMedia", "(prefers-color-scheme: dark)");
+            
+            if (isDarkMode)
+            {
+                await JSRuntime.InvokeVoidAsync("document.body.classList.add", "dark-mode");
+            }
+            
+            StateHasChanged();
+        }
     }
 
 }

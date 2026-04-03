@@ -1,12 +1,50 @@
 @inherits LayoutComponentBase
 @using EventHotelBroker.Components.Shared
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
 
 <link href="/css/design-system.css" rel="stylesheet" />
+<link href="/css/dark-mode.css" rel="stylesheet" />
 
 <ToastContainer />
 
 <div class="auth-layout">
-    @Body
+    <!-- Auth App Bar -->
+    <header class="auth-app-bar">
+        <div class="app-bar-content">
+            <a href="/" class="app-bar-brand" style="text-decoration:none;">
+                <span class="brand-text">Safari Vents</span>
+            </a>
+            <div class="app-bar-actions">
+                <button class="app-bar-btn" title="Toggle Theme" @onclick="ToggleTheme">
+                    @if (isDarkMode)
+                    {
+                        <i class="bi bi-sun"></i>
+                    }
+                    else
+                    {
+                        <i class="bi bi-moon"></i>
+                    }
+                </button>
+                @if (Navigation.Uri.Contains("/login"))
+                {
+                    <a href="/register" class="app-bar-btn" title="Create Account">
+                        <i class="bi bi-person-plus"></i>
+                    </a>
+                }
+                else
+                {
+                    <a href="/login" class="app-bar-btn" title="Sign In">
+                        <i class="bi bi-box-arrow-in-right"></i>
+                    </a>
+                }
+            </div>
+        </div>
+    </header>
+
+    <div class="auth-content">
+        @Body
+    </div>
 </div>
 
 <style>
@@ -14,9 +52,146 @@
         min-height: 100vh;
         background: linear-gradient(135deg, #f5f3ef 0%, #ebe6dd 50%, #e2ddd3 100%);
     }
-    
+
+    .auth-app-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 56px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(158, 139, 99, 0.1);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        padding: 0 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .app-bar-content {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .app-bar-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #2A2A2A;
+        text-decoration: none;
+    }
+
+    .brand-text {
+        color: #2A2A2A;
+    }
+
+    .app-bar-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .app-bar-btn {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        border: none;
+        background: rgba(42, 42, 42, 0.06);
+        color: #2A2A2A;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        font-weight: 500;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .app-bar-btn:hover {
+        background: rgba(158, 139, 99, 0.18);
+        color: #9E8B63;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(158, 139, 99, 0.15);
+    }
+
+    .auth-content {
+        padding-top: 56px;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
     /* Hide error UI on auth pages */
     #blazor-error-ui {
         display: none !important;
     }
 </style>
+
+@code {
+    private bool isDarkMode = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadThemePreference();
+        }
+    }
+
+    private void ToggleTheme()
+    {
+        isDarkMode = !isDarkMode;
+        // Save preference to localStorage for persistence
+        JSRuntime.InvokeVoidAsync("localStorage.setItem", "darkMode", isDarkMode.ToString());
+        
+        // Apply or remove dark-mode class on body
+        if (isDarkMode)
+        {
+            JSRuntime.InvokeVoidAsync("document.body.classList.add", "dark-mode");
+        }
+        else
+        {
+            JSRuntime.InvokeVoidAsync("document.body.classList.remove", "dark-mode");
+        }
+    }
+
+    private async Task LoadThemePreference()
+    {
+        try
+        {
+            var darkModeStr = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "darkMode");
+            if (!string.IsNullOrEmpty(darkModeStr))
+            {
+                isDarkMode = darkModeStr.ToLower() == "true";
+                
+                // Apply dark-mode class to body
+                if (isDarkMode)
+                {
+                    await JSRuntime.InvokeVoidAsync("document.body.classList.add", "dark-mode");
+                }
+                
+                StateHasChanged();
+            }
+        }
+        catch
+        {
+            // Fallback to system preference if localStorage fails
+            isDarkMode = await JSRuntime.InvokeAsync<bool>("window.matchMedia", "(prefers-color-scheme: dark)");
+            
+            if (isDarkMode)
+            {
+                await JSRuntime.InvokeVoidAsync("document.body.classList.add", "dark-mode");
+            }
+            
+            StateHasChanged();
+        }
+    }
+}
