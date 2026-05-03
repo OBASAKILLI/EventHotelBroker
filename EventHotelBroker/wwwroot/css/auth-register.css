@@ -6,11 +6,10 @@
 .rg-page {
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
-    min-height: 100vh;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     padding: 1.5rem;
-    background: linear-gradient(135deg, #f5f3ef 0%, #ebe6dd 50%, #e2ddd3 100%);
+    width: 100%;
 }
 
 /* ── Back link ── */
@@ -24,24 +23,27 @@
 
 /* ── Card ── */
 .rg-card {
-    background: #fff; border: 1px solid rgba(158,139,99,0.12);
-    border-radius: 16px; box-shadow: 0 12px 40px rgba(42,42,42,0.08);
-    max-width: 420px; width: 100%; overflow: hidden; margin: 1rem 0;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(158,139,99,0.15);
+    border-radius: 20px; 
+    box-shadow: 0 16px 48px rgba(42,42,42,0.1);
+    max-width: 440px; width: 100%; overflow: hidden; margin: 1rem 0;
 }
 
 /* ── Header ── */
 .rg-header {
-    text-align: center; padding: 1.75rem 1.5rem 1.125rem;
-    background: linear-gradient(135deg, #2A2A2A 0%, #3d3d3d 100%);
+    text-align: center; 
+    padding: 2.5rem 1.5rem 1rem;
 }
 .rg-logo {
-    width: 50px; height: 50px; margin: 0 auto 0.75rem;
-    background: linear-gradient(135deg, #C87941 0%, #9E8B63 100%);
-    border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    color: #fff; font-size: 1.375rem; box-shadow: 0 4px 16px rgba(200,121,65,0.25);
+    width: 64px; height: 64px; margin: 0 auto 1.25rem;
+    background: linear-gradient(135deg, #aa8f66 0%, #C87941 100%);
+    border-radius: 18px; display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 1.75rem; box-shadow: 0 8px 24px rgba(200,121,65,0.25);
 }
-.rg-title { font-size: 1.0625rem; font-weight: 800; color: #fff; margin: 0 0 0.2rem 0; letter-spacing: -0.02em; }
-.rg-subtitle { font-size: 0.6875rem; color: rgba(255,255,255,0.5); margin: 0; }
+.rg-title { font-size: 1.5rem; font-weight: 800; color: #2A2A2A; margin: 0 0 0.5rem 0; letter-spacing: -0.02em; }
+.rg-subtitle { font-size: 0.875rem; color: #8a8177; margin: 0; }
 
 /* ── Body ── */
 .rg-body { padding: 1.25rem 1.5rem; }

@@ -107,6 +107,44 @@ public class EmailService : IEmailService
         await SendEmailAsync(email, subject, WrapInTemplate("Password Reset", inner));
     }
 
+    public async Task SendHotelInviteAsync(string emailAddress)
+    {
+        var subject = "Exclusive Invitation to Partner with Safari Vents";
+        var enrollmentLink = "https://localhost:7180/owner/create-hotel";
+        
+        var inner = $@"
+            <div style='text-align: center; margin-bottom: 24px;'>
+                <p style='font-size: 20px; font-weight: 700; color: #2A2A2A; margin: 0 0 12px;'>You're Invited!</p>
+                <p style='font-size: 15px; color: #555; line-height: 1.6; margin: 0;'>
+                    We identified your prestigious property as a perfect candidate to join <strong>Safari Vents</strong> — the premier web platform revolutionizing how high-value clients discover and book exceptional venues.
+                </p>
+            </div>
+            
+            <div style='background: linear-gradient(135deg, #f5f3ef 0%, #ebe6dd 100%); padding: 24px; border-radius: 12px; margin-bottom: 28px; border-left: 4px solid #C87941;'>
+                <h3 style='font-size: 16px; color: #9E8B63; margin: 0 0 12px; text-transform: uppercase; letter-spacing: 1px;'>Why Safari Vents?</h3>
+                <ul style='margin: 0; padding-left: 20px; color: #4a4a4a; font-size: 14px; line-height: 1.7;'>
+                    <li><strong>Global Audience:</strong> Showcase your hotel, event spaces, and exclusive packages to thousands of potential clients.</li>
+                    <li><strong>Effortless Management:</strong> Utilize our state-of-the-art Owner Dashboard to handle booking requests and track analytics perfectly.</li>
+                    <li><strong>Monetize Amenities:</strong> Lease event equipment seamlessly alongside room bookings.</li>
+                </ul>
+            </div>
+
+            <p style='font-size: 15px; color: #4a4a4a; text-align: center; margin: 0 0 20px;'>
+                Are you ready to elevate your business footprint?
+            </p>
+
+            <div style='text-align: center; margin: 0 0 28px;'>
+                <a href='{enrollmentLink}' style='background: linear-gradient(135deg, #C87941 0%, #9E8B63 100%); color: #ffffff; padding: 18px 48px; border-radius: 12px; text-decoration: none; font-size: 16px; font-weight: 700; display: inline-block; letter-spacing: 0.5px; box-shadow: 0 8px 24px rgba(200, 121, 65, 0.3);'>
+                    Enroll as a Hotel Partner
+                </a>
+            </div>
+
+            <p style='font-size: 12px; color: #aaa; text-align: center; margin: 0 0 4px;'>If the button doesn't work, securely copy and paste this link:</p>
+            <p style='font-size: 12px; color: #488C82; word-break: break-all; text-align: center; margin: 0;'>{enrollmentLink}</p>";
+
+        await SendEmailAsync(emailAddress, subject, WrapInTemplate("Partner Invitation", inner));
+    }
+
     public async Task SendEmailAsync(string to, string subject, string body)
     {
         try
