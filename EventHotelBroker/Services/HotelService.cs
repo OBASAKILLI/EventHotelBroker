@@ -31,7 +31,7 @@ public class HotelService : IHotelService
 
     public async Task<Hotel?> GetHotelByIdAsync(int id)
     {
-        return await _unitOfWork.Hotels.GetByIdAsync(id);
+        return await _unitOfWork.Hotels.GetHotelWithImagesAsync(id);
     }
 
     public async Task<Hotel?> GetHotelWithDetailsAsync(int id)
@@ -115,9 +115,9 @@ public class HotelService : IHotelService
         return true;
     }
 
-    public async Task<IEnumerable<Hotel>> SearchHotelsAsync(string? keyword, string? city, int? minCapacity, decimal? maxPrice)
+    public async Task<IEnumerable<Hotel>> SearchHotelsAsync(string? keyword, string? city, int? minCapacity, decimal? maxPrice, string? category)
     {
-        return await _unitOfWork.Hotels.SearchHotelsAsync(keyword, city, minCapacity, maxPrice);
+        return await _unitOfWork.Hotels.SearchHotelsAsync(keyword, city, minCapacity, maxPrice, category);
     }
 
     private string GenerateSlug(string name)

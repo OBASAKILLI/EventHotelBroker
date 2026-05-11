@@ -7,6 +7,7 @@ public interface IUnitOfWork : IDisposable
 {
     IHotelRepository Hotels { get; }
     IRepository<HotelImage> HotelImages { get; }
+    IHotelCategoryRepository HotelCategories { get; }
     IRepository<Service> Services { get; }
     IRepository<ServiceImage> ServiceImages { get; }
     IRepository<Category> Categories { get; }

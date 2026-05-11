@@ -34,6 +34,7 @@ public class HotelRepository : Repository<Hotel>, IHotelRepository
         return await _dbSet
             .Include(h => h.Images)
             .Include(h => h.Owner)
+            .Include(h => h.HotelCategory)
             .FirstOrDefaultAsync(h => h.Id == id);
     }
 
@@ -44,10 +45,11 @@ public class HotelRepository : Repository<Hotel>, IHotelRepository
             .Include(h => h.HotelAmenities)
                 .ThenInclude(ha => ha.Amenity)
             .Include(h => h.Owner)
+            .Include(h => h.HotelCategory)
             .FirstOrDefaultAsync(h => h.Id == id);
     }
 
-    public async Task<IEnumerable<Hotel>> SearchHotelsAsync(string? keyword, string? city, int? minCapacity, decimal? maxPrice)
+    public async Task<IEnumerable<Hotel>> SearchHotelsAsync(string? keyword, string? city, int? minCapacity, decimal? maxPrice, string? category)
     {
         var query = _dbSet
             .Include(h => h.Images)
@@ -73,6 +75,11 @@ public class HotelRepository : Repository<Hotel>, IHotelRepository
         if (maxPrice.HasValue)
         {
             query = query.Where(h => h.PricePerNight <= maxPrice.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(category))
+        {
+            query = query.Where(h => h.Category == category);
         }
 
         return await query.OrderByDescending(h => h.CreatedAt).ToListAsync();

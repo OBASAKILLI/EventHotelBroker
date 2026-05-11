@@ -71,7 +71,7 @@
     background: #fff;
     border: 1px solid rgba(158, 139, 99, 0.12);
     border-radius: 14px;
-    overflow: hidden;
+    overflow: visible;
 }
 .ch-card-body { padding: 1.25rem 1.5rem; }
 
@@ -290,4 +290,61 @@ textarea.ch-input { resize: vertical; min-height: 60px; }
     .ch { padding: 0.75rem; }
     .ch-header { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
     .ch-card-body { padding: 1rem; }
+}
+
+/* Map Autocomplete Styles */
+.map-search-input {
+    background-color: #fff !important;
+    border: 1px solid #ccc !important;
+    border-radius: 4px !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3) !important;
+    font-size: 14px !important;
+    padding: 10px 15px !important;
+    text-overflow: ellipsis !important;
+    width: 300px !important;
+    outline: none !important;
+    z-index: 1000 !important;
+    display: block !important;
+}
+
+.map-search-input:focus {
+    border-color: #4d90fe !important;
+}
+
+.pac-container {
+    z-index: 10000 !important;
+}
+
+/* Map Container */
+#hotelMap {
+    width: 100%;
+    height: 400px;
+    border-radius: 12px;
+    border: 1px solid #dee2e6;
+    margin-bottom: 1.5rem;
+    background-color: #f5f5f5;
+}
+
+#hotelMap.gm-style-iv {
+    width: 100%;
+    height: 100%;
+}
+
+/* Validation Summary */
+.validation-errors {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    color: #856404;
+}
+
+.validation-errors ul {
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+.validation-errors li {
+    margin-bottom: 0.5rem;
 }

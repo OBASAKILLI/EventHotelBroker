@@ -13,6 +13,7 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<Hotel> Hotels { get; set; }
     public DbSet<HotelImage> HotelImages { get; set; }
+    public DbSet<HotelCategory> HotelCategories { get; set; }
     public DbSet<Service> Services { get; set; }
     public DbSet<ServiceImage> ServiceImages { get; set; }
     public DbSet<Category> Categories { get; set; }

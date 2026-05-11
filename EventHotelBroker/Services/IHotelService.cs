@@ -14,5 +14,5 @@ public interface IHotelService
     Task DeleteHotelAsync(int id);
     Task<bool> ApproveHotelAsync(int id);
     Task<bool> RejectHotelAsync(int id);
-    Task<IEnumerable<Hotel>> SearchHotelsAsync(string? keyword, string? city, int? minCapacity, decimal? maxPrice);
+    Task<IEnumerable<Hotel>> SearchHotelsAsync(string? keyword, string? city, int? minCapacity, decimal? maxPrice, string? category);
 }

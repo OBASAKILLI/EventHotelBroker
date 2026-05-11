@@ -97,6 +97,24 @@
                         </div>
                     </div>
 
+                    <!-- Category -->
+                    <div class="filter-section">
+                        <div class="filter-section-title">
+                            <i class="bi bi-tag"></i> Category
+                        </div>
+                        <select class="form-control-system" @bind="searchFilters.Category" @bind:event="onchange" @bind:after="HandleSearch">
+                            <option value="">All Categories</option>
+                            <option value="Hotel">Hotels</option>
+                            <option value="Airbnb">Airbnb</option>
+                            <option value="Restaurant">Restaurants</option>
+                            <option value="Venue">Venues</option>
+                            <option value="Resort">Resorts</option>
+                            <option value="Lodge">Lodges</option>
+                            <option value="Guest House">Guest Houses</option>
+                            <option value="Apartment">Apartments</option>
+                        </select>
+                    </div>
+
                     <!-- Amenities -->
                     <div class="filter-section">
                         <div class="filter-section-title">
@@ -333,7 +351,8 @@
                 searchFilters.Keyword,
                 searchFilters.City,
                 searchFilters.MinCapacity,
-                searchFilters.MaxPrice
+                searchFilters.MaxPrice,
+                searchFilters.Category
             );
         }
         catch (Exception)
@@ -431,6 +450,7 @@
         public int? MaxCapacity { get; set; }
         public decimal? MinPrice { get; set; }
         public decimal? MaxPrice { get; set; }
+        public string? Category { get; set; }
         
         // Amenities
         public bool HasWifi { get; set; }

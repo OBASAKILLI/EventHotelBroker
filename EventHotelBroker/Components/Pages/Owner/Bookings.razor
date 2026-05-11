@@ -103,6 +103,17 @@
                 <option value="Rejected">Rejected</option>
                 <option value="Cancelled">Cancelled</option>
             </select>
+            <select class="ob-filter-select" @bind="categoryFilter" @bind:event="onchange">
+                <option value="">All Categories</option>
+                <option value="Hotel">Hotels</option>
+                <option value="Airbnb">Airbnb</option>
+                <option value="Restaurant">Restaurants</option>
+                <option value="Venue">Venues</option>
+                <option value="Resort">Resorts</option>
+                <option value="Lodge">Lodges</option>
+                <option value="Guest House">Guest Houses</option>
+                <option value="Apartment">Apartments</option>
+            </select>
             <span class="ob-search-count">@filteredBookings.Count() of @bookings.Count</span>
         </div>
 
@@ -672,6 +683,7 @@
     private List<Booking> bookings = new();
     private string searchTerm = "";
     private string statusFilter = "";
+    private string categoryFilter = "";
 
     // Event bookings
     private List<EventPackage> packages = new();
@@ -714,9 +726,13 @@
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
             var term = searchTerm.Trim().ToLower();
-            return (b.Hotel?.Name?.ToLower().Contains(term) ?? false)
-                || (b.User?.FullName?.ToLower().Contains(term) ?? false)
-                || b.Id.ToString().Contains(term);
+            return b.Id.ToString().Contains(term)
+                || (b.Hotel?.Name?.ToLower().Contains(term) ?? false)
+                || (b.User?.FullName?.ToLower().Contains(term) ?? false);
+        }
+        if (!string.IsNullOrWhiteSpace(categoryFilter))
+        {
+            return b.Hotel?.Category == categoryFilter;
         }
         return true;
     });

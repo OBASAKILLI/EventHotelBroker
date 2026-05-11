@@ -69,6 +69,17 @@
             <i class="bi bi-search"></i>
             <input type="text" class="ah-search-input" placeholder="Search by name, city, country, or owner..." @bind="searchTerm" @bind:event="oninput" />
         </div>
+        <select class="ah-filter-select" @bind="categoryFilter" @bind:event="onchange">
+            <option value="">All Categories</option>
+            <option value="Hotel">Hotels</option>
+            <option value="Airbnb">Airbnb</option>
+            <option value="Restaurant">Restaurants</option>
+            <option value="Venue">Venues</option>
+            <option value="Resort">Resorts</option>
+            <option value="Lodge">Lodges</option>
+            <option value="Guest House">Guest Houses</option>
+            <option value="Apartment">Apartments</option>
+        </select>
         <span class="ah-search-count">@searchedHotels.Count() of @filteredHotels.Count()</span>
     </div>
 
@@ -195,6 +206,7 @@
     private IEnumerable<Hotel> filteredHotels = new List<Hotel>();
     private string filterStatus = "all";
     private string searchTerm = "";
+    private string categoryFilter = "";
     private int pendingCount = 0;
 
     private List<BreadcrumbItem> breadcrumbItems = new()
@@ -204,16 +216,22 @@
         new BreadcrumbItem { Text = "Hotels", IsActive = true }
     };
 
-    private IEnumerable<Hotel> searchedHotels => string.IsNullOrWhiteSpace(searchTerm)
-        ? filteredHotels
-        : filteredHotels.Where(h =>
+    private IEnumerable<Hotel> searchedHotels => filteredHotels.Where(h =>
+    {
+        if (!string.IsNullOrWhiteSpace(searchTerm))
         {
             var term = searchTerm.Trim().ToLower();
             return (h.Name?.ToLower().Contains(term) ?? false)
                 || (h.City?.ToLower().Contains(term) ?? false)
                 || (h.Country?.ToLower().Contains(term) ?? false)
                 || (h.Owner?.FullName?.ToLower().Contains(term) ?? false);
-        });
+        }
+        if (!string.IsNullOrWhiteSpace(categoryFilter))
+        {
+            return h.Category == categoryFilter;
+        }
+        return true;
+    });
     private int approvedCount = 0;
     private int rejectedCount = 0;
     private string? message;
@@ -260,6 +278,12 @@
             "rejected" => allHotels.Where(h => !h.IsApproved && !h.IsPublished),
             _ => allHotels
         };
+        
+        // Apply category filter
+        if (!string.IsNullOrWhiteSpace(categoryFilter))
+        {
+            filteredHotels = filteredHotels.Where(h => h.Category == categoryFilter);
+        }
     }
 
     private void ViewHotel(int id)

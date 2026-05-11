@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EventHotelBroker.Models;
 
@@ -44,6 +45,27 @@ public class Hotel
     public decimal PricePerNight { get; set; }
     
     public string Currency { get; set; } = "KES";
+    
+    [Required(ErrorMessage = "Category is required")]
+    [StringLength(50, ErrorMessage = "Category cannot exceed 50 characters")]
+    public string Category { get; set; } = "Hotel";
+
+    [Required(ErrorMessage = "Hotel Category is required")]
+    [Range(1, int.MaxValue, ErrorMessage = "Please select a hotel category")]
+    public int HotelCategoryId { get; set; }
+
+    [ForeignKey("HotelCategoryId")]
+    public virtual HotelCategory? HotelCategory { get; set; }
+
+    [Required(ErrorMessage = "Phone number is required")]
+    [StringLength(20, ErrorMessage = "Phone number cannot exceed 20 characters")]
+    public string Phone { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Email is required")]
+    [EmailAddress(ErrorMessage = "Please enter a valid email address")]
+    [StringLength(100, ErrorMessage = "Email cannot exceed 100 characters")]
+    public string Email { get; set; } = string.Empty;
+
     public bool IsPublished { get; set; } = false;
     public bool IsApproved { get; set; } = false;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

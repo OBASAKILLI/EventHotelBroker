@@ -6,6 +6,8 @@
 @inject IHotelService HotelService
 @inject IEventService EventService
 @inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@implements IDisposable
 
 <PageTitle>Home - EventHotelBroker</PageTitle>
 
@@ -136,20 +138,38 @@
         <!-- Modern Tabs -->
         <div class="modern-tabs-container mb-4">
             <div class="modern-tabs" style="display:inline-flex;">
-                <button id="tabBtnHotels" class="nav-link active" type="button"
-                        onclick="document.getElementById('tabHotels').style.display='';document.getElementById('tabEvents').style.display='none';document.getElementById('tabEquipment').style.display='none';this.classList.add('active');document.getElementById('tabBtnEvents').classList.remove('active');document.getElementById('tabBtnEquipment').classList.remove('active');">
+                <button id="tabBtnAllHotels" class="nav-link active" type="button"
+                        onclick="switchTab('all-hotels');this.classList.add('active');document.getElementById('tabBtnHotels').classList.remove('active');document.getElementById('tabBtnAirbnb').classList.remove('active');document.getElementById('tabBtnRestaurant').classList.remove('active');document.getElementById('tabBtnEvents').classList.remove('active');document.getElementById('tabBtnEquipment').classList.remove('active');">
                     <i class="bi bi-building me-2"></i>
-                    <span>Hotels & Venues</span>
+                    <span>All Hotels</span>
                     <span class="tab-count">@(featuredHotels?.Count ?? 0)</span>
                 </button>
+                <button id="tabBtnHotels" class="nav-link" type="button"
+                        onclick="switchTab('hotels');this.classList.add('active');document.getElementById('tabBtnAllHotels').classList.remove('active');document.getElementById('tabBtnAirbnb').classList.remove('active');document.getElementById('tabBtnRestaurant').classList.remove('active');document.getElementById('tabBtnEvents').classList.remove('active');document.getElementById('tabBtnEquipment').classList.remove('active');">
+                    <i class="bi bi-building me-2"></i>
+                    <span>Hotels</span>
+                    <span class="tab-count">@(featuredHotels?.Count(h => h.Category == "Hotel") ?? 0)</span>
+                </button>
+                <button id="tabBtnAirbnb" class="nav-link" type="button"
+                        onclick="switchTab('airbnb');this.classList.add('active');document.getElementById('tabBtnAllHotels').classList.remove('active');document.getElementById('tabBtnHotels').classList.remove('active');document.getElementById('tabBtnRestaurant').classList.remove('active');document.getElementById('tabBtnEvents').classList.remove('active');document.getElementById('tabBtnEquipment').classList.remove('active');">
+                    <i class="bi bi-house me-2"></i>
+                    <span>Airbnb</span>
+                    <span class="tab-count">@(featuredHotels?.Count(h => h.Category == "Airbnb") ?? 0)</span>
+                </button>
+                <button id="tabBtnRestaurant" class="nav-link" type="button"
+                        onclick="switchTab('restaurant');this.classList.add('active');document.getElementById('tabBtnAllHotels').classList.remove('active');document.getElementById('tabBtnHotels').classList.remove('active');document.getElementById('tabBtnAirbnb').classList.remove('active');document.getElementById('tabBtnEvents').classList.remove('active');document.getElementById('tabBtnEquipment').classList.remove('active');">
+                    <i class="bi bi-cup-hot me-2"></i>
+                    <span>Restaurants</span>
+                    <span class="tab-count">@(featuredHotels?.Count(h => h.Category == "Restaurant") ?? 0)</span>
+                </button>
                 <button id="tabBtnEvents" class="nav-link" type="button"
-                        onclick="document.getElementById('tabEvents').style.display='';document.getElementById('tabHotels').style.display='none';document.getElementById('tabEquipment').style.display='none';this.classList.add('active');document.getElementById('tabBtnHotels').classList.remove('active');document.getElementById('tabBtnEquipment').classList.remove('active');">
+                        onclick="switchTab('events');this.classList.add('active');document.getElementById('tabBtnAllHotels').classList.remove('active');document.getElementById('tabBtnHotels').classList.remove('active');document.getElementById('tabBtnAirbnb').classList.remove('active');document.getElementById('tabBtnRestaurant').classList.remove('active');document.getElementById('tabBtnEquipment').classList.remove('active');">
                     <i class="bi bi-gift me-2"></i>
                     <span>Event Packages</span>
                     <span class="tab-count">@(featuredPackages?.Count ?? 0)</span>
                 </button>
                 <button id="tabBtnEquipment" class="nav-link" type="button"
-                        onclick="document.getElementById('tabEquipment').style.display='';document.getElementById('tabHotels').style.display='none';document.getElementById('tabEvents').style.display='none';this.classList.add('active');document.getElementById('tabBtnHotels').classList.remove('active');document.getElementById('tabBtnEvents').classList.remove('active');">
+                        onclick="switchTab('equipment');this.classList.add('active');document.getElementById('tabBtnAllHotels').classList.remove('active');document.getElementById('tabBtnHotels').classList.remove('active');document.getElementById('tabBtnAirbnb').classList.remove('active');document.getElementById('tabBtnRestaurant').classList.remove('active');document.getElementById('tabBtnEvents').classList.remove('active');">
                     <i class="bi bi-box-seam me-2"></i>
                     <span>Equipment Rental</span>
                     <span class="tab-count">@(featuredEquipments?.Count ?? 0)</span>
@@ -159,8 +179,8 @@
 
         <!-- Tab Content -->
         <div class="tab-content">
-            <!-- Hotels Tab -->
-            <div id="tabHotels" class="tab-pane-content">
+            <!-- All Hotels Tab -->
+            <div id="tabAllHotels" class="tab-pane-content">
                 @if (featuredHotels == null)
                 {
                     <div class="text-center py-5">
@@ -205,6 +225,10 @@
                                                 <span>Verified</span>
                                             </div>
                                         }
+                                        <div class="hotel-category-badge">
+                                            <i class="bi @GetCategoryIcon(hotel.Category)"></i>
+                                            <span>@hotel.Category</span>
+                                        </div>
                                         <div class="hotel-overlay">
                                             <span class="hotel-view-btn">
                                                 <i class="bi bi-eye me-2"></i>View Details
@@ -250,8 +274,293 @@
                 }
             </div>
 
+            <!-- Hotels Category Tab (hidden by default) -->
+            <div id="tabHotelsContent" class="tab-pane-content" style="display:none;">
+                @if (featuredHotels == null)
+                {
+                    <div class="text-center py-5">
+                        <div class="spinner-border spinner-modern text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-3 text-muted">Loading hotels...</p>
+                    </div>
+                }
+                else if (!filteredHotels.Any())
+                {
+                    <div class="modern-card">
+                        <div class="empty-state">
+                            <i class="bi bi-building empty-state-icon"></i>
+                            <h3 class="empty-state-title">No Hotels Available</h3>
+                            <p class="empty-state-text">Check back soon for amazing hotels!</p>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="row g-4">
+                        @foreach (var hotel in filteredHotels.Take(6))
+                        {
+                            <div class="col-md-6 col-lg-3">
+                                <a href="/hotels/@hotel.Id" class="hotel-card" style="text-decoration:none;color:inherit;display:block;">
+                                    <div class="hotel-image">
+                                        @if (hotel.Images?.Any() == true)
+                                        {
+                                            <img src="@hotel.Images.First().Url" alt="@hotel.Name" />
+                                        }
+                                        else
+                                        {
+                                            <div class="hotel-placeholder">
+                                                <i class="bi bi-building"></i>
+                                            </div>
+                                        }
+                                        @if (hotel.IsApproved)
+                                        {
+                                            <div class="hotel-badge">
+                                                <i class="bi bi-patch-check-fill"></i>
+                                                <span>Verified</span>
+                                            </div>
+                                        }
+                                        <div class="hotel-category-badge">
+                                            <i class="bi @GetCategoryIcon(hotel.Category)"></i>
+                                            <span>@hotel.Category</span>
+                                        </div>
+                                        <div class="hotel-overlay">
+                                            <span class="hotel-view-btn">
+                                                <i class="bi bi-eye me-2"></i>View Details
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="hotel-content">
+                                        <h5 class="hotel-name">@hotel.Name</h5>
+                                        <span class="hotel-location"><i class="bi bi-geo-alt-fill"></i> @hotel.City, @hotel.Country</span>
+
+                                        <div class="hotel-meta-row">
+                                            <div class="hotel-rating">
+                                                <i class="bi bi-star-fill"></i>
+                                                <span class="hotel-rating-text">4.5</span>
+                                            </div>
+                                            <span class="meta-dot"></span>
+                                            <div class="hotel-price-inline">
+                                                <span class="price-amount">@hotel.Currency @hotel.PricePerNight.ToString("N0")</span>
+                                                <span class="price-period">/night</span>
+                                            </div>
+                                        </div>
+
+                                        @if (!string.IsNullOrWhiteSpace(hotel.Description))
+                                        {
+                                            <p class="hotel-description">@hotel.Description</p>
+                                        }
+
+                                        <div class="hotel-footer">
+                                            <span class="hotel-book-btn">
+                                                View <i class="bi bi-arrow-right"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        }
+                    </div>
+                    <div class="text-center mt-4">
+                        <a href="/search" class="btn-modern btn-gradient-primary">
+                            <i class="bi bi-search me-2"></i>Explore All Hotels
+                        </a>
+                    </div>
+                }
+            </div>
+
+            <!-- Airbnb Category Tab (hidden by default) -->
+            <div id="tabAirbnbContent" class="tab-pane-content" style="display:none;">
+                @if (featuredHotels == null)
+                {
+                    <div class="text-center py-5">
+                        <div class="spinner-border spinner-modern text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-3 text-muted">Loading Airbnb listings...</p>
+                    </div>
+                }
+                else if (!filteredHotels.Any())
+                {
+                    <div class="modern-card">
+                        <div class="empty-state">
+                            <i class="bi bi-house empty-state-icon"></i>
+                            <h3 class="empty-state-title">No Airbnb Listings Available</h3>
+                            <p class="empty-state-text">Check back soon for amazing Airbnb listings!</p>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="row g-4">
+                        @foreach (var hotel in filteredHotels.Take(6))
+                        {
+                            <div class="col-md-6 col-lg-3">
+                                <a href="/hotels/@hotel.Id" class="hotel-card" style="text-decoration:none;color:inherit;display:block;">
+                                    <div class="hotel-image">
+                                        @if (hotel.Images?.Any() == true)
+                                        {
+                                            <img src="@hotel.Images.First().Url" alt="@hotel.Name" />
+                                        }
+                                        else
+                                        {
+                                            <div class="hotel-placeholder">
+                                                <i class="bi bi-house"></i>
+                                            </div>
+                                        }
+                                        @if (hotel.IsApproved)
+                                        {
+                                            <div class="hotel-badge">
+                                                <i class="bi bi-patch-check-fill"></i>
+                                                <span>Verified</span>
+                                            </div>
+                                        }
+                                        <div class="hotel-category-badge">
+                                            <i class="bi @GetCategoryIcon(hotel.Category)"></i>
+                                            <span>@hotel.Category</span>
+                                        </div>
+                                        <div class="hotel-overlay">
+                                            <span class="hotel-view-btn">
+                                                <i class="bi bi-eye me-2"></i>View Details
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="hotel-content">
+                                        <h5 class="hotel-name">@hotel.Name</h5>
+                                        <span class="hotel-location"><i class="bi bi-geo-alt-fill"></i> @hotel.City, @hotel.Country</span>
+
+                                        <div class="hotel-meta-row">
+                                            <div class="hotel-rating">
+                                                <i class="bi bi-star-fill"></i>
+                                                <span class="hotel-rating-text">4.5</span>
+                                            </div>
+                                            <span class="meta-dot"></span>
+                                            <div class="hotel-price-inline">
+                                                <span class="price-amount">@hotel.Currency @hotel.PricePerNight.ToString("N0")</span>
+                                                <span class="price-period">/night</span>
+                                            </div>
+                                        </div>
+
+                                        @if (!string.IsNullOrWhiteSpace(hotel.Description))
+                                        {
+                                            <p class="hotel-description">@hotel.Description</p>
+                                        }
+
+                                        <div class="hotel-footer">
+                                            <span class="hotel-book-btn">
+                                                View <i class="bi bi-arrow-right"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        }
+                    </div>
+                    <div class="text-center mt-4">
+                        <a href="/search" class="btn-modern btn-gradient-primary">
+                            <i class="bi bi-search me-2"></i>Explore All Airbnb
+                        </a>
+                    </div>
+                }
+            </div>
+
+            <!-- Restaurants Category Tab (hidden by default) -->
+            <div id="tabRestaurantContent" class="tab-pane-content" style="display:none;">
+                @if (featuredHotels == null)
+                {
+                    <div class="text-center py-5">
+                        <div class="spinner-border spinner-modern text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-3 text-muted">Loading restaurants...</p>
+                    </div>
+                }
+                else if (!filteredHotels.Any())
+                {
+                    <div class="modern-card">
+                        <div class="empty-state">
+                            <i class="bi bi-cup-hot empty-state-icon"></i>
+                            <h3 class="empty-state-title">No Restaurants Available</h3>
+                            <p class="empty-state-text">Check back soon for amazing restaurants!</p>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="row g-4">
+                        @foreach (var hotel in filteredHotels.Take(6))
+                        {
+                            <div class="col-md-6 col-lg-3">
+                                <a href="/hotels/@hotel.Id" class="hotel-card" style="text-decoration:none;color:inherit;display:block;">
+                                    <div class="hotel-image">
+                                        @if (hotel.Images?.Any() == true)
+                                        {
+                                            <img src="@hotel.Images.First().Url" alt="@hotel.Name" />
+                                        }
+                                        else
+                                        {
+                                            <div class="hotel-placeholder">
+                                                <i class="bi bi-cup-hot"></i>
+                                            </div>
+                                        }
+                                        @if (hotel.IsApproved)
+                                        {
+                                            <div class="hotel-badge">
+                                                <i class="bi bi-patch-check-fill"></i>
+                                                <span>Verified</span>
+                                            </div>
+                                        }
+                                        <div class="hotel-category-badge">
+                                            <i class="bi @GetCategoryIcon(hotel.Category)"></i>
+                                            <span>@hotel.Category</span>
+                                        </div>
+                                        <div class="hotel-overlay">
+                                            <span class="hotel-view-btn">
+                                                <i class="bi bi-eye me-2"></i>View Details
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="hotel-content">
+                                        <h5 class="hotel-name">@hotel.Name</h5>
+                                        <span class="hotel-location"><i class="bi bi-geo-alt-fill"></i> @hotel.City, @hotel.Country</span>
+
+                                        <div class="hotel-meta-row">
+                                            <div class="hotel-rating">
+                                                <i class="bi bi-star-fill"></i>
+                                                <span class="hotel-rating-text">4.5</span>
+                                            </div>
+                                            <span class="meta-dot"></span>
+                                            <div class="hotel-price-inline">
+                                                <span class="price-amount">@hotel.Currency @hotel.PricePerNight.ToString("N0")</span>
+                                                <span class="price-period">/night</span>
+                                            </div>
+                                        </div>
+
+                                        @if (!string.IsNullOrWhiteSpace(hotel.Description))
+                                        {
+                                            <p class="hotel-description">@hotel.Description</p>
+                                        }
+
+                                        <div class="hotel-footer">
+                                            <span class="hotel-book-btn">
+                                                View <i class="bi bi-arrow-right"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        }
+                    </div>
+                    <div class="text-center mt-4">
+                        <a href="/search" class="btn-modern btn-gradient-primary">
+                            <i class="bi bi-search me-2"></i>Explore All Restaurants
+                        </a>
+                    </div>
+                }
+            </div>
+
             <!-- Events Tab (hidden by default) -->
-            <div id="tabEvents" class="tab-pane-content" style="display:none;">
+            <div id="tabEventsContent" class="tab-pane-content" style="display:none;">
                 @if (featuredPackages == null)
                 {
                     <div class="text-center py-5">
@@ -357,7 +666,7 @@
             </div>
 
             <!-- Equipment Tab (hidden by default) -->
-            <div id="tabEquipment" class="tab-pane-content" style="display:none;">
+            <div id="tabEquipmentContent" class="tab-pane-content" style="display:none;">
                 @if (featuredEquipments == null)
                 {
                     <div class="text-center py-5">
@@ -484,10 +793,15 @@
     </div>
 </div>
 
+<script src="/js/home-helpers.js"></script>
+
 @code {
     private List<Hotel>? featuredHotels;
     private List<EventPackage>? featuredPackages;
     private List<EventEquipment>? featuredEquipments;
+    private List<Hotel> filteredHotels = new();
+    private string selectedCategory = "All";
+    private DotNetObjectReference<Home>? objRef;
 
     protected override async Task OnInitializedAsync()
     {
@@ -496,6 +810,7 @@
             // Load hotels
             var hotels = await HotelService.GetPublishedHotelsAsync();
             featuredHotels = hotels.ToList();
+            filteredHotels = featuredHotels.ToList();
             
             // Load featured event packages
             var allPackages = await EventService.GetApprovedPackagesAsync();
@@ -508,15 +823,92 @@
         catch
         {
             featuredHotels = new List<Hotel>();
+            filteredHotels = new List<Hotel>();
             featuredPackages = new List<EventPackage>();
             featuredEquipments = new List<EventEquipment>();
         }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            objRef = DotNetObjectReference.Create(this);
+            await JSRuntime.InvokeVoidAsync("homeHelpers.init", objRef);
+        }
+    }
+
+    [JSInvokable]
+    public async Task SwitchTab(string tabName)
+    {
+        // Hide all tabs
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            document.getElementById('tabAllHotels').style.display = 'none';
+            document.getElementById('tabHotelsContent').style.display = 'none';
+            document.getElementById('tabAirbnbContent').style.display = 'none';
+            document.getElementById('tabRestaurantContent').style.display = 'none';
+            document.getElementById('tabEventsContent').style.display = 'none';
+            document.getElementById('tabEquipmentContent').style.display = 'none';
+        ");
+
+        // Show selected tab and filter if needed
+        switch (tabName)
+        {
+            case "all-hotels":
+                await JSRuntime.InvokeVoidAsync("eval", "document.getElementById('tabAllHotels').style.display = '';");
+                break;
+            case "hotels":
+                selectedCategory = "Hotel";
+                if (featuredHotels != null)
+                {
+                    filteredHotels = featuredHotels.Where(h => h.Category == "Hotel").ToList();
+                }
+                await JSRuntime.InvokeVoidAsync("eval", "document.getElementById('tabHotelsContent').style.display = '';");
+                break;
+            case "airbnb":
+                selectedCategory = "Airbnb";
+                if (featuredHotels != null)
+                {
+                    filteredHotels = featuredHotels.Where(h => h.Category == "Airbnb").ToList();
+                }
+                await JSRuntime.InvokeVoidAsync("eval", "document.getElementById('tabAirbnbContent').style.display = '';");
+                break;
+            case "restaurant":
+                selectedCategory = "Restaurant";
+                if (featuredHotels != null)
+                {
+                    filteredHotels = featuredHotels.Where(h => h.Category == "Restaurant").ToList();
+                }
+                await JSRuntime.InvokeVoidAsync("eval", "document.getElementById('tabRestaurantContent').style.display = '';");
+                break;
+            case "events":
+                await JSRuntime.InvokeVoidAsync("eval", "document.getElementById('tabEventsContent').style.display = '';");
+                break;
+            case "equipment":
+                await JSRuntime.InvokeVoidAsync("eval", "document.getElementById('tabEquipmentContent').style.display = '';");
+                break;
+        }
+        
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        objRef?.Dispose();
     }
 
     private string GetCategoryIcon(string category)
     {
         return category switch
         {
+            "Hotel" => "bi-building",
+            "Airbnb" => "bi-house",
+            "Restaurant" => "bi-cup-hot",
+            "Venue" => "bi-geo-alt",
+            "Resort" => "bi-stars",
+            "Lodge" => "bi-tree",
+            "Guest House" => "bi-house-door",
+            "Apartment" => "bi-building-check",
             "Tents" => "bi-house",
             "Chairs" => "bi-chair",
             "Sound System" => "bi-speaker",
@@ -531,6 +923,14 @@
     {
         return category switch
         {
+            "Hotel" => "linear-gradient(135deg, #9E8B63, #b8a584)",
+            "Airbnb" => "linear-gradient(135deg, #f59e0b, #fbbf24)",
+            "Restaurant" => "linear-gradient(135deg, #dc2626, #ef4444)",
+            "Venue" => "linear-gradient(135deg, #7c3aed, #8b5cf6)",
+            "Resort" => "linear-gradient(135deg, #059669, #10B981)",
+            "Lodge" => "linear-gradient(135deg, #78350f, #92400e)",
+            "Guest House" => "linear-gradient(135deg, #1e40af, #3b82f6)",
+            "Apartment" => "linear-gradient(135deg, #475569, #64748b)",
             "Tents" => "linear-gradient(135deg, #2A2A2A, #4a4a4a)",
             "Chairs" => "linear-gradient(135deg, #9E8B63, #b8a584)",
             "Sound System" => "linear-gradient(135deg, #6366f1, #818cf8)",

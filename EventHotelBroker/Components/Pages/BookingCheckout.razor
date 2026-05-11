@@ -7,6 +7,7 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IHttpClientFactory HttpClientFactory
 @inject ToastService ToastService
+@inject IMpesaPaymentService MpesaPaymentService
 @using System.Net.Http.Json
 @using EventHotelBroker.Services
 @using EventHotelBroker.Models
@@ -59,6 +60,7 @@
                                     <h4>@hotel.Name</h4>
                                     <p class="co-hotel-loc"><i class="bi bi-geo-alt"></i> @hotel.Address, @hotel.City</p>
                                     <p class="co-hotel-cap"><i class="bi bi-people"></i> Capacity: @hotel.Capacity guests</p>
+                                    <p class="co-hotel-phone"><i class="bi bi-telephone"></i> @hotel.Phone</p>
                                 </div>
                                 <div class="co-hotel-price">
                                     <div class="co-price-amt">@hotel.Currency @hotel.PricePerNight.ToString("N0")</div>
@@ -117,6 +119,13 @@
                                 <i class="bi bi-shield-check"></i> Your payment is secure and encrypted
                             </div>
 
+                            @if (!string.IsNullOrEmpty(checkoutRequestId))
+                            {
+                                <div style="margin-top: 0.75rem; margin-bottom: 0.75rem; padding: 0.5rem; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; font-family: monospace; font-size: 0.9rem; color: #495057;">
+                                    Checkout Request ID: @checkoutRequestId
+                                </div>
+                            }
+
                             <div class="co-payment-option @(selectedPayment == "mpesa" ? "selected" : "")" @onclick='() => SelectPayment("mpesa")'>
                                 <div class="co-pay-icon mpesa"><i class="bi bi-phone"></i></div>
                                 <div class="co-pay-info">
@@ -174,6 +183,12 @@
                                         <div class="co-pay-alert" style="margin-top: 0.75rem;">
                                             <i class="bi bi-info-circle"></i> You will receive an STK push to complete payment
                                         </div>
+                                        @if (!string.IsNullOrEmpty(checkoutRequestId))
+                                        {
+                                            <div style="margin-top: 0.75rem; padding: 0.5rem; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; font-family: monospace; font-size: 0.9rem; color: #495057;">
+                                                Checkout Request ID: @checkoutRequestId
+                                            </div>
+                                        }
                                     </div>
                                 }
                                 else if (selectedPayment == "card")
@@ -248,12 +263,36 @@
                                         <span class="visually-hidden">Processing...</span>
                                     </div>
                                     <h4>Processing Your Payment</h4>
-                                    <p>Please wait while we confirm your payment...</p>
+                                    @if (!string.IsNullOrEmpty(checkoutRequestId))
+                                    {
+                                        <div style="padding: 0.5rem; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; font-family: monospace; font-size: 0.9rem; color: #495057; margin-bottom: 0.5rem;">
+                                            Checkout Request ID: @checkoutRequestId
+                                        </div>
+                                    }
+                                    <p>@paymentStatusMessage</p>
+                                    @if (!string.IsNullOrEmpty(rawPaymentResponse))
+                                    {
+                                        <div style="margin-top: 0.5rem; padding: 0.75rem; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; font-family: monospace; font-size: 0.8rem; color: #495057; white-space: pre-wrap; word-break: break-all; text-align: left; max-height: 300px; overflow-y: auto;">
+@rawPaymentResponse
+                                        </div>
+                                    }
                                     @if (selectedPayment == "mpesa")
                                     {
                                         <div class="co-pay-alert">
                                             <i class="bi bi-phone"></i> Check your phone for M-Pesa prompt
                                         </div>
+                                        @if (!string.IsNullOrEmpty(checkoutRequestId))
+                                        {
+                                            <div style="margin-top: 0.5rem; padding: 0.5rem; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; font-family: monospace; font-size: 0.9rem; color: #495057;">
+                                                Checkout Request ID: @checkoutRequestId
+                                            </div>
+                                        }
+                                        @if (isPollingPayment)
+                                        {
+                                            <div class="co-pay-alert" style="margin-top: 0.5rem;">
+                                                <i class="bi bi-clock-history"></i> Polling for payment status...
+                                            </div>
+                                        }
                                     }
                                     else if (selectedPayment == "cash")
                                     {
@@ -367,6 +406,13 @@
                                 <div class="co-summary-value">@numberOfGuests Guest@(numberOfGuests != 1 ? "s" : "")</div>
                             </div>
                         </div>
+                        <div class="co-summary-item">
+                            <div class="co-summary-icon"><i class="bi bi-telephone"></i></div>
+                            <div>
+                                <div class="co-summary-label">Contact</div>
+                                <div class="co-summary-value">@hotel.Phone</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="co-summary-footer">
                         <div class="co-breakdown-title">Price Details</div>
@@ -426,7 +472,7 @@
     // Calculated values
     private int numberOfNights => (checkOutDate - checkInDate).Days;
     private decimal baseAmount => hotel != null ? hotel.PricePerNight * numberOfNights : 0;
-    private decimal serviceFee => baseAmount * 0.05m; // 5% service fee
+    private decimal serviceFee => hotel?.HotelCategory?.ServiceFee ?? 500; // Use hotel category service fee or default to 500
     private decimal taxes => baseAmount * 0.16m; // 16% VAT
     private decimal discount => 0; // Can be dynamic based on promo codes
     private decimal totalAmount => baseAmount + serviceFee + taxes - discount;
@@ -434,6 +480,11 @@
     // Payment status
     private bool paymentComplete = false;
     private string bookingReference = "";
+    private string? checkoutRequestId;
+    private bool isPollingPayment = false;
+    private string paymentStatusMessage = "";
+    private string? mpesaReceipt;
+    private string? rawPaymentResponse;
 
     protected override async Task OnInitializedAsync()
     {
@@ -467,63 +518,171 @@
     {
         currentStep = 3;
         StateHasChanged();
-        
+
         if (selectedPayment == "mpesa")
         {
-            try
-            {
-                var client = HttpClientFactory.CreateClient();
-                client.DefaultRequestHeaders.Add("x-api-key", "cp_live_8bf0821a36f6d5d49291aa68e5f974d4640df0ed826e6436d9c4d69cfd649bc9");
-                
-                var requestPayload = new ClemPayDealRequest
-                {
-                    senderPhone = phoneNumber,
-                    receiverPhone = "254714568527",
-                    receiverType = "PHONE",
-                    totalAmount = 20,
-                    commissionType = "FIXED",
-                    commissionValue = 5,
-                    initiate = true
-                };
-
-                var response = await client.PostAsJsonAsync("https://clempay.com/api/broker/deals", requestPayload);
-                
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadFromJsonAsync<ClemPayDealResponse>();
-                    if (result != null && result.success)
-                    {
-                        paymentComplete = true;
-                    }
-                    else
-                    {
-                        ToastService.ShowError("Payment Failed", result?.message ?? "ClemPay STK push failed.");
-                        currentStep = 2; // Revert to payment step
-                        return;
-                    }
-                }
-                else
-                {
-                    ToastService.ShowError("Gateway Error", "Failed to communicate with ClemPay API gateway.");
-                    currentStep = 2;
-                    return;
-                }
-            }
-            catch (Exception ex)
-            {
-                ToastService.ShowError("Network Error", $"An error occurred during payment processing: {ex.Message}");
-                currentStep = 2;
-                return;
-            }
+            await ProcessMpesaPayment();
+        }
+        else if (selectedPayment == "cash")
+        {
+            await ProcessCashPayment();
         }
         else
         {
             // Simulate other payment processing
             await Task.Delay(3000);
             paymentComplete = true;
+            await CreateBooking();
         }
-        
-        // Create booking record after successful payment
+    }
+
+    private async Task ProcessMpesaPayment()
+    {
+        try
+        {
+            // Validate phone number
+            if (string.IsNullOrEmpty(phoneNumber) || phoneNumber.Length < 10)
+            {
+                ToastService.ShowError("Invalid Phone", "Please enter a valid M-Pesa phone number (e.g., 254712345678)");
+                currentStep = 2;
+                return;
+            }
+
+            // Normalize phone number (ensure it starts with 254)
+            string normalizedPhone = phoneNumber.StartsWith("254") ? phoneNumber : $"254{phoneNumber.Substring(1)}";
+            string receiverPhone = hotel?.Phone ?? "";
+            
+            // Normalize receiver phone
+            if (!string.IsNullOrEmpty(receiverPhone) && !receiverPhone.StartsWith("254"))
+            {
+                receiverPhone = $"254{receiverPhone.Substring(1)}";
+            }
+
+            if (string.IsNullOrEmpty(receiverPhone))
+            {
+                ToastService.ShowError("Hotel Error", "Hotel contact number not available");
+                currentStep = 2;
+                return;
+            }
+
+            paymentStatusMessage = "Initiating M-Pesa payment...";
+            StateHasChanged();
+
+            // Initiate payment
+            var response = await MpesaPaymentService.InitiatePaymentAsync(
+                normalizedPhone,
+                receiverPhone,
+                totalAmount,
+                serviceFee
+            );
+
+            if (!response.Success || response.Deal == null)
+            {
+                ToastService.ShowError("Payment Failed", response.Message ?? "Failed to initiate M-Pesa payment");
+                currentStep = 2;
+                return;
+            }
+
+            checkoutRequestId = response.CheckoutRequestId;
+            try
+            {
+                var jsonDoc = System.Text.Json.JsonDocument.Parse(response.RawResponse);
+                rawPaymentResponse = System.Text.Json.JsonSerializer.Serialize(jsonDoc, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+            }
+            catch { rawPaymentResponse = response.RawResponse; }
+            paymentStatusMessage = "STK push sent! Check your phone...";
+            StateHasChanged();
+
+            // Poll for payment status
+            isPollingPayment = true;
+            await PollPaymentStatus(checkoutRequestId);
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError("Payment Error", $"An error occurred: {ex.Message}");
+            currentStep = 2;
+        }
+    }
+
+    private async Task PollPaymentStatus(string requestId)
+    {
+        const int maxAttempts = 60; // 60 seconds max
+        const int delayMs = 1000; // Check every 1 second
+
+        for (int attempt = 0; attempt < maxAttempts; attempt++)
+        {
+            try
+            {
+                var statusResponse = await MpesaPaymentService.CheckPaymentStatusAsync(requestId);
+
+                if (statusResponse.Success && statusResponse.Deal != null)
+                {
+                    string status = statusResponse.Deal.Status.ToUpper();
+
+                    if (status == "COMPLETED" || status == "SUCCESS" || status == "RELEASED")
+                    {
+                        // Payment successful
+                        paymentStatusMessage = "Payment successful!";
+                        mpesaReceipt = statusResponse.Deal.MpesaReceipt ?? statusResponse.Deal.B2cTransactionId ?? "N/A";
+                        paymentComplete = true;
+                        isPollingPayment = false;
+                        StateHasChanged();
+
+                        // Create booking and send notification
+                        await CreateBooking();
+                        await SendHotelNotification();
+                        return;
+                    }
+                    else if (status == "FAILED" || status == "CANCELLED")
+                    {
+                        // Payment failed
+                        paymentStatusMessage = $"Payment failed: {statusResponse.Deal.FailureReason ?? "Unknown error"}";
+                        isPollingPayment = false;
+                        StateHasChanged();
+
+                        ToastService.ShowError("Payment Failed", statusResponse.Deal.FailureReason ?? "Payment was not completed. Please try again.");
+                        currentStep = 2;
+                        return;
+                    }
+                    else if (status == "PENDING")
+                    {
+                        // Still waiting for user response
+                        paymentStatusMessage = $"Waiting for M-Pesa response... ({attempt + 1}s)";
+                        StateHasChanged();
+                    }
+                }
+
+                // Wait before next poll
+                await Task.Delay(delayMs);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error polling payment status: {ex.Message}");
+                await Task.Delay(delayMs);
+            }
+        }
+
+        // Timeout - no response after 60 seconds
+        isPollingPayment = false;
+        paymentStatusMessage = "Payment timeout. No response received.";
+        StateHasChanged();
+
+        ToastService.ShowError("Payment Timeout", "No response received within 60 seconds. Please try again.");
+        currentStep = 2;
+    }
+
+    private async Task ProcessCashPayment()
+    {
+        paymentStatusMessage = "Reserving your booking...";
+        StateHasChanged();
+
+        await Task.Delay(2000);
+        paymentComplete = true;
+        await CreateBooking();
+    }
+
+    private async Task CreateBooking()
+    {
         try
         {
             var userId = await GetCurrentUserIdAsync();
@@ -539,20 +698,49 @@
                     Notes = string.IsNullOrEmpty(specialRequests) ? null : specialRequests,
                     Status = selectedPayment == "cash" ? BookingStatus.Pending : BookingStatus.Confirmed
                 };
-                
+
                 await BookingService.CreateBookingAsync(booking);
                 paymentComplete = true;
             }
             else
             {
-                // Handle error - user not authenticated
                 paymentComplete = false;
+                ToastService.ShowError("Authentication Error", "Please log in to complete your booking");
             }
         }
         catch (Exception ex)
         {
-            // Handle error
             paymentComplete = false;
+            ToastService.ShowError("Booking Error", $"Failed to create booking: {ex.Message}");
+        }
+    }
+
+    private async Task SendHotelNotification()
+    {
+        if (hotel != null && !string.IsNullOrEmpty(hotel.Email) && !string.IsNullOrEmpty(mpesaReceipt))
+        {
+            try
+            {
+                var userId = await GetCurrentUserIdAsync();
+                var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+                var user = authState?.User;
+                var guestName = user?.FindFirst(ClaimTypes.Name)?.Value ?? "Guest";
+
+                await MpesaPaymentService.SendBookingNotificationEmailAsync(
+                    hotel.Email,
+                    hotel.Name,
+                    guestName,
+                    checkInDate,
+                    checkOutDate,
+                    numberOfGuests,
+                    totalAmount,
+                    mpesaReceipt
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending hotel notification: {ex.Message}");
+            }
         }
     }
 

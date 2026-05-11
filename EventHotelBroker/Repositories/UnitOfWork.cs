@@ -12,6 +12,7 @@ public class UnitOfWork : IUnitOfWork
 
     public IHotelRepository Hotels { get; }
     public IRepository<HotelImage> HotelImages { get; }
+    public IHotelCategoryRepository HotelCategories { get; }
     public IRepository<Service> Services { get; }
     public IRepository<ServiceImage> ServiceImages { get; }
     public IRepository<Category> Categories { get; }
@@ -33,9 +34,10 @@ public class UnitOfWork : IUnitOfWork
     public UnitOfWork(ApplicationDbContext context)
     {
         _context = context;
-        
+
         Hotels = new HotelRepository(_context);
         HotelImages = new Repository<HotelImage>(_context);
+        HotelCategories = new HotelCategoryRepository(_context);
         Services = new Repository<Service>(_context);
         ServiceImages = new Repository<ServiceImage>(_context);
         Categories = new Repository<Category>(_context);

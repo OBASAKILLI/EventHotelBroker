@@ -3,6 +3,7 @@ using System;
 using EventHotelBroker.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EventHotelBroker.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260511131916_AddEmailToHotels")]
+    partial class AddEmailToHotels
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -44,7 +47,7 @@ namespace EventHotelBroker.Migrations
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.ToTable("Amenities", (string)null);
+                    b.ToTable("Amenities");
                 });
 
             modelBuilder.Entity("EventHotelBroker.Models.AuditLog", b =>
@@ -75,7 +78,7 @@ namespace EventHotelBroker.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AuditLogs", (string)null);
+                    b.ToTable("AuditLogs");
                 });
 
             modelBuilder.Entity("EventHotelBroker.Models.Booking", b =>
@@ -126,7 +129,7 @@ namespace EventHotelBroker.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Bookings", (string)null);
+                    b.ToTable("Bookings");
                 });
 
             modelBuilder.Entity("EventHotelBroker.Models.Category", b =>
@@ -154,7 +157,7 @@ namespace EventHotelBroker.Migrations
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.ToTable("Categories", (string)null);
+                    b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("EventHotelBroker.Models.EventBooking", b =>
@@ -242,7 +245,7 @@ namespace EventHotelBroker.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("EventBookings", (string)null);
+                    b.ToTable("EventBookings");
                 });
 
             modelBuilder.Entity("EventHotelBroker.Models.EventBookingEquipment", b =>
@@ -277,7 +280,7 @@ namespace EventHotelBroker.Migrations
 
                     b.HasIndex("EquipmentId");
 
-                    b.ToTable("EventBookingEquipments", (string)null);
+                    b.ToTable("EventBookingEquipments");
                 });
 
             modelBuilder.Entity("EventHotelBroker.Models.EventEquipment", b =>
@@ -340,7 +343,7 @@ namespace EventHotelBroker.Migrations
 
                     b.HasIndex("ProviderId");
 
-                    b.ToTable("EventEquipments", (string)null);
+                    b.ToTable("EventEquipments");
                 });
 
             modelBuilder.Entity("EventHotelBroker.Models.EventEquipmentImage", b =>
@@ -370,7 +373,7 @@ namespace EventHotelBroker.Migrations
 
                     b.HasIndex("EquipmentId");
 
-                    b.ToTable("EventEquipmentImages", (string)null);
+                    b.ToTable("EventEquipmentImages");
                 });
 
             modelBuilder.Entity("EventHotelBroker.Models.EventPackage", b =>
@@ -445,7 +448,7 @@ namespace EventHotelBroker.Migrations
 
                     b.HasIndex("ProviderId");
 
-                    b.ToTable("EventPackages", (string)null);
+                    b.ToTable("EventPackages");
                 });
 
             modelBuilder.Entity("EventHotelBroker.Models.EventPackageEquipment", b =>
@@ -472,7 +475,7 @@ namespace EventHotelBroker.Migrations
 
                     b.HasIndex("PackageId");
 
-                    b.ToTable("EventPackageEquipments", (string)null);
+                    b.ToTable("EventPackageEquipments");
                 });
 
             modelBuilder.Entity("EventHotelBroker.Models.Hotel", b =>
@@ -566,7 +569,7 @@ namespace EventHotelBroker.Migrations
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.ToTable("Hotels", (string)null);
+                    b.ToTable("Hotels");
                 });
 
             modelBuilder.Entity("EventHotelBroker.Models.HotelAmenity", b =>
@@ -581,7 +584,7 @@ namespace EventHotelBroker.Migrations
 
                     b.HasIndex("AmenityId");
 
-                    b.ToTable("HotelAmenities", (string)null);
+                    b.ToTable("HotelAmenities");
                 });
 
             modelBuilder.Entity("EventHotelBroker.Models.HotelImage", b =>
@@ -611,7 +614,7 @@ namespace EventHotelBroker.Migrations
 
                     b.HasIndex("HotelId");
 
-                    b.ToTable("HotelImages", (string)null);
+                    b.ToTable("HotelImages");
                 });
 
             modelBuilder.Entity("EventHotelBroker.Models.Message", b =>
@@ -649,7 +652,7 @@ namespace EventHotelBroker.Migrations
 
                     b.HasIndex("SenderId");
 
-                    b.ToTable("Messages", (string)null);
+                    b.ToTable("Messages");
                 });
 
             modelBuilder.Entity("EventHotelBroker.Models.Service", b =>
@@ -698,7 +701,7 @@ namespace EventHotelBroker.Migrations
 
                     b.HasIndex("ProviderId");
 
-                    b.ToTable("Services", (string)null);
+                    b.ToTable("Services");
                 });
 
             modelBuilder.Entity("EventHotelBroker.Models.ServiceImage", b =>
@@ -728,7 +731,7 @@ namespace EventHotelBroker.Migrations
 
                     b.HasIndex("ServiceId");
 
-                    b.ToTable("ServiceImages", (string)null);
+                    b.ToTable("ServiceImages");
                 });
 
             modelBuilder.Entity("EventHotelBroker.Models.Users", b =>
@@ -826,7 +829,7 @@ namespace EventHotelBroker.Migrations
 
                     b.HasKey("strid");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("EventHotelBroker.Models.AuditLog", b =>

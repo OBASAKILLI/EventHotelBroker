@@ -68,11 +68,12 @@ public class HotelsController : ControllerBase
         [FromQuery] string? keyword,
         [FromQuery] string? city,
         [FromQuery] int? minCapacity,
-        [FromQuery] decimal? maxPrice)
+        [FromQuery] decimal? maxPrice,
+        [FromQuery] string? category)
     {
         try
         {
-            var hotels = await _hotelService.SearchHotelsAsync(keyword, city, minCapacity, maxPrice);
+            var hotels = await _hotelService.SearchHotelsAsync(keyword, city, minCapacity, maxPrice, category);
             return Ok(hotels);
         }
         catch (Exception ex)

@@ -8,5 +8,5 @@ public interface IHotelRepository : IRepository<Hotel>
     Task<IEnumerable<Hotel>> GetHotelsByOwnerAsync(string ownerId);
     Task<Hotel?> GetHotelWithImagesAsync(int id);
     Task<Hotel?> GetHotelWithAmenitiesAsync(int id);
-    Task<IEnumerable<Hotel>> SearchHotelsAsync(string? keyword, string? city, int? minCapacity, decimal? maxPrice);
+    Task<IEnumerable<Hotel>> SearchHotelsAsync(string? keyword, string? city, int? minCapacity, decimal? maxPrice, string? category);
 }

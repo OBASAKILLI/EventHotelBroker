@@ -12,10 +12,12 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IJSRuntime JSRuntime
 @inject IWebHostEnvironment Environment
+@implements IDisposable
 
 <PageTitle>Edit Hotel - EventHotelBroker</PageTitle>
 
 <link href="/css/create-hotel.css?v=1" rel="stylesheet" />
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA7eRAscqIJa-F2uUfvyS-rg7dAg02sXCk&libraries=places,geometry"></script>
 
 <div class="ch">
     <Breadcrumb Items="@breadcrumbItems" />
@@ -98,8 +100,9 @@
                             }
                         </div>
 
-                        <EditForm Model="hotel" OnValidSubmit="HandleSubmit" FormName="editHotelForm">
+                        <EditForm Model="hotel" OnValidSubmit="HandleSubmit" OnInvalidSubmit="HandleInvalidSubmit" FormName="editHotelForm">
                             <DataAnnotationsValidator />
+                            <ValidationSummary />
 
                             <!-- Basic Information -->
                             <div class="ch-section">
@@ -137,6 +140,49 @@
                                 </div>
                             </div>
 
+                            <div class="ch-field">
+                                <label class="ch-label" for="category">Category *</label>
+                                <InputSelect @bind-Value="hotel.Category" class="ch-input" id="category">
+                                    <option value="">Select Category</option>
+                                    <option value="Hotel">Hotel</option>
+                                    <option value="Airbnb">Airbnb</option>
+                                    <option value="Restaurant">Restaurant</option>
+                                    <option value="Venue">Venue</option>
+                                    <option value="Resort">Resort</option>
+                                    <option value="Lodge">Lodge</option>
+                                    <option value="Guest House">Guest House</option>
+                                    <option value="Apartment">Apartment</option>
+                                </InputSelect>
+                                <ValidationMessage For="@(() => hotel.Category)" />
+                            </div>
+
+                            <div class="ch-field">
+                                <label class="ch-label" for="hotelCategory">Hotel Category *</label>
+                                <InputSelect @bind-Value="hotel.HotelCategoryId" class="ch-input" id="hotelCategory">
+                                    <option value="0">Select hotel category</option>
+                                    @if (availableHotelCategories != null)
+                                    {
+                                        @foreach (var cat in availableHotelCategories)
+                                        {
+                                            <option value="@cat.Id">@cat.Name (@cat.Rating) - KES @cat.ServiceFee service fee</option>
+                                        }
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="@(() => hotel.HotelCategoryId)" />
+                            </div>
+
+                            <div class="ch-field">
+                                <label class="ch-label" for="phone">Phone Number *</label>
+                                <InputText @bind-Value="hotel.Phone" class="ch-input" id="phone" placeholder="+254 7XX XXX XXX" />
+                                <ValidationMessage For="@(() => hotel.Phone)" />
+                            </div>
+
+                            <div class="ch-field">
+                                <label class="ch-label" for="email">Email *</label>
+                                <InputText @bind-Value="hotel.Email" class="ch-input" id="email" placeholder="hotel@example.com" />
+                                <ValidationMessage For="@(() => hotel.Email)" />
+                            </div>
+
                             <hr class="ch-divider" />
 
                             <!-- Location -->
@@ -149,6 +195,16 @@
                                 <label class="ch-label" for="address">Address *</label>
                                 <InputText @bind-Value="hotel.Address" class="ch-input" id="address" placeholder="Street address" />
                                 <ValidationMessage For="@(() => hotel.Address)" />
+                            </div>
+
+                            <!-- Google Maps Search & Preview -->
+                            <div class="ch-field">
+                                <label class="ch-label">Search Location & Pin on Map</label>
+                                <div class="map-search-container">
+                                    <p style="font-size: 0.65rem; color: #8a8177; margin-bottom: 0.5rem;"><i class="bi bi-info-circle"></i> Type and select from the dropdown to automatically fill details.</p>
+                                    <input id="mapSearchInput" type="text" class="ch-input mb-2" placeholder="Start typing hotel location..." autocomplete="off" />
+                                    <div id="hotelMap" style="height: 400px; width: 100%; border-radius: 12px; border: 1px solid #dee2e6; display: none; margin-bottom: 1.5rem;"></div>
+                                </div>
                             </div>
 
                             <div class="row">
@@ -383,6 +439,7 @@
 
     private List<Amenity> availableAmenities = new();
     private List<int> selectedAmenityIds = new();
+    private List<HotelCategory>? availableHotelCategories;
     private List<HotelImage> existingImages = new();
     private List<int> imagesToRemove = new();
 
@@ -440,6 +497,9 @@
 
                 // Load all available amenities
                 availableAmenities = (await UnitOfWork.Amenities.GetAllAsync()).ToList();
+
+                // Load hotel categories
+                availableHotelCategories = (await UnitOfWork.HotelCategories.GetAllAsync()).ToList();
             }
             catch (Exception ex)
             {
@@ -450,8 +510,58 @@
             {
                 isLoading = false;
             }
+
             StateHasChanged();
+
+            // Initialize Map Autocomplete
+            objRef = DotNetObjectReference.Create(this);
+            await JSRuntime.InvokeVoidAsync("mapHelper.initAutocomplete", objRef, "mapSearchInput", "hotelMap");
+
+            // If hotel has location data, show the map and pre-fill autocomplete
+            if (hotel != null && hotel.Latitude.HasValue && hotel.Longitude.HasValue)
+            {
+                Console.WriteLine($"Hotel has location: Lat={hotel.Latitude}, Lng={hotel.Longitude}, Address={hotel.Address}");
+                var lat = (double)hotel.Latitude.Value;
+                var lng = (double)hotel.Longitude.Value;
+                try
+                {
+                    await JSRuntime.InvokeVoidAsync("mapHelper.showMapWithExistingLocation", "hotelMap", lat, lng, objRef);
+                    Console.WriteLine("Map shown successfully");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error showing map: {ex.Message}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Hotel has no location data");
+            }
         }
+    }
+
+    private DotNetObjectReference<EditHotel>? objRef;
+
+    public void Dispose()
+    {
+        objRef?.Dispose();
+    }
+
+    [JSInvokable]
+    public async Task UpdateLocationFromJS(string address, string city, string country, double lat, double lng)
+    {
+        hotel.Address = address;
+        hotel.City = city;
+        hotel.Country = country;
+        hotel.Latitude = (decimal?)lat;
+        hotel.Longitude = (decimal?)lng;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public string GetHotelAddress()
+    {
+        return hotel?.Address ?? "";
     }
 
     private async Task<string?> GetCurrentUserIdAsync()
@@ -541,6 +651,7 @@
 
     private async Task HandleSubmit()
     {
+        Console.WriteLine("HandleSubmit called");
         if (hotel == null || string.IsNullOrEmpty(currentUserId)) return;
 
         isSubmitting = true;
@@ -549,6 +660,8 @@
 
         try
         {
+            Console.WriteLine("Starting hotel update...");
+            Console.WriteLine($"Hotel data: Name={hotel.Name}, Category={hotel.Category}, Phone={hotel.Phone}, Lat={hotel.Latitude}, Lng={hotel.Longitude}");
             // Fix lat/lng precision
             if (hotel.Latitude == 0) hotel.Latitude = null;
             if (hotel.Longitude == 0) hotel.Longitude = null;
@@ -624,6 +737,7 @@
 
             await UnitOfWork.SaveChangesAsync();
 
+            Console.WriteLine("Hotel updated successfully!");
             successMessage = "Hotel updated successfully! Redirecting...";
             StateHasChanged();
 
@@ -632,6 +746,12 @@
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"Error updating hotel: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+            }
             errorMessage = $"Error updating hotel: {ex.Message}";
             if (ex.InnerException != null)
                 errorMessage += $" | {ex.InnerException.Message}";
@@ -640,6 +760,12 @@
         {
             isSubmitting = false;
         }
+    }
+
+    private void HandleInvalidSubmit()
+    {
+        Console.WriteLine("Form validation failed!");
+        errorMessage = "Please fix the validation errors before submitting.";
     }
 
     private void ConfirmDelete()
@@ -667,3 +793,17 @@
         NavigationManager.NavigateTo("/owner/hotels");
     }
 }
+
+<script>
+    // Pre-fill autocomplete input with address after page loads
+    window.addEventListener('load', function() {
+        setTimeout(function() {
+            const addressInput = document.getElementById('address');
+            const autocompleteInput = document.getElementById('mapSearchInput');
+            if (addressInput && autocompleteInput && addressInput.value) {
+                autocompleteInput.value = addressInput.value;
+                console.log("Autocomplete input pre-filled with:", addressInput.value);
+            }
+        }, 500);
+    });
+</script>

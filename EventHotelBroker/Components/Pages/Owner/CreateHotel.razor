@@ -13,11 +13,13 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IJSRuntime JSRuntime
 @inject IWebHostEnvironment Environment
+@implements IDisposable
 @using EventHotelBroker.Utils
 
 <PageTitle>Create Hotel - EventHotelBroker</PageTitle>
 
 <link href="/css/create-hotel.css?v=1" rel="stylesheet" />
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA7eRAscqIJa-F2uUfvyS-rg7dAg02sXCk&libraries=places,geometry"></script>
 
 
 <div class="ch">
@@ -80,6 +82,33 @@
                             <ValidationMessage For="@(() => hotel.Description)" />
                         </div>
 
+                        <div class="ch-field">
+                            <label class="ch-label" for="category">Category *</label>
+                            <InputSelect @bind-Value="hotel.Category" class="ch-input" id="category">
+                                <option value="">Select a category</option>
+                                @foreach (var category in availableCategories)
+                                {
+                                    <option value="@category">@category</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="@(() => hotel.Category)" />
+                        </div>
+
+                        <div class="ch-field">
+                            <label class="ch-label" for="hotelCategory">Hotel Category *</label>
+                            <InputSelect @bind-Value="hotel.HotelCategoryId" class="ch-input" id="hotelCategory">
+                                <option value="0">Select hotel category</option>
+                                @if (availableHotelCategories != null)
+                                {
+                                    @foreach (var cat in availableHotelCategories)
+                                    {
+                                        <option value="@cat.Id">@cat.Name (@cat.Rating) - KES @cat.ServiceFee service fee</option>
+                                    }
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="@(() => hotel.HotelCategoryId)" />
+                        </div>
+
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="ch-field">
@@ -97,6 +126,18 @@
                             </div>
                         </div>
 
+                        <div class="ch-field">
+                            <label class="ch-label" for="phone">Phone Number *</label>
+                            <InputText @bind-Value="hotel.Phone" class="ch-input" id="phone" placeholder="+254 7XX XXX XXX" />
+                            <ValidationMessage For="@(() => hotel.Phone)" />
+                        </div>
+
+                        <div class="ch-field">
+                            <label class="ch-label" for="email">Email *</label>
+                            <InputText @bind-Value="hotel.Email" class="ch-input" id="email" placeholder="hotel@example.com" />
+                            <ValidationMessage For="@(() => hotel.Email)" />
+                        </div>
+
                         <hr class="ch-divider" />
 
                         <!-- Location -->
@@ -109,6 +150,16 @@
                             <label class="ch-label" for="address">Address *</label>
                             <InputText @bind-Value="hotel.Address" class="ch-input" id="address" placeholder="Street address" />
                             <ValidationMessage For="@(() => hotel.Address)" />
+                        </div>
+
+                        <!-- Google Maps Search & Preview -->
+                        <div class="ch-field">
+                            <label class="ch-label">Search Location & Pin on Map</label>
+                            <div class="map-search-container">
+                                <p style="font-size: 0.65rem; color: #8a8177; margin-bottom: 0.5rem;"><i class="bi bi-info-circle"></i> Type and select from the dropdown to automatically fill details.</p>
+                                <input id="mapSearchInput" type="text" class="ch-input mb-2" placeholder="Start typing hotel location..." autocomplete="off" />
+                                <div id="hotelMap" style="height: 400px; width: 100%; border-radius: 12px; border: 1px solid #dee2e6; display: none; margin-bottom: 1.5rem;"></div>
+                            </div>
                         </div>
 
                         <div class="row">
@@ -131,14 +182,14 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="ch-field">
-                                    <label class="ch-label" for="latitude">Latitude (Optional)</label>
-                                    <InputNumber @bind-Value="hotel.Latitude" class="ch-input" id="latitude" placeholder="e.g., -1.286389" />
+                                    <label class="ch-label" for="latitude">Latitude (Auto-filled)</label>
+                                    <InputNumber @bind-Value="hotel.Latitude" class="ch-input" id="latitude" placeholder="e.g., -1.286389" readonly />
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="ch-field">
-                                    <label class="ch-label" for="longitude">Longitude (Optional)</label>
-                                    <InputNumber @bind-Value="hotel.Longitude" class="ch-input" id="longitude" placeholder="e.g., 36.817223" />
+                                    <label class="ch-label" for="longitude">Longitude (Auto-filled)</label>
+                                    <InputNumber @bind-Value="hotel.Longitude" class="ch-input" id="longitude" placeholder="e.g., 36.817223" readonly />
                                 </div>
                             </div>
                         </div>
@@ -278,6 +329,7 @@
 
     private List<Amenity> availableAmenities = new();
     private List<int> selectedAmenityIds = new();
+    private List<HotelCategory>? availableHotelCategories;
     private string? errorMessage;
     private string? successMessage;
     private bool isSubmitting = false;
@@ -286,6 +338,18 @@
     private Dictionary<string, string> imagePreviewUrls = new();
     private string? primaryImageName;
     private const long MaxFileSize = 5 * 1024 * 1024; // 5MB
+
+    private List<string> availableCategories = new()
+    {
+        "Hotel",
+        "Airbnb",
+        "Restaurant",
+        "Venue",
+        "Resort",
+        "Lodge",
+        "Guest House",
+        "Apartment"
+    };
 
     private List<BreadcrumbItem> breadcrumbItems = new()
     {
@@ -299,10 +363,11 @@
         try
         {
             availableAmenities = (await UnitOfWork.Amenities.GetAllAsync()).ToList();
+            availableHotelCategories = (await UnitOfWork.HotelCategories.GetAllAsync()).ToList();
         }
         catch (Exception ex)
         {
-            errorMessage = "Failed to load amenities.";
+            errorMessage = "Failed to load amenities or categories.";
         }
     }
 
@@ -336,7 +401,29 @@
             }
             
             StateHasChanged();
+
+            // Initialize Map Autocomplete
+            objRef = DotNetObjectReference.Create(this);
+            await JSRuntime.InvokeVoidAsync("mapHelper.initAutocomplete", objRef, "mapSearchInput", "hotelMap");
         }
+    }
+
+    private DotNetObjectReference<CreateHotel>? objRef;
+
+    public void Dispose()
+    {
+        objRef?.Dispose();
+    }
+
+    [JSInvokable]
+    public async Task UpdateLocationFromJS(string address, string city, string country, double lat, double lng)
+    {
+        hotel.Address = address;
+        hotel.City = city;
+        hotel.Country = country;
+        hotel.Latitude = (decimal?)lat;
+        hotel.Longitude = (decimal?)lng;
+        StateHasChanged();
     }
 
     private async Task<string?> GetCurrentUserIdAsync()
