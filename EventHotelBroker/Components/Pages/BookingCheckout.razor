@@ -119,54 +119,14 @@
                                 <i class="bi bi-shield-check"></i> Your payment is secure and encrypted
                             </div>
 
-                            @if (!string.IsNullOrEmpty(checkoutRequestId))
-                            {
-                                <div style="margin-top: 0.75rem; margin-bottom: 0.75rem; padding: 0.5rem; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; font-family: monospace; font-size: 0.9rem; color: #495057;">
-                                    Checkout Request ID: @checkoutRequestId
-                                </div>
-                            }
-
-                            <div class="co-payment-option @(selectedPayment == "mpesa" ? "selected" : "")" @onclick='() => SelectPayment("mpesa")'>
+                            <div class="co-payment-option selected" @onclick='() => SelectPayment("mpesa")'>
                                 <div class="co-pay-icon mpesa"><i class="bi bi-phone"></i></div>
                                 <div class="co-pay-info">
                                     <h6>M-Pesa</h6>
                                     <small>Pay with your mobile money</small>
                                 </div>
                                 <div class="co-pay-check">
-                                    <i class="bi @(selectedPayment == "mpesa" ? "bi-check-circle-fill checked" : "bi-circle unchecked")"></i>
-                                </div>
-                            </div>
-
-                            <div class="co-payment-option @(selectedPayment == "card" ? "selected" : "")" @onclick='() => SelectPayment("card")'>
-                                <div class="co-pay-icon card"><i class="bi bi-credit-card"></i></div>
-                                <div class="co-pay-info">
-                                    <h6>Credit/Debit Card</h6>
-                                    <small>Visa, Mastercard, Amex</small>
-                                </div>
-                                <div class="co-pay-check">
-                                    <i class="bi @(selectedPayment == "card" ? "bi-check-circle-fill checked" : "bi-circle unchecked")"></i>
-                                </div>
-                            </div>
-
-                            <div class="co-payment-option @(selectedPayment == "paypal" ? "selected" : "")" @onclick='() => SelectPayment("paypal")'>
-                                <div class="co-pay-icon paypal"><i class="bi bi-paypal"></i></div>
-                                <div class="co-pay-info">
-                                    <h6>PayPal</h6>
-                                    <small>Pay with your PayPal account</small>
-                                </div>
-                                <div class="co-pay-check">
-                                    <i class="bi @(selectedPayment == "paypal" ? "bi-check-circle-fill checked" : "bi-circle unchecked")"></i>
-                                </div>
-                            </div>
-
-                            <div class="co-payment-option @(selectedPayment == "cash" ? "selected" : "")" @onclick='() => SelectPayment("cash")'>
-                                <div class="co-pay-icon cash"><i class="bi bi-cash-stack"></i></div>
-                                <div class="co-pay-info">
-                                    <h6>Cash Payment</h6>
-                                    <small>Pay at the venue on check-in</small>
-                                </div>
-                                <div class="co-pay-check">
-                                    <i class="bi @(selectedPayment == "cash" ? "bi-check-circle-fill checked" : "bi-circle unchecked")"></i>
+                                    <i class="bi bi-check-circle-fill checked"></i>
                                 </div>
                             </div>
 
@@ -183,12 +143,6 @@
                                         <div class="co-pay-alert" style="margin-top: 0.75rem;">
                                             <i class="bi bi-info-circle"></i> You will receive an STK push to complete payment
                                         </div>
-                                        @if (!string.IsNullOrEmpty(checkoutRequestId))
-                                        {
-                                            <div style="margin-top: 0.75rem; padding: 0.5rem; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; font-family: monospace; font-size: 0.9rem; color: #495057;">
-                                                Checkout Request ID: @checkoutRequestId
-                                            </div>
-                                        }
                                     </div>
                                 }
                                 else if (selectedPayment == "card")
@@ -263,30 +217,12 @@
                                         <span class="visually-hidden">Processing...</span>
                                     </div>
                                     <h4>Processing Your Payment</h4>
-                                    @if (!string.IsNullOrEmpty(checkoutRequestId))
-                                    {
-                                        <div style="padding: 0.5rem; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; font-family: monospace; font-size: 0.9rem; color: #495057; margin-bottom: 0.5rem;">
-                                            Checkout Request ID: @checkoutRequestId
-                                        </div>
-                                    }
                                     <p>@paymentStatusMessage</p>
-                                    @if (!string.IsNullOrEmpty(rawPaymentResponse))
-                                    {
-                                        <div style="margin-top: 0.5rem; padding: 0.75rem; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; font-family: monospace; font-size: 0.8rem; color: #495057; white-space: pre-wrap; word-break: break-all; text-align: left; max-height: 300px; overflow-y: auto;">
-@rawPaymentResponse
-                                        </div>
-                                    }
                                     @if (selectedPayment == "mpesa")
                                     {
                                         <div class="co-pay-alert">
                                             <i class="bi bi-phone"></i> Check your phone for M-Pesa prompt
                                         </div>
-                                        @if (!string.IsNullOrEmpty(checkoutRequestId))
-                                        {
-                                            <div style="margin-top: 0.5rem; padding: 0.5rem; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; font-family: monospace; font-size: 0.9rem; color: #495057;">
-                                                Checkout Request ID: @checkoutRequestId
-                                            </div>
-                                        }
                                         @if (isPollingPayment)
                                         {
                                             <div class="co-pay-alert" style="margin-top: 0.5rem;">
@@ -462,7 +398,7 @@
     private string specialRequests = "";
 
     // Payment details
-    private string selectedPayment = "";
+    private string selectedPayment = "mpesa";
     private string phoneNumber = "";
     private string cardNumber = "";
     private string expiryDate = "";
@@ -632,25 +568,14 @@
             {
                 var statusResponse = await MpesaPaymentService.CheckPaymentStatusAsync(requestId);
 
-                // Show raw status response for debugging via alert
-                if (!string.IsNullOrEmpty(statusResponse.RawResponse))
-                {
-                    ToastService.ShowInfo($"Poll {attempt + 1}", statusResponse.RawResponse);
-                    try
-                    {
-                        var jsonDoc = System.Text.Json.JsonDocument.Parse(statusResponse.RawResponse);
-                        rawPaymentResponse = System.Text.Json.JsonSerializer.Serialize(jsonDoc, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
-                    }
-                    catch { rawPaymentResponse = statusResponse.RawResponse; }
-                }
+                // Check response success
+                                                if (statusResponse.Success && statusResponse.Deal != null)
+                                                {
+                                                    string status = statusResponse.Deal.Status.ToUpper();
 
-                if (statusResponse.Success && statusResponse.Deal != null)
-                {
-                    string status = statusResponse.Deal.Status.ToUpper();
-
-                    // Record found - show hello worlds
-                    paymentStatusMessage = $"hello worlds | Status: {status}";
-                    StateHasChanged();
+                                                    // Record found
+                                                    paymentStatusMessage = $"Processing payment... Status: {status}";
+                                                    StateHasChanged();
 
                     if (status == "RELEASED")
                     {
