@@ -1,8 +1,12 @@
 @page "/search"
 @using EventHotelBroker.Models
 @using EventHotelBroker.Services
+@using Microsoft.AspNetCore.Components.Authorization
 @inject IHotelService HotelService
 @inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveServer
 
 <PageTitle>Search Hotels - EventHotelBroker</PageTitle>
 
@@ -10,17 +14,39 @@
     <!-- Search Header -->
     <div class="search-header">
         <div class="container-fluid px-4">
-            <h1 class="search-title">
-                <i class="bi bi-search me-3"></i>Discover Hotels
-            </h1>
-            <p class="search-subtitle">Find the perfect venue for your next event</p>
+            <!-- Navigation breadcrumb for unauthenticated users -->
+            @if (!isAuthenticated)
+            {
+                <div style="margin-bottom: 12px;">
+                    <a href="/" style="display: inline-flex; align-items: center; gap: 6px; color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.88rem; font-weight: 500; transition: color 0.2s;"
+                       onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,0.8)'">
+                        <i class="bi bi-arrow-left"></i> Back to Home
+                    </a>
+                    <span style="color: rgba(255,255,255,0.4); margin: 0 10px;">|</span>
+                    <a href="/login" style="display: inline-flex; align-items: center; gap: 6px; color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.88rem; font-weight: 500; transition: color 0.2s;"
+                       onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,0.8)'">
+                        <i class="bi bi-box-arrow-in-right"></i> Log in to book
+                    </a>
+                </div>
+            }
+            <div class="d-flex align-items-center">
+                <button class="btn-back-circle me-3" @onclick="GoBack" title="Go Back">
+                    <i class="bi bi-arrow-left"></i>
+                </button>
+                <div>
+                    <h1 class="search-title mb-0">
+                        <i class="bi bi-search me-2"></i>Discover Hotels
+                    </h1>
+                    <p class="search-subtitle">Find the perfect venue for your next event</p>
+                </div>
+            </div>
         </div>
     </div>
 
     <div class="container-fluid px-4 py-4">
         <div class="row g-4">
-            <!-- Advanced Filters Sidebar -->
-            <div class="col-lg-3">
+            <!-- Advanced Filters Sidebar (narrowed) -->
+            <div class="col-lg-2">
                 <div class="filter-panel">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h5 class="mb-0" style="font-weight: 700;">
@@ -157,7 +183,7 @@
             </div>
 
             <!-- Results Section -->
-            <div class="col-lg-9">
+            <div class="col-lg-10">
                 <div class="results-header">
                     <div class="results-info">
                         <h3 class="results-title">Available Hotels</h3>
@@ -319,10 +345,25 @@
     private bool isLoading = true;
     private string viewMode = "grid"; // grid or list
     private HashSet<int> favoriteHotels = new HashSet<int>();
+    private bool isAuthenticated = false;
+
+    private List<BreadcrumbItem> breadcrumbItems = new()
+    {
+        new BreadcrumbItem { Text = "Home", Url = "/" },
+        new BreadcrumbItem { Text = "Search Hotels", IsActive = true }
+    };
 
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        isAuthenticated = authState.User.Identity?.IsAuthenticated == true;
+
         await LoadHotels();
+    }
+
+    private async Task GoBack()
+    {
+        await JSRuntime.InvokeVoidAsync("history.back");
     }
 
     private async Task LoadHotels()

@@ -39,6 +39,17 @@
         </div>
 
         <div class="lg-body">
+            @if (Enrolled)
+            {
+                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 16px; margin-bottom: 24px; color: #166534; font-size: 0.9rem; display: flex; align-items: flex-start; gap: 12px;">
+                    <i class="bi bi-check-circle-fill" style="font-size: 1.2rem; color: #22c55e;"></i>
+                    <div>
+                        <div style="font-weight: 700; margin-bottom: 2px;">Enrollment Successful!</div>
+                        <div>Your account has been upgraded to a Business Owner. Please sign in again to activate your new features.</div>
+                    </div>
+                </div>
+            }
+
             @if (!showOtpForm)
             {
                 <!-- Login Form -->
@@ -144,6 +155,12 @@
 </div>
 
 @code {
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    public string? ReturnUrl { get; set; }
+
+    [SupplyParameterFromQuery(Name = "enrolled")]
+    public bool Enrolled { get; set; }
+
     private string email = "";
     private string password = "";
     private bool rememberMe = false;
@@ -280,12 +297,24 @@
             ToastService.ShowSuccess("Login Successful!", $"Welcome back, {user.FullName}");
             await Task.Delay(500);
 
+            // If we have a returnUrl, always go there first
+            if (!string.IsNullOrWhiteSpace(ReturnUrl))
+            {
+                var decoded = Uri.UnescapeDataString(ReturnUrl);
+                // Safety: only allow relative paths to prevent open redirect attacks
+                if (decoded.StartsWith("/") && !decoded.StartsWith("//"))
+                {
+                    Navigation.NavigateTo(decoded, forceLoad: true);
+                    return;
+                }
+            }
+
             // Navigate based on role (forceLoad triggers full HTTP request where cookie is available)
-            if (user.Role == "Admin")
+            if (user.AccountType?.Contains("Admin") == true || user.Role == "Admin")
             {
                 Navigation.NavigateTo("/admin/dashboard", forceLoad: true);
             }
-            else if (user.Role == "HotelOwner")
+            else if (user.AccountType?.Contains("HotelOwner") == true || user.Role == "HotelOwner")
             {
                 Navigation.NavigateTo("/owner/dashboard", forceLoad: true);
             }

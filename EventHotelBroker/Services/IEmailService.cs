@@ -7,4 +7,5 @@ public interface IEmailService
     Task SendPasswordResetEmailAsync(string email, string userName, string resetLink);
     Task SendHotelInviteAsync(string emailAddress);
     Task SendEmailAsync(string to, string subject, string body);
+    Task SendAdminWelcomeEmailAsync(string email, string fullName, string temporaryPassword);
 }

@@ -485,6 +485,7 @@
     private string paymentStatusMessage = "";
     private string? mpesaReceipt;
     private string? rawPaymentResponse;
+    private int createdBookingId;
 
     protected override async Task OnInitializedAsync()
     {
@@ -548,14 +549,29 @@
                 return;
             }
 
-            // Normalize phone number (ensure it starts with 254)
-            string normalizedPhone = phoneNumber.StartsWith("254") ? phoneNumber : $"254{phoneNumber.Substring(1)}";
+            // Normalize phone number (take last 9 digits and prepend 254)
+            string normalizedPhone;
+            if (phoneNumber.Length >= 9)
+            {
+                string last9Digits = phoneNumber.Length > 9 ? phoneNumber.Substring(phoneNumber.Length - 9) : phoneNumber;
+                normalizedPhone = $"254{last9Digits}";
+            }
+            else
+            {
+                normalizedPhone = phoneNumber; // fallback if too short
+            }
+            
             string receiverPhone = hotel?.Phone ?? "";
             
-            // Normalize receiver phone
-            if (!string.IsNullOrEmpty(receiverPhone) && !receiverPhone.StartsWith("254"))
+            // Normalize receiver phone (take last 9 digits and prepend 254)
+            if (!string.IsNullOrEmpty(receiverPhone))
             {
-                receiverPhone = $"254{receiverPhone.Substring(1)}";
+                if (receiverPhone.Length >= 9)
+                {
+                    string last9Digits = receiverPhone.Length > 9 ? receiverPhone.Substring(receiverPhone.Length - 9) : receiverPhone;
+                    receiverPhone = $"254{last9Digits}";
+                }
+                // else keep as-is if too short
             }
 
             if (string.IsNullOrEmpty(receiverPhone))
@@ -606,6 +622,7 @@
 
     private async Task PollPaymentStatus(string requestId)
     {
+        await Task.Delay(10000); // Initial delay to allow user to respond to STK push
         const int maxAttempts = 60; // 60 seconds max
         const int delayMs = 1000; // Check every 1 second
 
@@ -615,11 +632,57 @@
             {
                 var statusResponse = await MpesaPaymentService.CheckPaymentStatusAsync(requestId);
 
+                // Show raw status response for debugging via alert
+                if (!string.IsNullOrEmpty(statusResponse.RawResponse))
+                {
+                    ToastService.ShowInfo($"Poll {attempt + 1}", statusResponse.RawResponse);
+                    try
+                    {
+                        var jsonDoc = System.Text.Json.JsonDocument.Parse(statusResponse.RawResponse);
+                        rawPaymentResponse = System.Text.Json.JsonSerializer.Serialize(jsonDoc, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                    }
+                    catch { rawPaymentResponse = statusResponse.RawResponse; }
+                }
+
                 if (statusResponse.Success && statusResponse.Deal != null)
                 {
                     string status = statusResponse.Deal.Status.ToUpper();
 
-                    if (status == "COMPLETED" || status == "SUCCESS" || status == "RELEASED")
+                    // Record found - show hello worlds
+                    paymentStatusMessage = $"hello worlds | Status: {status}";
+                    StateHasChanged();
+
+                    if (status == "RELEASED")
+                    {
+                        // Check for valid receipt to confirm success
+                        bool hasReceipt = !string.IsNullOrEmpty(statusResponse.Deal.MpesaReceipt) || !string.IsNullOrEmpty(statusResponse.Deal.B2cTransactionId);
+                        if (hasReceipt)
+                        {
+                            // Payment successful
+                            paymentStatusMessage = "Payment successful!";
+                            mpesaReceipt = statusResponse.Deal.MpesaReceipt ?? statusResponse.Deal.B2cTransactionId ?? "N/A";
+                            paymentComplete = true;
+                            isPollingPayment = false;
+                            StateHasChanged();
+
+                            // Create booking and send notification
+                            await CreateBooking();
+                            await SendHotelNotification();
+                            return;
+                        }
+                        else
+                        {
+                            // Released but no receipt - treat as failure
+                            paymentStatusMessage = $"Payment failed: No receipt received";
+                            isPollingPayment = false;
+                            StateHasChanged();
+
+                            ToastService.ShowError("Payment Failed", "Payment was released but no receipt was found. Please contact support.");
+                            currentStep = 2;
+                            return;
+                        }
+                    }
+                    else if (status == "COMPLETED" || status == "SUCCESS")
                     {
                         // Payment successful
                         paymentStatusMessage = "Payment successful!";
@@ -635,21 +698,28 @@
                     }
                     else if (status == "FAILED" || status == "CANCELLED")
                     {
-                        // Payment failed
-                        paymentStatusMessage = $"Payment failed: {statusResponse.Deal.FailureReason ?? "Unknown error"}";
+                        // Payment failed - show failure reason
+                        string failureReason = statusResponse.Deal.FailureReason ?? "Unknown error";
+                        paymentStatusMessage = $"Payment failed: {failureReason}";
                         isPollingPayment = false;
                         StateHasChanged();
 
-                        ToastService.ShowError("Payment Failed", statusResponse.Deal.FailureReason ?? "Payment was not completed. Please try again.");
+                        ToastService.ShowError("Payment Failed", failureReason);
                         currentStep = 2;
                         return;
                     }
-                    else if (status == "PENDING")
+                    else
                     {
-                        // Still waiting for user response
+                        // PENDING or other status - keep polling
                         paymentStatusMessage = $"Waiting for M-Pesa response... ({attempt + 1}s)";
                         StateHasChanged();
                     }
+                }
+                else
+                {
+                    // No record found yet - keep polling
+                    paymentStatusMessage = $"Waiting for M-Pesa response... ({attempt + 1}s)";
+                    StateHasChanged();
                 }
 
                 // Wait before next poll
@@ -699,7 +769,8 @@
                     Status = selectedPayment == "cash" ? BookingStatus.Pending : BookingStatus.Confirmed
                 };
 
-                await BookingService.CreateBookingAsync(booking);
+                var created = await BookingService.CreateBookingAsync(booking);
+                createdBookingId = created.Id;
                 paymentComplete = true;
             }
             else
@@ -724,7 +795,21 @@
                 var userId = await GetCurrentUserIdAsync();
                 var authState = await AuthStateProvider.GetAuthenticationStateAsync();
                 var user = authState?.User;
-                var guestName = user?.FindFirst(ClaimTypes.Name)?.Value ?? "Guest";
+                var guestNameClaim = user?.FindFirst(ClaimTypes.GivenName)?.Value;
+                if (string.IsNullOrEmpty(guestNameClaim))
+                {
+                    var nameClaim = user?.FindFirst(ClaimTypes.Name)?.Value;
+                    if (!string.IsNullOrEmpty(nameClaim) && nameClaim.Contains(","))
+                    {
+                        var parts = nameClaim.Split(',');
+                        guestNameClaim = parts.Length > 1 ? parts[1] : "Guest";
+                    }
+                    else
+                    {
+                        guestNameClaim = nameClaim ?? "Guest";
+                    }
+                }
+                var guestName = guestNameClaim;
 
                 await MpesaPaymentService.SendBookingNotificationEmailAsync(
                     hotel.Email,
@@ -734,7 +819,9 @@
                     checkOutDate,
                     numberOfGuests,
                     totalAmount,
-                    mpesaReceipt
+                    mpesaReceipt,
+                    createdBookingId,
+                    $"BK-{bookingReference}"
                 );
             }
             catch (Exception ex)

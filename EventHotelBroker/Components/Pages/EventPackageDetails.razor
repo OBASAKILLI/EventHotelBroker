@@ -2,8 +2,10 @@
 @rendermode InteractiveServer
 @using EventHotelBroker.Models
 @using EventHotelBroker.Services
+@using Microsoft.AspNetCore.Components.Authorization
 @inject IEventService EventService
 @inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>@(package?.Name ?? "Package Details") - EventHotelBroker</PageTitle>
 
@@ -228,9 +230,9 @@
                             </div>
                         }
 
-                        <a href="/book-event?packageId=@package.Id" class="epd-btn epd-btn-accent" style="margin-bottom: 0.5rem;">
+                        <button type="button" class="epd-btn epd-btn-accent" style="margin-bottom: 0.5rem;" @onclick="HandleBookNow">
                             <i class="bi bi-calendar-check"></i> Book Now
-                        </a>
+                        </button>
                         <button class="epd-btn epd-btn-outline" @onclick="ContactProvider">
                             <i class="bi bi-chat-dots"></i> Contact Provider
                         </button>
@@ -291,6 +293,7 @@
     private EventPackage? package;
     private bool isLoading = true;
     private int openAccordion = 0;
+    private bool isAuthenticated = false;
 
     private List<BreadcrumbItem> breadcrumbItems = new()
     {
@@ -301,6 +304,9 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        isAuthenticated = authState.User.Identity?.IsAuthenticated == true;
+
         await LoadPackage();
     }
 
@@ -341,10 +347,31 @@
         openAccordion = openAccordion == index ? -1 : index;
     }
 
+    private void HandleBookNow()
+    {
+        if (package == null) return;
+
+        if (!isAuthenticated)
+        {
+            var returnUrl = Uri.EscapeDataString($"/book-event?packageId={package.Id}");
+            Navigation.NavigateTo($"/login?returnUrl={returnUrl}");
+            return;
+        }
+        Navigation.NavigateTo($"/book-event?packageId={package.Id}");
+    }
+
     private void ContactProvider()
     {
+        if (package == null) return;
+
+        if (!isAuthenticated)
+        {
+            var returnUrl = Uri.EscapeDataString($"/book-event?packageId={package.Id}");
+            Navigation.NavigateTo($"/login?returnUrl={returnUrl}");
+            return;
+        }
         // In production, implement contact functionality
-        Navigation.NavigateTo($"/book-event?packageId={package?.Id}");
+        Navigation.NavigateTo($"/book-event?packageId={package.Id}");
     }
 
     private void SharePackage()

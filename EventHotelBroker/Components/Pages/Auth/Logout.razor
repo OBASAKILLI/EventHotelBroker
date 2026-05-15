@@ -1,19 +1,36 @@
 @page "/logout"
 @using EventHotelBroker.Utils
+@using Microsoft.AspNetCore.Components.Authorization
 @inject IHttpContextAccessor HttpContextAccessor
 @inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider AuthStateProvider
+
+<div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+    <p>Signing out securely...</p>
+</div>
 
 @code {
-    protected override void OnInitialized()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        try
+        if (firstRender)
         {
-            HttpContextAccessor.HttpContext?.Session?.Clear();
-            // Clear the JWT cookie
-            HttpContextAccessor.HttpContext?.Response?.Cookies?.Delete("JWToken");
-        }
-        catch { }
+            try
+            {
+                // Delete the cookie via JS interop since Blazor Server can't mutate Response headers here
+                await JSRuntime.InvokeVoidAsync("authHelpers.deleteCookie", "JWToken");
+                
+                // Clear the state provider's in-memory token
+                if (AuthStateProvider is CustomAuthenticationStateProvider customAuth)
+                {
+                    await customAuth.MarkUserAsLoggedOut();
+                }
 
-        Navigation.NavigateTo("/login", forceLoad: true);
+                HttpContextAccessor.HttpContext?.Session?.Clear();
+            }
+            catch { }
+            
+            Navigation.NavigateTo("/", forceLoad: true);
+        }
     }
 }

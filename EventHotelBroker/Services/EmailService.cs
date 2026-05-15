@@ -184,4 +184,41 @@ public class EmailService : IEmailService
             throw;
         }
     }
+
+    public async Task SendAdminWelcomeEmailAsync(string email, string fullName, string temporaryPassword)
+    {
+        var subject = "Your Safari Vents Admin Account Has Been Created";
+        var inner = $@"
+            <p style='font-size:16px;color:#333;margin:0 0 8px;'>Hello <strong>{fullName}</strong>,</p>
+            <p style='font-size:14px;color:#555;line-height:1.6;margin:0 0 24px;'>
+                An administrator account has been created for you on the Safari Vents platform. Below are your login credentials.
+                Please change your password after your first login.
+            </p>
+            <div style='background:#f8f9fa;border:1px solid #e9ecef;border-radius:12px;padding:24px;margin-bottom:24px;'>
+                <table style='width:100%;font-size:14px;color:#333;'>
+                    <tr>
+                        <td style='padding:8px 0;color:#6c757d;width:40%;'>Email</td>
+                        <td style='padding:8px 0;font-weight:600;'>{email}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding:8px 0;color:#6c757d;'>Temporary Password</td>
+                        <td style='padding:8px 0;font-weight:600;font-family:monospace;background:#fff;border-radius:4px;padding:6px 10px;border:1px solid #dee2e6;'>{temporaryPassword}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding:8px 0;color:#6c757d;'>Role</td>
+                        <td style='padding:8px 0;'><span style='background:#dc3545;color:white;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;'>Administrator</span></td>
+                    </tr>
+                </table>
+            </div>
+            <div style='text-align:center;'>
+                <a href='https://safarivents.com/login' style='display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#2A2A2A,#4a4a4a);color:white;text-decoration:none;border-radius:10px;font-weight:700;font-size:15px;'>
+                    Log In to Admin Panel
+                </a>
+            </div>
+            <p style='font-size:12px;color:#999;margin-top:24px;text-align:center;'>
+                For security reasons, please change your password immediately after your first login.
+            </p>";
+
+        await SendEmailAsync(email, subject, WrapInTemplate("Welcome, Administrator!", inner));
+    }
 }

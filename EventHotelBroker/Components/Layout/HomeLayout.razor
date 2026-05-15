@@ -19,14 +19,6 @@
                 <span class="brand-text">Safari Vents</span>
             </a>
             <div class="app-bar-actions">
-                <a href="/chat" class="app-bar-btn" title="Messages">
-                    <i class="bi bi-chat-dots"></i>
-                    <span class="notification-badge">3</span>
-                </a>
-                <button class="app-bar-btn" title="Notifications">
-                    <i class="bi bi-bell"></i>
-                    <span class="notification-badge">5</span>
-                </button>
                 <button class="app-bar-btn" title="Toggle Theme" @onclick="ToggleTheme">
                     @if (isDarkMode)
                     {
@@ -37,12 +29,19 @@
                         <i class="bi bi-moon"></i>
                     }
                 </button>
-                <button class="app-bar-btn" title="Settings">
-                    <i class="bi bi-gear"></i>
-                </button>
-                <!-- Debug: @isLoggedIn.ToString() -->
                 @if (isLoggedIn)
                 {
+                    <a href="/chat" class="app-bar-btn" title="Messages">
+                        <i class="bi bi-chat-dots"></i>
+                        <span class="notification-badge">3</span>
+                    </a>
+                    <button class="app-bar-btn" title="Notifications">
+                        <i class="bi bi-bell"></i>
+                        <span class="notification-badge">5</span>
+                    </button>
+                    <button class="app-bar-btn" title="Settings">
+                        <i class="bi bi-gear"></i>
+                    </button>
                     <div class="user-profile" style="cursor: pointer; position: relative;" @onclick="ToggleUserMenu">
                         <div class="user-avatar" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
                             <span style="font-size: 0.85rem; font-weight: 600;">@userInitials</span>
@@ -59,14 +58,11 @@
                                 <span style="display: inline-block; margin-top: 6px; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; background: rgba(102,126,234,0.1); color: #667eea;">@userRole</span>
                             </div>
                             <a href="/profile" style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; color: #333; text-decoration: none; font-size: 0.85rem; transition: background 0.15s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='transparent'">
-                                <i class="bi bi-person"></i> My Profile
-                            </a>
-                            <a href="/settings" style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; color: #333; text-decoration: none; font-size: 0.85rem; transition: background 0.15s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='transparent'">
-                                <i class="bi bi-gear"></i> Settings
+                                <i class="bi bi-person"></i> Profile
                             </a>
                             <div style="border-top: 1px solid #f0f0f0;">
                                 <button onclick="document.getElementById('logoutModalHome').style.display='flex'" style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; color: #dc3545; background: none; border: none; width: 100%; text-align: left; font-size: 0.85rem; cursor: pointer; transition: background 0.15s;" onmouseover="this.style.background='#fff5f5'" onmouseout="this.style.background='transparent'">
-                                    <i class="bi bi-box-arrow-right"></i> Sign Out
+                                    <i class="bi bi-box-arrow-right"></i> Log out
                                 </button>
                             </div>
                         </div>
@@ -74,11 +70,9 @@
                 }
                 else
                 {
-                    <div class="user-profile" style="cursor: pointer;" onclick="window.location.href='/login'">
-                        <div class="user-avatar">
-                            <i class="bi bi-person-circle"></i>
-                        </div>
-                        <span class="user-name">Login / Register</span>
+                    <div style="display: flex; gap: 10px; margin-left: 10px;">
+                        <a href="/login" style="padding: 8px 16px; border-radius: 8px; color: #2A2A2A; text-decoration: none; font-weight: 600; font-size: 0.85rem; transition: background 0.2s;" onmouseover="this.style.background='rgba(158,139,99,0.1)'" onmouseout="this.style.background='transparent'">Log in</a>
+                        <a href="/register" style="padding: 8px 16px; border-radius: 8px; background: #2A2A2A; color: white; text-decoration: none; font-weight: 600; font-size: 0.85rem; transition: background 0.2s;" onmouseover="this.style.background='#444'" onmouseout="this.style.background='#2A2A2A'">Sign up</a>
                     </div>
                 }
             </div>
@@ -103,11 +97,11 @@
         <div style="width:56px; height:56px; border-radius:50%; background:#fff5f5; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
             <i class="bi bi-box-arrow-right" style="font-size:1.5rem; color:#dc3545;"></i>
         </div>
-        <h3 style="margin:0 0 8px; color:#2A2A2A; font-size:1.15rem;">Sign Out</h3>
-        <p style="color:#6c757d; font-size:0.9rem; margin:0 0 24px;">Are you sure you want to sign out of your account?</p>
+        <h3 style="margin:0 0 8px; color:#2A2A2A; font-size:1.15rem;">Log out</h3>
+        <p style="color:#6c757d; font-size:0.9rem; margin:0 0 24px;">Are you sure you want to log out of your account?</p>
         <div style="display:flex; gap:12px; justify-content:center;">
             <button onclick="document.getElementById('logoutModalHome').style.display='none'" style="padding:10px 24px; border-radius:8px; border:1px solid #dee2e6; background:white; color:#333; font-size:0.9rem; cursor:pointer; font-weight:500;">Cancel</button>
-            <button onclick="window.location.href='/logout'" style="padding:10px 24px; border-radius:8px; border:none; background:#dc3545; color:white; font-size:0.9rem; cursor:pointer; font-weight:500;">Sign Out</button>
+            <button onclick="window.location.href='/logout'" style="padding:10px 24px; border-radius:8px; border:none; background:#dc3545; color:white; font-size:0.9rem; cursor:pointer; font-weight:500;">Log out</button>
         </div>
     </div>
 </div>

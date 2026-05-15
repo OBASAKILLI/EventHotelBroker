@@ -620,11 +620,11 @@ body {
    ============================================ */
 
 ::selection {
-    background: var(--purple);
+    background: var(--primary);
     color: var(--white);
 }
 
 ::-moz-selection {
-    background: var(--purple);
+    background: var(--primary);
     color: var(--white);
 }

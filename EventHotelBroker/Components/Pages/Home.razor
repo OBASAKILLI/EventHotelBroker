@@ -793,8 +793,6 @@
     </div>
 </div>
 
-<script src="/js/home-helpers.js"></script>
-
 @code {
     private List<Hotel>? featuredHotels;
     private List<EventPackage>? featuredPackages;
@@ -833,8 +831,15 @@
     {
         if (firstRender)
         {
-            objRef = DotNetObjectReference.Create(this);
-            await JSRuntime.InvokeVoidAsync("homeHelpers.init", objRef);
+            try
+            {
+                objRef = DotNetObjectReference.Create(this);
+                await JSRuntime.InvokeVoidAsync("homeHelpers.init", objRef);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error initializing home helpers: {ex.Message}");
+            }
         }
     }
 

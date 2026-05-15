@@ -237,5 +237,51 @@ window.mapHelper = {
             google.maps.event.trigger(map, "resize");
             console.log("Map resize triggered");
         }, 100);
+    },
+
+    initHotelMap: function (mapId, lat, lng) {
+        const mapContainer = document.getElementById(mapId);
+        if (!mapContainer) {
+            console.error("Map container not found: " + mapId);
+            return;
+        }
+
+        const location = { lat: lat, lng: lng };
+        console.log("Initializing hotel map at:", location);
+
+        // Wait for google maps to be available
+        if (typeof google === 'undefined' || !google.maps) {
+            console.log("Google Maps library not ready yet. Retrying in 500ms...");
+            setTimeout(() => this.initHotelMap(mapId, lat, lng), 500);
+            return;
+        }
+
+        try {
+            const hotelMap = new google.maps.Map(mapContainer, {
+                center: location,
+                zoom: 16,
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: true
+            });
+
+            const hotelMarker = new google.maps.Marker({
+                position: location,
+                map: hotelMap,
+                animation: google.maps.Animation.BOUNCE,
+                title: "Hotel Location"
+            });
+
+            console.log("Hotel map and bouncing marker initialized.");
+
+            // Fix for hidden container rendering issues
+            setTimeout(() => {
+                google.maps.event.trigger(hotelMap, "resize");
+                hotelMap.setCenter(location);
+            }, 200);
+
+        } catch (error) {
+            console.error("Error initializing hotel map:", error);
+        }
     }
 };

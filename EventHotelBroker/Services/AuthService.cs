@@ -213,4 +213,90 @@ public class AuthService : IAuthService
         var encryptedInput = encryption.Encryptstring(password);
         return encryptedInput == passwordHash;
     }
+
+    public async Task<(bool Success, string Message, string? NewToken)> EnrollAsOwnerAsync(string userId)
+    {
+        try
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.strid == userId);
+            if (user == null)
+                return (false, "User not found.", null);
+
+            // Already an owner?
+            var current = user.AccountType ?? user.Role ?? "";
+            if (current.Contains("HotelOwner", StringComparison.OrdinalIgnoreCase))
+                return (false, "You are already enrolled as a Business Owner.", null);
+
+            // Append HotelOwner role
+            user.AccountType = string.IsNullOrEmpty(current) || current == "User"
+                ? "User,HotelOwner"
+                : $"{current},HotelOwner";
+
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("User {UserId} enrolled as HotelOwner. AccountType = {AccountType}", userId, user.AccountType);
+
+            // Return the updated user so TokenProvider can generate a fresh JWT
+            return (true, "You are now enrolled as a Business Owner!", null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error enrolling user {UserId} as owner", userId);
+            return (false, "An error occurred during enrollment.", null);
+        }
+    }
+
+    public async Task<(bool Success, string Message)> CreateAdminAsync(
+        string fullName, string email, string phone, string password, string createdByAdminId)
+    {
+        try
+        {
+            // Verify the creator is actually an admin
+            var creator = await _context.Users.FirstOrDefaultAsync(u => u.strid == createdByAdminId);
+            if (creator == null || !(creator.AccountType ?? "").Contains("Admin", StringComparison.OrdinalIgnoreCase))
+                return (false, "Unauthorized. Only admins can create new admin accounts.");
+
+            // Check email uniqueness
+            var existing = await _context.Users.FirstOrDefaultAsync(u => u.Email == email.Trim());
+            if (existing != null)
+                return (false, "An account with this email already exists.");
+
+            var encryption = new Encryption();
+            var nameParts = fullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+            var newAdmin = new Users
+            {
+                FirstName  = nameParts.Length > 0 ? nameParts[0] : fullName.Trim(),
+                MiddleName = nameParts.Length > 2 ? string.Join(" ", nameParts[1..^1]) : ".",
+                LastName   = nameParts.Length > 1 ? nameParts[^1] : ".",
+                FullName   = fullName.Trim(),
+                Email      = email.Trim(),
+                PhoneNumber = phone?.Trim() ?? "",
+                password_hash = encryption.Encryptstring(password),
+                Role        = "Admin",
+                AccountType = "Admin",
+                IsActive    = true,
+                IsEmailVerified = true,   // Admin accounts are pre-verified
+                IsTwoFAEnabled  = false,
+                CreatedAt   = DateTime.UtcNow
+            };
+
+            await _context.Users.AddAsync(newAdmin);
+            await _context.SaveChangesAsync();
+
+            // Send a welcome / credentials email
+            try
+            {
+                await _emailService.SendAdminWelcomeEmailAsync(email.Trim(), fullName.Trim(), password);
+            }
+            catch { /* email failure should not block account creation */ }
+
+            _logger.LogInformation("New admin account created for {Email} by admin {CreatorId}", email, createdByAdminId);
+            return (true, $"Admin account for {fullName} has been created successfully. Login credentials have been sent to {email}.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating admin account for {Email}", email);
+            return (false, "An error occurred while creating the admin account.");
+        }
+    }
 }

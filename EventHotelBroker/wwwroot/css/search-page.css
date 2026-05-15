@@ -109,6 +109,35 @@
     z-index: 1;
 }
 
+.btn-back-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(158, 139, 99, 0.2);
+    background: white;
+    color: #2A2A2A;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    position: relative;
+    z-index: 10;
+}
+
+.btn-back-circle:hover {
+    background: #9E8B63;
+    color: white;
+    border-color: #9E8B63;
+    transform: translateX(-3px);
+    box-shadow: 0 4px 12px rgba(158, 139, 99, 0.3);
+}
+
+.btn-back-circle i {
+    font-size: 1.1rem;
+}
+
 /* ============================================
    Filter Card
    ============================================ */

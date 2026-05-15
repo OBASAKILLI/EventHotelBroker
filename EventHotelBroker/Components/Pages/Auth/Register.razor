@@ -53,13 +53,7 @@
                 </div>
             </div>
 
-            <div class="rg-field">
-                <label class="rg-label">Register as</label>
-                <select class="rg-select" @bind="userRole">
-                    <option value="client">Client (Book hotels & events)</option>
-                    <option value="owner">Hotel / Venue Owner</option>
-                </select>
-            </div>
+            <!-- Role selection removed: all users register as Client by default -->
 
             <label class="rg-terms">
                 <input type="checkbox" @bind="acceptTerms" />
@@ -91,19 +85,21 @@
             </div>
 
             <div class="rg-footer">
-                Already have an account? <a href="/login">Sign in</a>
+                Already have an account? <a href="/login@(string.IsNullOrEmpty(ReturnUrl) ? "" : "?returnUrl=" + Uri.EscapeDataString(ReturnUrl))">Sign in</a>
             </div>
         </div>
     </div>
 </div>
 
 @code {
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    public string? ReturnUrl { get; set; }
+
     private string fullName = "";
     private string email = "";
     private string phone = "";
     private string password = "";
     private string confirmPassword = "";
-    private string userRole = "client";
     private bool acceptTerms = false;
     private bool isSubmitting = false;
 
@@ -164,8 +160,8 @@
             var verificationToken = Guid.NewGuid().ToString("N");
             var tokenExpiry = DateTime.UtcNow.AddHours(24);
 
-            // Determine role
-            var role = userRole == "owner" ? "HotelOwner" : "User";
+            // Default role is User (Client)
+            var role = "User";
 
             // Create new user
             var newUser = new EventHotelBroker.Models.Users

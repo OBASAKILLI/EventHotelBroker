@@ -1,3 +1,9 @@
+@using Microsoft.AspNetCore.Components.Authorization
+@using EventHotelBroker.Utils
+@using System.Security.Claims
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+
 <div class="advanced-nav-container">
     <!-- Logo -->
     <div class="nav-logo">
@@ -15,219 +21,288 @@
             <span class="nav-item-text">Home</span>
         </NavLink>
 
-        <!-- Client Section -->
-        <div class="nav-section">
-            <div class="nav-section-header" @onclick="ToggleClientSection">
-                <div class="nav-section-info">
-                    <div class="nav-section-icon">
-                        <i class="bi bi-person-circle"></i>
-                    </div>
-                    <span class="nav-section-title">Client</span>
-                </div>
-                <i class="bi @(clientExpanded ? "bi-chevron-down" : "bi-chevron-right") nav-section-arrow"></i>
-            </div>
-            @if (clientExpanded)
-            {
-                <div class="nav-section-content">
-                    <NavLink class="nav-item" href="user/dashboard">
-                        <div class="nav-item-icon">
-                            <i class="bi bi-speedometer2"></i>
-                        </div>
-                        <span class="nav-item-text">My Dashboard</span>
-                    </NavLink>
-                    <NavLink class="nav-item" href="search">
-                        <div class="nav-item-icon">
-                            <i class="bi bi-search"></i>
-                        </div>
-                        <span class="nav-item-text">Search Hotels</span>
-                    </NavLink>
-                    <NavLink class="nav-item" href="my-bookings">
-                        <div class="nav-item-icon">
-                            <i class="bi bi-calendar-check"></i>
-                        </div>
-                        <span class="nav-item-text">My Bookings</span>
-                    </NavLink>
-                    <NavLink class="nav-item" href="events">
-                        <div class="nav-item-icon">
-                            <i class="bi bi-calendar-event"></i>
-                        </div>
-                        <span class="nav-item-text">Event Services</span>
-                    </NavLink>
-                    <NavLink class="nav-item" href="my-event-bookings">
-                        <div class="nav-item-icon">
-                            <i class="bi bi-calendar2-event"></i>
-                        </div>
-                        <span class="nav-item-text">My Event Bookings</span>
-                    </NavLink>
-                    <NavLink class="nav-item" href="messages">
-                        <div class="nav-item-icon">
-                            <i class="bi bi-chat-dots"></i>
-                        </div>
-                        <span class="nav-item-text">Messages</span>
-                        <span class="badge bg-danger rounded-pill ms-auto">3</span>
-                    </NavLink>
-                </div>
-            }
-        </div>
+        @if (isAdmin)
+        {
+            <!-- ======================== ADMIN NAV ======================== -->
+            <div class="nav-section-label">Administration</div>
+            <NavLink class="nav-item" href="admin/dashboard">
+                <div class="nav-item-icon"><i class="bi bi-speedometer2"></i></div>
+                <span class="nav-item-text">Dashboard</span>
+            </NavLink>
+            <NavLink class="nav-item" href="admin/users">
+                <div class="nav-item-icon"><i class="bi bi-people"></i></div>
+                <span class="nav-item-text">Users</span>
+            </NavLink>
+            <NavLink class="nav-item" href="admin/add-admin">
+                <div class="nav-item-icon"><i class="bi bi-person-plus"></i></div>
+                <span class="nav-item-text">Add Admin</span>
+            </NavLink>
+            <NavLink class="nav-item" href="admin/hotels">
+                <div class="nav-item-icon"><i class="bi bi-building"></i></div>
+                <span class="nav-item-text">Hotels</span>
+            </NavLink>
+            <NavLink class="nav-item" href="admin/hotel-categories">
+                <div class="nav-item-icon"><i class="bi bi-tags"></i></div>
+                <span class="nav-item-text">Hotel Categories</span>
+            </NavLink>
+            <NavLink class="nav-item" href="admin/bookings">
+                <div class="nav-item-icon"><i class="bi bi-calendar-event"></i></div>
+                <span class="nav-item-text">All Bookings</span>
+            </NavLink>
+            <NavLink class="nav-item" href="admin/event-equipments">
+                <div class="nav-item-icon"><i class="bi bi-box-seam"></i></div>
+                <span class="nav-item-text">Event Equipments</span>
+            </NavLink>
+            <NavLink class="nav-item" href="admin/event-packages">
+                <div class="nav-item-icon"><i class="bi bi-gift"></i></div>
+                <span class="nav-item-text">Event Packages</span>
+            </NavLink>
+            <NavLink class="nav-item" href="admin/event-bookings">
+                <div class="nav-item-icon"><i class="bi bi-calendar2-event"></i></div>
+                <span class="nav-item-text">Event Bookings</span>
+            </NavLink>
+            <NavLink class="nav-item" href="admin/audit-logs">
+                <div class="nav-item-icon"><i class="bi bi-file-text"></i></div>
+                <span class="nav-item-text">Audit Logs</span>
+            </NavLink>
+            <NavLink class="nav-item" href="admin/advertisement">
+                <div class="nav-item-icon"><i class="bi bi-megaphone"></i></div>
+                <span class="nav-item-text">Advertisement</span>
+            </NavLink>
+        }
+        else
+        {
+            <!-- =================== CLIENT (always visible) =================== -->
+            <div class="nav-section-label">My Account</div>
+            <NavLink class="nav-item" href="user/dashboard">
+                <div class="nav-item-icon"><i class="bi bi-speedometer2"></i></div>
+                <span class="nav-item-text">My Dashboard</span>
+            </NavLink>
+            <NavLink class="nav-item" href="search">
+                <div class="nav-item-icon"><i class="bi bi-search"></i></div>
+                <span class="nav-item-text">Search Hotels</span>
+            </NavLink>
+            <NavLink class="nav-item" href="my-bookings">
+                <div class="nav-item-icon"><i class="bi bi-calendar-check"></i></div>
+                <span class="nav-item-text">My Bookings</span>
+            </NavLink>
+            <NavLink class="nav-item" href="events">
+                <div class="nav-item-icon"><i class="bi bi-calendar-event"></i></div>
+                <span class="nav-item-text">Event Services</span>
+            </NavLink>
+            <NavLink class="nav-item" href="my-event-bookings">
+                <div class="nav-item-icon"><i class="bi bi-calendar2-event"></i></div>
+                <span class="nav-item-text">My Event Bookings</span>
+            </NavLink>
+            <NavLink class="nav-item" href="messages">
+                <div class="nav-item-icon"><i class="bi bi-chat-dots"></i></div>
+                <span class="nav-item-text">Messages</span>
+                <span class="badge bg-danger rounded-pill ms-auto">3</span>
+            </NavLink>
 
-        <!-- Owner Section -->
-        <div class="nav-section">
-            <div class="nav-section-header" @onclick="ToggleOwnerSection">
-                <div class="nav-section-info">
-                    <div class="nav-section-icon">
-                        <i class="bi bi-briefcase"></i>
-                    </div>
-                    <span class="nav-section-title">Owner</span>
-                </div>
-                <i class="bi @(ownerExpanded ? "bi-chevron-down" : "bi-chevron-right") nav-section-arrow"></i>
-            </div>
-            @if (ownerExpanded)
+            @if (isOwner)
             {
-                <div class="nav-section-content">
-                    <NavLink class="nav-item" href="owner/dashboard">
-                        <div class="nav-item-icon">
-                            <i class="bi bi-speedometer2"></i>
-                        </div>
-                        <span class="nav-item-text">Dashboard</span>
-                    </NavLink>
-                    <NavLink class="nav-item" href="owner/hotels">
-                        <div class="nav-item-icon">
-                            <i class="bi bi-building"></i>
-                        </div>
-                        <span class="nav-item-text">My Hotels</span>
-                    </NavLink>
-                    <NavLink class="nav-item" href="owner/create-hotel">
-                        <div class="nav-item-icon">
-                            <i class="bi bi-plus-circle"></i>
-                        </div>
-                        <span class="nav-item-text">Create Hotel</span>
-                    </NavLink>
-                    <NavLink class="nav-item" href="owner/bookings">
-                        <div class="nav-item-icon">
-                            <i class="bi bi-calendar2-check"></i>
-                        </div>
-                        <span class="nav-item-text">Booking Requests</span>
-                    </NavLink>
-                    <NavLink class="nav-item" href="owner/event-equipments">
-                        <div class="nav-item-icon">
-                            <i class="bi bi-box-seam"></i>
-                        </div>
-                        <span class="nav-item-text">Event Equipments</span>
-                    </NavLink>
-                    <NavLink class="nav-item" href="owner/event-packages">
-                        <div class="nav-item-icon">
-                            <i class="bi bi-gift"></i>
-                        </div>
-                        <span class="nav-item-text">Event Packages</span>
-                    </NavLink>
-                    <NavLink class="nav-item" href="owner/analytics">
-                        <div class="nav-item-icon">
-                            <i class="bi bi-graph-up"></i>
-                        </div>
-                        <span class="nav-item-text">Analytics</span>
-                    </NavLink>
+                <!-- =================== OWNER (only if enrolled) =================== -->
+                <div class="nav-section-label" style="margin-top: 12px;">My Business</div>
+                <NavLink class="nav-item" href="owner/dashboard">
+                    <div class="nav-item-icon"><i class="bi bi-briefcase"></i></div>
+                    <span class="nav-item-text">Business Dashboard</span>
+                </NavLink>
+                <NavLink class="nav-item" href="owner/hotels">
+                    <div class="nav-item-icon"><i class="bi bi-building"></i></div>
+                    <span class="nav-item-text">My Hotels</span>
+                </NavLink>
+                <NavLink class="nav-item" href="owner/create-hotel">
+                    <div class="nav-item-icon"><i class="bi bi-plus-circle"></i></div>
+                    <span class="nav-item-text">Create Hotel</span>
+                </NavLink>
+                <NavLink class="nav-item" href="owner/bookings">
+                    <div class="nav-item-icon"><i class="bi bi-calendar2-check"></i></div>
+                    <span class="nav-item-text">Booking Requests</span>
+                </NavLink>
+                <NavLink class="nav-item" href="owner/event-equipments">
+                    <div class="nav-item-icon"><i class="bi bi-box-seam"></i></div>
+                    <span class="nav-item-text">Event Equipments</span>
+                </NavLink>
+                <NavLink class="nav-item" href="owner/event-packages">
+                    <div class="nav-item-icon"><i class="bi bi-gift"></i></div>
+                    <span class="nav-item-text">Event Packages</span>
+                </NavLink>
+                <NavLink class="nav-item" href="owner/analytics">
+                    <div class="nav-item-icon"><i class="bi bi-graph-up"></i></div>
+                    <span class="nav-item-text">Analytics</span>
+                </NavLink>
+            }
+            else
+            {
+                <!-- Enroll as owner CTA -->
+                <div class="nav-enroll-cta" @onclick="EnrollAsOwner">
+                    <div class="nav-enroll-icon"><i class="bi bi-shop"></i></div>
+                    <div class="nav-enroll-text">
+                        <span class="nav-enroll-title">Add my Business</span>
+                        <span class="nav-enroll-subtitle">Become an owner & list your venues</span>
+                    </div>
+                    <i class="bi bi-chevron-right nav-enroll-arrow"></i>
                 </div>
             }
-        </div>
-
-        <!-- Admin Section -->
-        <div class="nav-section">
-            <div class="nav-section-header" @onclick="ToggleAdminSection">
-                <div class="nav-section-info">
-                    <div class="nav-section-icon">
-                        <i class="bi bi-shield-lock"></i>
-                    </div>
-                    <span class="nav-section-title">Admin</span>
-                </div>
-                <i class="bi @(adminExpanded ? "bi-chevron-down" : "bi-chevron-right") nav-section-arrow"></i>
-            </div>
-            @if (adminExpanded)
-            {
-                <div class="nav-section-content">
-                    <NavLink class="nav-item" href="admin/dashboard">
-                        <div class="nav-item-icon">
-                            <i class="bi bi-speedometer2"></i>
-                        </div>
-                        <span class="nav-item-text">Dashboard</span>
-                    </NavLink>
-                    <NavLink class="nav-item" href="admin/users">
-                        <div class="nav-item-icon">
-                            <i class="bi bi-people"></i>
-                        </div>
-                        <span class="nav-item-text">Users</span>
-                    </NavLink>
-                    <NavLink class="nav-item" href="admin/hotels">
-                        <div class="nav-item-icon">
-                            <i class="bi bi-building"></i>
-                        </div>
-                        <span class="nav-item-text">Hotels</span>
-                    </NavLink>
-                    <NavLink class="nav-item" href="admin/hotel-categories">
-                        <div class="nav-item-icon">
-                            <i class="bi bi-tags"></i>
-                        </div>
-                        <span class="nav-item-text">Hotel Categories</span>
-                    </NavLink>
-                    <NavLink class="nav-item" href="admin/bookings">
-                        <div class="nav-item-icon">
-                            <i class="bi bi-calendar-event"></i>
-                        </div>
-                        <span class="nav-item-text">All Bookings</span>
-                    </NavLink>
-                    <NavLink class="nav-item" href="admin/event-equipments">
-                        <div class="nav-item-icon">
-                            <i class="bi bi-box-seam"></i>
-                        </div>
-                        <span class="nav-item-text">Event Equipments</span>
-                    </NavLink>
-                    <NavLink class="nav-item" href="admin/event-packages">
-                        <div class="nav-item-icon">
-                            <i class="bi bi-gift"></i>
-                        </div>
-                        <span class="nav-item-text">Event Packages</span>
-                    </NavLink>
-                    <NavLink class="nav-item" href="admin/event-bookings">
-                        <div class="nav-item-icon">
-                            <i class="bi bi-calendar2-event"></i>
-                        </div>
-                        <span class="nav-item-text">Event Bookings</span>
-                    </NavLink>
-                    <NavLink class="nav-item" href="admin/audit-logs">
-                        <div class="nav-item-icon">
-                            <i class="bi bi-file-text"></i>
-                        </div>
-                        <span class="nav-item-text">Audit Logs</span>
-                    </NavLink>
-                    <NavLink class="nav-item" href="admin/advertisement">
-                        <div class="nav-item-icon">
-                            <i class="bi bi-megaphone"></i>
-                        </div>
-                        <span class="nav-item-text">Advertisement</span>
-                    </NavLink>
-                </div>
-            }
-        </div>
+        }
     </nav>
 </div>
 
-@code {
-    private bool clientExpanded = true;
-    private bool ownerExpanded = true;
-    private bool adminExpanded = true;
-
-    private void ToggleClientSection()
-    {
-        clientExpanded = !clientExpanded;
-    }
-
-    private void ToggleOwnerSection()
-    {
-        ownerExpanded = !ownerExpanded;
-    }
-
-    private void ToggleAdminSection()
-    {
-        adminExpanded = !adminExpanded;
-    }
+<!-- Enroll Confirmation Modal -->
+@if (showEnrollModal)
+{
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;">
+        <div style="background:white;border-radius:16px;padding:32px;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+            <div style="text-align:center;margin-bottom:20px;">
+                <div style="width:64px;height:64px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                    <i class="bi bi-shop" style="font-size:1.8rem;color:white;"></i>
+                </div>
+                <h4 style="font-weight:700;color:#1a1a1a;margin-bottom:8px;">Become a Business Owner</h4>
+                <p style="color:#6c757d;font-size:0.9rem;line-height:1.5;">You're about to enroll as a Business Owner on Safari Vents. This will let you list hotels, venues, and equipment for clients to book.</p>
+            </div>
+            @if (!string.IsNullOrEmpty(enrollError))
+            {
+                <div style="background:#fff5f5;border:1px solid #fed7d7;border-radius:8px;padding:10px 14px;margin-bottom:16px;color:#c53030;font-size:0.85rem;">
+                    <i class="bi bi-exclamation-circle me-2"></i>@enrollError
+                </div>
+            }
+            <div style="display:flex;gap:10px;">
+                <button @onclick="() => showEnrollModal = false" style="flex:1;padding:12px;border:1px solid #e2e8f0;border-radius:10px;background:white;color:#4a5568;font-weight:600;cursor:pointer;">Cancel</button>
+                <button @onclick="ConfirmEnroll" disabled="@isEnrolling"
+                    style="flex:1;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;font-weight:600;cursor:pointer;">
+                    @if (isEnrolling)
+                    { <span class="spinner-border spinner-border-sm me-1"></span> }
+                    Enroll Now
+                </button>
+            </div>
+        </div>
+    </div>
 }
 
+<style>
+    .nav-section-label {
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #9e8b63;
+        padding: 16px 20px 6px;
+    }
+
+    .nav-enroll-cta {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 16px 12px 8px;
+        padding: 14px 16px;
+        background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(217,119,6,0.12));
+        border: 1px dashed rgba(245,158,11,0.4);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .nav-enroll-cta:hover {
+        background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(217,119,6,0.2));
+        border-color: rgba(245,158,11,0.7);
+        transform: translateX(2px);
+    }
+
+    .nav-enroll-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        color: white;
+        font-size: 1.1rem;
+    }
+
+    .nav-enroll-text {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .nav-enroll-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #1a1a1a;
+    }
+
+    .nav-enroll-subtitle {
+        font-size: 0.72rem;
+        color: #6c757d;
+        line-height: 1.3;
+    }
+
+    .nav-enroll-arrow {
+        color: #f59e0b;
+        font-size: 0.8rem;
+    }
+</style>
+
+@code {
+    private bool isOwner = false;
+    private bool isAdmin = false;
+    private bool showEnrollModal = false;
+    private bool isEnrolling = false;
+    private string enrollError = "";
+    private string currentUserId = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUserRoles();
+    }
+
+    private async Task LoadUserRoles()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            // The Name claim contains "userId,AccountType,TwoFAEnabled"
+            var nameClaim = user.FindFirst(ClaimTypes.Name)?.Value ?? "";
+            var parts = nameClaim.Split(',');
+            currentUserId = parts.Length > 0 ? parts[0] : "";
+            var accountType = parts.Length > 1 ? parts[1] : "";
+
+            // Also check dedicated AccountType claim
+            var accountTypeClaim = user.FindFirst("AccountType")?.Value ?? accountType;
+
+            isAdmin = accountTypeClaim.Contains("Admin", StringComparison.OrdinalIgnoreCase);
+            isOwner = accountTypeClaim.Contains("HotelOwner", StringComparison.OrdinalIgnoreCase) ||
+                      accountTypeClaim.Contains("Owner", StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
+    private void EnrollAsOwner()
+    {
+        enrollError = "";
+        showEnrollModal = true;
+    }
+
+    private async Task ConfirmEnroll()
+    {
+        isEnrolling = true;
+        enrollError = "";
+        StateHasChanged();
+
+        try
+        {
+            Navigation.NavigateTo($"/enroll-as-owner?userId={currentUserId}", forceLoad: true);
+        }
+        catch (Exception ex)
+        {
+            enrollError = $"An error occurred: {ex.Message}";
+            isEnrolling = false;
+            StateHasChanged();
+        }
+    }
+}

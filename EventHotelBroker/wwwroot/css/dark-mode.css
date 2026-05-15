@@ -14,6 +14,31 @@ body.dark-mode {
     color: #d1d5db !important;
 }
 
+/* Global overrides for any element */
+.dark-mode * {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark-mode .bg-white,
+.dark-mode [style*="background: white"],
+.dark-mode [style*="background: #fff"],
+.dark-mode [style*="background: #ffffff"] {
+    background: #1a1a1a !important;
+}
+
+.dark-mode .text-dark,
+.dark-mode [style*="color: #000"],
+.dark-mode [style*="color: #212529"],
+.dark-mode [style*="color: #333"] {
+    color: #f9fafb !important;
+}
+
+.dark-mode .text-muted,
+.dark-mode [style*="color: #6c757d"],
+.dark-mode [style*="color: #999"] {
+    color: #9ca3af !important;
+}
+
 /* Sidebar */
 .dark-mode .modern-sidebar {
     background: linear-gradient(180deg, #111111 0%, #1a1a1a 100%) !important;
@@ -585,6 +610,222 @@ body.dark-mode {
 
 .dark-mode ::-webkit-scrollbar-thumb:hover {
     background: #5a5a5a;
+}
+
+/* Hotel Details Page */
+.dark-mode .hotel-details-page {
+    background: #0a0a0a !important;
+    color: #d1d5db !important;
+}
+
+.dark-mode .breadcrumb-link {
+    color: #9ca3af !important;
+}
+
+.dark-mode .breadcrumb-link:hover {
+    color: #9E8B63 !important;
+}
+
+.dark-mode .breadcrumb-separator {
+    color: #6b7280 !important;
+}
+
+.dark-mode .breadcrumb-current {
+    color: #f9fafb !important;
+}
+
+.dark-mode .hotel-header {
+    background: #111111 !important;
+    border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark-mode .hotel-title {
+    color: #f9fafb !important;
+}
+
+.dark-mode .hotel-subtitle {
+    color: #9ca3af !important;
+}
+
+.dark-mode .hotel-meta-item {
+    color: #9ca3af !important;
+}
+
+.dark-mode .hotel-meta-value {
+    color: #f9fafb !important;
+}
+
+.dark-mode .hotel-gallery {
+    background: #111111 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark-mode .gallery-main-image {
+    background: #1a1a1a !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark-mode .gallery-thumbnail {
+    background: #1a1a1a !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark-mode .gallery-thumbnail:hover {
+    border-color: #9E8B63 !important;
+}
+
+.dark-mode .hotel-tabs {
+    background: #111111 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark-mode .hotel-tab {
+    background: transparent !important;
+    color: #9ca3af !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark-mode .hotel-tab:hover {
+    color: #9E8B63 !important;
+    border-color: #9E8B63 !important;
+}
+
+.dark-mode .hotel-tab.active {
+    background: #9E8B63 !important;
+    color: #fff !important;
+    border-color: #9E8B63 !important;
+}
+
+.dark-mode .hotel-tab-content {
+    background: #111111 !important;
+    color: #d1d5db !important;
+}
+
+.dark-mode .description-text {
+    color: #d1d5db !important;
+}
+
+.dark-mode .amenities-grid {
+    background: #111111 !important;
+}
+
+.dark-mode .amenity-item {
+    background: #1a1a1a !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #f9fafb !important;
+}
+
+.dark-mode .amenity-icon {
+    color: #9E8B63 !important;
+}
+
+.dark-mode .amenity-name {
+    color: #f9fafb !important;
+}
+
+.dark-mode .booking-section {
+    background: #111111 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark-mode .price-card {
+    background: #1a1a1a !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #f9fafb !important;
+}
+
+.dark-mode .price-amount {
+    color: #f9fafb !important;
+}
+
+.dark-mode .price-label {
+    color: #9ca3af !important;
+}
+
+.dark-mode .booking-form {
+    background: #1a1a1a !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark-mode .form-input,
+.dark-mode .form-select {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: #f9fafb !important;
+}
+
+.dark-mode .form-input::placeholder,
+.dark-mode .form-select::placeholder {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.dark-mode .form-input:focus,
+.dark-mode .form-select:focus {
+    border-color: #9E8B63 !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark-mode .btn-book {
+    background: linear-gradient(135deg, #C87941 0%, #9E8B63 100%) !important;
+    color: #fff !important;
+    border-color: transparent !important;
+}
+
+.dark-mode .btn-book:hover {
+    background: linear-gradient(135deg, #9E8B63 0%, #C87941 100%) !important;
+}
+
+.dark-mode .reviews-section {
+    background: #111111 !important;
+}
+
+.dark-mode .review-card {
+    background: #1a1a1a !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #f9fafb !important;
+}
+
+.dark-mode .review-header {
+    border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark-mode .review-author {
+    color: #f9fafb !important;
+}
+
+.dark-mode .review-date {
+    color: #9ca3af !important;
+}
+
+.dark-mode .review-rating {
+    color: #9E8B63 !important;
+}
+
+.dark-mode .review-text {
+    color: #d1d5db !important;
+}
+
+.dark-mode .location-section {
+    background: #111111 !important;
+}
+
+.dark-mode .map-container {
+    background: #1a1a1a !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark-mode .location-info {
+    background: #1a1a1a !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #f9fafb !important;
+}
+
+.dark-mode .location-title {
+    color: #f9fafb !important;
+}
+
+.dark-mode .location-text {
+    color: #9ca3af !important;
 }
 
 /* Text selection */

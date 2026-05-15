@@ -6,7 +6,7 @@ namespace EventHotelBroker.Services
     {
         Task<MpesaPaymentResponse> InitiatePaymentAsync(string senderPhone, string receiverPhone, decimal totalAmount, decimal commissionValue);
         Task<MpesaPaymentStatusResponse> CheckPaymentStatusAsync(string checkoutRequestId);
-        Task SendBookingNotificationEmailAsync(string hotelEmail, string hotelName, string guestName, DateTime checkIn, DateTime checkOut, int guests, decimal totalAmount, string mpesaReceipt);
+        Task SendBookingNotificationEmailAsync(string hotelEmail, string hotelName, string guestName, DateTime checkIn, DateTime checkOut, int guests, decimal totalAmount, string mpesaReceipt, int bookingId, string bookingReference);
     }
 
     public class MpesaPaymentResponse
@@ -36,5 +36,6 @@ namespace EventHotelBroker.Services
     {
         public bool Success { get; set; }
         public MpesaDeal Deal { get; set; }
+        public string RawResponse { get; set; }
     }
 }

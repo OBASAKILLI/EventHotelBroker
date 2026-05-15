@@ -2,8 +2,10 @@
 @rendermode InteractiveServer
 @using EventHotelBroker.Models
 @using EventHotelBroker.Services
+@using Microsoft.AspNetCore.Components.Authorization
 @inject IEventService EventService
 @inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>Event Services - EventHotelBroker</PageTitle>
 
@@ -192,9 +194,13 @@
     private List<EventPackage> filteredPackages = new();
     private List<EventEquipment> equipments = new();
     private List<EventEquipment> filteredEquipments = new();
+    private bool isAuthenticated = false;
 
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        isAuthenticated = authState.User.Identity?.IsAuthenticated == true;
+
         if (!string.IsNullOrEmpty(TabParam))
         {
             activeTab = TabParam;
@@ -267,11 +273,23 @@
 
     private void BookPackage(int packageId)
     {
+        if (!isAuthenticated)
+        {
+            var returnUrl = Uri.EscapeDataString($"/book-event?packageId={packageId}");
+            Navigation.NavigateTo($"/login?returnUrl={returnUrl}");
+            return;
+        }
         Navigation.NavigateTo($"/book-event?packageId={packageId}");
     }
 
     private void AddToCart(int equipmentId)
     {
+        if (!isAuthenticated)
+        {
+            var returnUrl = Uri.EscapeDataString($"/book-event?equipmentId={equipmentId}");
+            Navigation.NavigateTo($"/login?returnUrl={returnUrl}");
+            return;
+        }
         // Implement cart functionality
         Navigation.NavigateTo($"/book-event?equipmentId={equipmentId}");
     }

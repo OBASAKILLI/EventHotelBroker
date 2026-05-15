@@ -4,10 +4,15 @@
 @using EventHotelBroker.Models
 @using EventHotelBroker.Services
 @using EventHotelBroker.Repositories
+@using EventHotelBroker.Utils
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
 @inject IHotelService HotelService
 @inject IUnitOfWork UnitOfWork
 @inject IBookingService BookingService
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JSRuntime
 
 <PageTitle>@(hotel?.Name ?? "Hotel Details") - EventHotelBroker</PageTitle>
 
@@ -108,19 +113,19 @@
 
                 <!-- Detail Tabs -->
                 <div class="hd-tabs">
-                    <button class="hd-tab @(activeDetailTab == "amenities" ? "active" : "")" @onclick='() => activeDetailTab = "amenities"'>
+                    <button class="hd-tab @(activeDetailTab == "amenities" ? "active" : "")" @onclick='() => SetActiveTab("amenities")'>
                         <i class="bi bi-stars"></i> Amenities
                     </button>
-                    <button class="hd-tab @(activeDetailTab == "specs" ? "active" : "")" @onclick='() => activeDetailTab = "specs"'>
+                    <button class="hd-tab @(activeDetailTab == "specs" ? "active" : "")" @onclick='() => SetActiveTab("specs")'>
                         <i class="bi bi-list-check"></i> Specifications
                     </button>
-                    <button class="hd-tab @(activeDetailTab == "policies" ? "active" : "")" @onclick='() => activeDetailTab = "policies"'>
+                    <button class="hd-tab @(activeDetailTab == "policies" ? "active" : "")" @onclick='() => SetActiveTab("policies")'>
                         <i class="bi bi-file-text"></i> Policies
                     </button>
-                    <button class="hd-tab @(activeDetailTab == "location" ? "active" : "")" @onclick='() => activeDetailTab = "location"'>
+                    <button class="hd-tab @(activeDetailTab == "location" ? "active" : "")" @onclick='() => SetActiveTab("location")'>
                         <i class="bi bi-geo-alt"></i> Location
                     </button>
-                    <button class="hd-tab @(activeDetailTab == "reviews" ? "active" : "")" @onclick='() => activeDetailTab = "reviews"'>
+                    <button class="hd-tab @(activeDetailTab == "reviews" ? "active" : "")" @onclick='() => SetActiveTab("reviews")'>
                         <i class="bi bi-star"></i> Reviews
                     </button>
                 </div>
@@ -216,26 +221,61 @@
                     }
                     else if (activeDetailTab == "location")
                     {
-                        <div class="location-details">
-                            <div class="location-item">
-                                <span class="location-label">Address:</span>
-                                <span class="location-value">@hotel.Address</span>
+                        <div class="location-container">
+                            <div class="location-map-wrapper">
+                                @if (hotel.Latitude.HasValue && hotel.Longitude.HasValue)
+                                {
+                                    <div id="hotelMap" style="height: 450px; width: 100%; border-radius: 16px; border: 1px solid rgba(158, 139, 99, 0.2); box-shadow: 0 4px 20px rgba(0,0,0,0.08);"></div>
+                                }
+                                else
+                                {
+                                    <div class="hd-tab-empty">
+                                        <i class="bi bi-map"></i>
+                                        <p>Map view not available for this property</p>
+                                    </div>
+                                }
                             </div>
-                            <div class="location-item">
-                                <span class="location-label">City:</span>
-                                <span class="location-value">@hotel.City</span>
-                            </div>
-                            <div class="location-item">
-                                <span class="location-label">Country:</span>
-                                <span class="location-value">@hotel.Country</span>
-                            </div>
-                            @if (hotel.Latitude.HasValue && hotel.Longitude.HasValue)
-                            {
-                                <div class="location-coordinates">
-                                    <i class="bi bi-pin-map"></i>
-                                    @hotel.Latitude.Value.ToString("F6"), @hotel.Longitude.Value.ToString("F6")
+                            
+                            <div class="location-info-panel">
+                                <h4 class="location-panel-title">Location Details</h4>
+                                
+                                <div class="location-info-grid">
+                                    <div class="info-card">
+                                        <i class="bi bi-geo-alt-fill"></i>
+                                        <div class="info-content">
+                                            <span class="info-label">Address</span>
+                                            <span class="info-value">@hotel.Address</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="info-card">
+                                        <i class="bi bi-building"></i>
+                                        <div class="info-content">
+                                            <span class="info-label">City</span>
+                                            <span class="info-value">@hotel.City</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="info-card">
+                                        <i class="bi bi-globe"></i>
+                                        <div class="info-content">
+                                            <span class="info-label">Country</span>
+                                            <span class="info-value">@hotel.Country</span>
+                                        </div>
+                                    </div>
+                                    
+                                    @if (hotel.Latitude.HasValue && hotel.Longitude.HasValue)
+                                    {
+                                        <div class="info-card highlight">
+                                            <i class="bi bi-pin-map-fill"></i>
+                                            <div class="info-content">
+                                                <span class="info-label">Coordinates</span>
+                                                <span class="info-value">@hotel.Latitude.Value.ToString("F6"), @hotel.Longitude.Value.ToString("F6")</span>
+                                            </div>
+                                        </div>
+                                    }
                                 </div>
-                            }
+                            </div>
                         </div>
                     }
                     else if (activeDetailTab == "reviews")
@@ -327,9 +367,9 @@
                     @if (!showBookingForm)
                     {
                         <div class="booking-actions">
-                            <a href="/booking/checkout/@HotelId" class="btn btn-primary btn-lg w-100 mb-2">
-                                <i class="bi bi-credit-card me-2"></i>Book Now & Pay
-                            </a>
+                            <button type="button" class="btn btn-primary btn-lg w-100 mb-2" @onclick="HandleBookNow">
+                                <i class="bi bi-credit-card me-2"></i>Book Now &amp; Pay
+                            </button>
                             <button type="button" class="btn btn-outline-primary w-100" @onclick="SendMessage">
                                 <i class="bi bi-envelope me-2"></i>Send Message
                             </button>
@@ -422,11 +462,26 @@
     private string? bookingMessage;
     private bool bookingSuccess = false;
     private string? currentUserId;
+    private bool isAuthenticated = false;
 
     protected override async Task OnInitializedAsync()
     {
-        // Since authentication is removed, use a default user ID (you can change this as needed)
-        currentUserId = "1"; // Default user
+        try
+        {
+            // Resolve authentication state
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            isAuthenticated = authState.User.Identity?.IsAuthenticated == true;
+
+            if (isAuthenticated)
+            {
+                var nameClaim = authState.User.FindFirst(ClaimTypes.Name)?.Value ?? "";
+                currentUserId = nameClaim.Split(',').FirstOrDefault();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error resolving auth state: {ex.Message}");
+        }
 
         try
         {
@@ -447,6 +502,25 @@
         finally
         {
             isLoading = false;
+        }
+    }
+
+    private async Task SetActiveTab(string tab)
+    {
+        try
+        {
+            activeDetailTab = tab;
+            if (tab == "location" && hotel?.Latitude != null && hotel?.Longitude != null)
+            {
+                Console.WriteLine($"Initializing map for hotel {hotel.Id} at {hotel.Latitude}, {hotel.Longitude}");
+                // Give it a small delay to ensure the div is rendered
+                await Task.Delay(150);
+                await JSRuntime.InvokeVoidAsync("mapHelper.initHotelMap", "hotelMap", (double)hotel.Latitude.Value, (double)hotel.Longitude.Value);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in SetActiveTab: {ex.Message}");
         }
     }
 
@@ -489,6 +563,19 @@
     private void SendMessage()
     {
         NavigationManager.NavigateTo($"/messages?hotelId={HotelId}");
+    }
+
+    private void HandleBookNow()
+    {
+        if (!isAuthenticated)
+        {
+            // Encode the current hotel page URL as the return destination
+            var returnUrl = Uri.EscapeDataString($"/booking/checkout/{HotelId}");
+            NavigationManager.NavigateTo($"/login?returnUrl={returnUrl}", forceLoad: false);
+            return;
+        }
+
+        NavigationManager.NavigateTo($"/booking/checkout/{HotelId}");
     }
 
     private void GoToCheckout()
