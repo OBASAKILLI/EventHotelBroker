@@ -8,6 +8,34 @@ public static class SampleDataSeeder
     public static async Task SeedSampleDataAsync(IServiceProvider serviceProvider)
     {
         var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
+        var encryption = new EventHotelBroker.Utils.Encryption();
+
+        // 1. Seed Admin User if not exists
+        var adminEmail = "admin@eventhotelbroker.com";
+        var existingAdmin = await context.Users.FirstOrDefaultAsync(u => u.Email == adminEmail);
+        if (existingAdmin == null)
+        {
+            await context.Database.ExecuteSqlRawAsync($@"
+                INSERT INTO Users (strid, FirstName, MiddleName, LastName, Email, PhoneNumber, password_hash, FullName, IsTwoFAEnabled, Role, AccountType, IsActive, IsOwnerVerified, IsEmailVerified, CreatedAt)
+                VALUES 
+                ('admin-001', 'System', '.', 'Administrator', '{adminEmail}', '+254700000000', '{encryption.Encryptstring("Admin@123")}', 'System Administrator', 0, 'Admin', 'Admin', 1, 1, 1, UTC_TIMESTAMP())
+            ");
+        }
+
+        // 2. Ensure existing seeded users have correct password hashes if they were seeded with empty passwords
+        try
+        {
+            var ownerHash = encryption.Encryptstring("Owner@123");
+            var userHash = encryption.Encryptstring("User@123");
+            await context.Database.ExecuteSqlRawAsync($@"
+                UPDATE Users SET password_hash = '{ownerHash}' WHERE Role = 'HotelOwner' AND (password_hash = '' OR password_hash IS NULL);
+                UPDATE Users SET password_hash = '{userHash}' WHERE Role = 'User' AND (password_hash = '' OR password_hash IS NULL);
+            ");
+        }
+        catch (Exception)
+        {
+            // Ignore potential SQL errors if table schemas differ or during initial migration runs
+        }
 
         // Check if sample data already exists
         if (context.Hotels.Any())
@@ -79,14 +107,16 @@ public static class SampleDataSeeder
         // Add users to database (required for foreign key constraints)
         if (!context.Users.Any(u => u.Role == "HotelOwner" || u.Role == "User"))
         {
-            await context.Database.ExecuteSqlRawAsync(@"
+            var ownerHash = encryption.Encryptstring("Owner@123");
+            var userHash = encryption.Encryptstring("User@123");
+            await context.Database.ExecuteSqlRawAsync($@"
                 INSERT INTO Users (strid, FirstName, MiddleName, LastName, Email, PhoneNumber, password_hash, FullName, IsTwoFAEnabled, Role, AccountType, IsActive, IsOwnerVerified, IsEmailVerified, BusinessName, RegistrationNumber, CreatedAt)
                 VALUES 
-                ('owner-001', 'John', '.', 'Smith', 'owner1@test.com', '+254712345678', '', 'John Smith', 0, 'HotelOwner', 'HotelOwner', 1, 1, 1, 'Smith Hotels Ltd', 'BN123456', UTC_TIMESTAMP()),
-                ('owner-002', 'Mary', '.', 'Johnson', 'owner2@test.com', '+254723456789', '', 'Mary Johnson', 0, 'HotelOwner', 'HotelOwner', 1, 1, 1, 'Coastal Resorts Kenya', 'BN789012', UTC_TIMESTAMP()),
-                ('owner-003', 'David', '.', 'Kimani', 'owner3@test.com', '+254734567890', '', 'David Kimani', 0, 'HotelOwner', 'HotelOwner', 1, 1, 1, 'Mountain View Lodges', 'BN345678', UTC_TIMESTAMP()),
-                ('user-001', 'Jane', '.', 'Doe', 'user1@test.com', '+254745678901', '', 'Jane Doe', 0, 'User', 'User', 1, 0, 1, NULL, NULL, UTC_TIMESTAMP()),
-                ('user-002', 'Peter', '.', 'Omondi', 'user2@test.com', '+254756789012', '', 'Peter Omondi', 0, 'User', 'User', 1, 0, 1, NULL, NULL, UTC_TIMESTAMP())
+                ('owner-001', 'John', '.', 'Smith', 'owner1@test.com', '+254712345678', '{ownerHash}', 'John Smith', 0, 'HotelOwner', 'HotelOwner', 1, 1, 1, 'Smith Hotels Ltd', 'BN123456', UTC_TIMESTAMP()),
+                ('owner-002', 'Mary', '.', 'Johnson', 'owner2@test.com', '+254723456789', '{ownerHash}', 'Mary Johnson', 0, 'HotelOwner', 'HotelOwner', 1, 1, 1, 'Coastal Resorts Kenya', 'BN789012', UTC_TIMESTAMP()),
+                ('owner-003', 'David', '.', 'Kimani', 'owner3@test.com', '+254734567890', '{ownerHash}', 'David Kimani', 0, 'HotelOwner', 'HotelOwner', 1, 1, 1, 'Mountain View Lodges', 'BN345678', UTC_TIMESTAMP()),
+                ('user-001', 'Jane', '.', 'Doe', 'user1@test.com', '+254745678901', '{userHash}', 'Jane Doe', 0, 'User', 'User', 1, 0, 1, NULL, NULL, UTC_TIMESTAMP()),
+                ('user-002', 'Peter', '.', 'Omondi', 'user2@test.com', '+254756789012', '{userHash}', 'Peter Omondi', 0, 'User', 'User', 1, 0, 1, NULL, NULL, UTC_TIMESTAMP())
             ");
         }
 

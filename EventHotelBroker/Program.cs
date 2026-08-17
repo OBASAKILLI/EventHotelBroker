@@ -31,6 +31,7 @@ builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<EventHotelBroker.Services.IEmailService, EventHotelBroker.Services.EmailService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IMpesaPaymentService, MpesaPaymentService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<ToastService>();
 
 // Session & Authentication

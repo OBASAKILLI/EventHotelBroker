@@ -3,8 +3,10 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @inject IHttpContextAccessor HttpContextAccessor
 @inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavManager
 @inject IJSRuntime JSRuntime
 @using EventHotelBroker.Utils
+@implements IDisposable
 
 <link href="/css/design-system.css" rel="stylesheet" />
 <link href="/css/dark-mode.css" rel="stylesheet" />
@@ -18,6 +20,9 @@
         <aside class="modern-sidebar @(sidebarCollapsed ? "collapsed" : "")">
             <NavMenu />
         </aside>
+        
+        <!-- Mobile Sidebar Backdrop -->
+        <div class="sidebar-backdrop @(sidebarCollapsed ? "active" : "")" @onclick="CloseSidebar"></div>
     }
 
     <!-- Modern App Bar -->
@@ -184,6 +189,22 @@
     protected override void OnInitialized()
     {
         AuthStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
+        NavManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        if (sidebarCollapsed)
+        {
+            sidebarCollapsed = false;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public void Dispose()
+    {
+        AuthStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
+        NavManager.LocationChanged -= OnLocationChanged;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -266,6 +287,14 @@
     private void ToggleSidebar()
     {
         sidebarCollapsed = !sidebarCollapsed;
+    }
+
+    private void CloseSidebar()
+    {
+        if (sidebarCollapsed)
+        {
+            sidebarCollapsed = false;
+        }
     }
 
     private void ToggleUserMenu()

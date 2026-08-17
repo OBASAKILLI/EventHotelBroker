@@ -32,6 +32,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<EventBooking> EventBookings { get; set; }
     public DbSet<EventBookingEquipment> EventBookingEquipments { get; set; }
 
+    // Reviews
+    public DbSet<Review> Reviews { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
     
@@ -278,6 +281,24 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(e => e.Equipment)
                 .WithMany(eq => eq.BookingEquipments)
                 .HasForeignKey(e => e.EquipmentId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // Review configuration
+        modelBuilder.Entity<Review>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => new { e.EntityType, e.EntityId });
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.CreatedAt);
+
+            entity.Property(e => e.EntityType).HasMaxLength(50);
+            entity.Property(e => e.Title).HasMaxLength(150);
+            entity.Property(e => e.Comment).HasMaxLength(2000);
+
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
     }

@@ -7,56 +7,57 @@
 
 <PageTitle>Hotel Categories - Admin</PageTitle>
 
+<link href="/css/admin-hotel-categories.css?v=1" rel="stylesheet" />
+
 <div class="hc">
     <Breadcrumb Items="@breadcrumbItems" />
 
-    <div class="hc-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+    <!-- Header -->
+    <div class="hc-header">
         <div>
-            <h1 style="margin:0;"><i class="bi bi-tags"></i> Hotel Categories</h1>
-            <p style="margin:0.25rem 0 0;color:#6c757d;">Manage service fees by hotel category</p>
+            <h1 class="hc-header-title"><i class="bi bi-tags"></i> Hotel Categories</h1>
+            <p class="hc-header-sub">Manage service fees by hotel category</p>
         </div>
         <div style="display:flex;gap:0.5rem;">
-            <button class="btn btn-outline-secondary" @onclick="LoadData" disabled="@isLoading">
+            <button class="hc-btn hc-btn-refresh" @onclick="LoadData" disabled="@isLoading">
                 <i class="bi bi-arrow-clockwise"></i> Refresh
             </button>
-            <button class="btn btn-primary" @onclick="NewCategory">
+            <button class="hc-btn hc-btn-primary" @onclick="NewCategory">
                 <i class="bi bi-plus-lg"></i> New Category
             </button>
         </div>
     </div>
 
-    @if (!string.IsNullOrWhiteSpace(errorMessage))
-    {
-        <div class="alert alert-danger mt-3">@errorMessage</div>
-    }
-
-    @if (!string.IsNullOrWhiteSpace(successMessage))
-    {
-        <div class="alert alert-success mt-3">@successMessage</div>
-    }
-
-    <div class="mt-3" style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;flex-wrap:wrap;">
-        <div style="display:flex;align-items:center;gap:0.5rem;">
+    <!-- Search Bar -->
+    <div class="hc-search-bar">
+        <div class="hc-search-wrap">
             <i class="bi bi-search"></i>
-            <input class="form-control" style="min-width:260px;" placeholder="Search by name or rating..." @bind="searchTerm" @bind:event="oninput" />
+            <input class="hc-search-input" placeholder="Search by name or rating..." @bind="searchTerm" @bind:event="oninput" />
         </div>
-        <label style="display:flex;align-items:center;gap:0.5rem;margin:0;">
-            <input type="checkbox" class="form-check-input" @bind="showInactive" />
+        <label class="hc-filter-check">
+            <input type="checkbox" @bind="showInactive" />
             <span>Show inactive</span>
         </label>
     </div>
 
     @if (isLoading)
     {
-        <div class="card mt-3">
-            <div class="card-body">Loading categories...</div>
+        <div class="hc-card">
+            <div class="hc-loading">
+                <div class="hc-spinner"></div>
+                <div class="hc-loading-text">Loading categories...</div>
+            </div>
         </div>
     }
     else
     {
-        <div class="card mt-3">
-            <div class="table-responsive">
-                <table class="table table-striped mb-0">
+        <div class="hc-card">
+            <div class="hc-card-header">
+                <h5 class="hc-card-title"><i class="bi bi-table"></i> Categories</h5>
+                <span class="hc-card-count">@FilteredCategories.Count() records</span>
+            </div>
+            <div style="overflow-x:auto;">
+                <table class="hc-table">
                     <thead>
                         <tr>
                             <th style="width:80px;">ID</th>
@@ -71,7 +72,13 @@
                         @if (!FilteredCategories.Any())
                         {
                             <tr>
-                                <td colspan="6" class="text-center" style="padding:1rem;">No categories found.</td>
+                                <td colspan="6">
+                                    <div class="hc-empty">
+                                        <div class="hc-empty-icon"><i class="bi bi-inbox"></i></div>
+                                        <div class="hc-empty-title">No categories found</div>
+                                        <div class="hc-empty-text">Try adjusting your search filters.</div>
+                                    </div>
+                                </td>
                             </tr>
                         }
                         else
@@ -79,12 +86,12 @@
                             @foreach (var c in FilteredCategories)
                             {
                                 <tr>
-                                    <td>#@c.Id</td>
+                                    <td><span class="hc-id">#@c.Id</span></td>
                                     <td>
-                                        <div style="font-weight:600;">@c.Name</div>
+                                        <div class="hc-name">@c.Name</div>
                                         @if (!string.IsNullOrWhiteSpace(c.Description))
                                         {
-                                            <div style="color:#6c757d;font-size:0.875rem;">@c.Description</div>
+                                            <div class="hc-desc">@c.Description</div>
                                         }
                                     </td>
                                     <td>@c.Rating</td>
@@ -92,28 +99,28 @@
                                     <td>
                                         @if (c.IsActive)
                                         {
-                                            <span class="badge bg-success">Active</span>
+                                            <span class="hc-badge hc-badge-active"><i class="bi bi-check-circle"></i> Active</span>
                                         }
                                         else
                                         {
-                                            <span class="badge bg-secondary">Inactive</span>
+                                            <span class="hc-badge hc-badge-inactive"><i class="bi bi-slash-circle"></i> Inactive</span>
                                         }
                                     </td>
                                     <td>
-                                        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
-                                            <button class="btn btn-sm btn-outline-primary" @onclick="() => EditCategory(c)">
+                                        <div style="display:flex;gap:0.375rem;flex-wrap:wrap;">
+                                            <button class="hc-btn hc-btn-sm hc-btn-edit" @onclick="() => EditCategory(c)">
                                                 <i class="bi bi-pencil"></i> Edit
                                             </button>
 
                                             @if (c.IsActive)
                                             {
-                                                <button class="btn btn-sm btn-outline-warning" @onclick="() => DeactivateCategory(c)">
+                                                <button class="hc-btn hc-btn-sm hc-btn-deactivate" @onclick="() => DeactivateCategory(c)">
                                                     <i class="bi bi-slash-circle"></i> Deactivate
                                                 </button>
                                             }
                                             else
                                             {
-                                                <button class="btn btn-sm btn-outline-success" @onclick="() => ActivateCategory(c)">
+                                                <button class="hc-btn hc-btn-sm hc-btn-activate" @onclick="() => ActivateCategory(c)">
                                                     <i class="bi bi-check2-circle"></i> Activate
                                                 </button>
                                             }
@@ -128,76 +135,93 @@
         </div>
     }
 
-    @if (showForm)
+    @if (!string.IsNullOrWhiteSpace(errorMessage))
     {
-        <div class="modal fade show" style="display:block; background: rgba(0,0,0,0.5);" tabindex="-1">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">
-                            @if (editingId == 0)
-                            {
-                                <span><i class="bi bi-plus-lg"></i> New Category</span>
-                            }
-                            else
-                            {
-                                <span><i class="bi bi-pencil"></i> Edit Category</span>
-                            }
-                        </h5>
-                        <button type="button" class="btn-close" @onclick="CloseForm"></button>
-                    </div>
-                    <div class="modal-body">
-                        <EditForm Model="formModel" OnValidSubmit="SaveCategory">
-                            <DataAnnotationsValidator />
-                            <ValidationSummary />
+        <div class="hc-toast hc-toast-error">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>@errorMessage</span>
+            <button class="hc-toast-close" @onclick="() => errorMessage = null"><i class="bi bi-x-lg"></i></button>
+        </div>
+    }
 
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label">Name</label>
-                                    <InputText class="form-control" @bind-Value="formModel.Name" />
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Rating (e.g. 5-Star)</label>
-                                    <InputText class="form-control" @bind-Value="formModel.Rating" />
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Service Fee (KES)</label>
-                                    <InputNumber class="form-control" @bind-Value="formModel.ServiceFee" />
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Active</label>
-                                    <div class="form-check" style="margin-top:0.5rem;">
-                                        <InputCheckbox class="form-check-input" @bind-Value="formModel.IsActive" />
-                                        <label class="form-check-label">Enabled</label>
-                                    </div>
-                                </div>
-                                <div class="col-12">
-                                    <label class="form-label">Description</label>
-                                    <InputTextArea class="form-control" @bind-Value="formModel.Description" rows="3" />
+    @if (!string.IsNullOrWhiteSpace(successMessage))
+    {
+        <div class="hc-toast hc-toast-success">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>@successMessage</span>
+            <button class="hc-toast-close" @onclick="() => successMessage = null"><i class="bi bi-x-lg"></i></button>
+        </div>
+    }
+</div>
+
+@if (showForm)
+{
+    <div class="hc-modal-overlay">
+        <div class="hc-modal-wrapper">
+            <div class="hc-modal-content">
+                <div class="hc-modal-header">
+                    <h5 class="hc-modal-title">
+                        @if (editingId == 0)
+                        {
+                            <span><i class="bi bi-plus-lg"></i> New Category</span>
+                        }
+                        else
+                        {
+                            <span><i class="bi bi-pencil"></i> Edit Category</span>
+                        }
+                    </h5>
+                    <button type="button" class="hc-close-btn" @onclick="CloseForm"><i class="bi bi-x-lg"></i></button>
+                </div>
+                <div class="hc-modal-body">
+                    <EditForm Model="formModel" OnValidSubmit="SaveCategory">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="hc-form-label">Name</label>
+                                <InputText class="hc-form-control" @bind-Value="formModel.Name" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="hc-form-label">Rating (e.g. 5-Star)</label>
+                                <InputText class="hc-form-control" @bind-Value="formModel.Rating" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="hc-form-label">Service Fee (KES)</label>
+                                <InputNumber class="hc-form-control" @bind-Value="formModel.ServiceFee" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="hc-form-label">Active</label>
+                                <div class="hc-form-check">
+                                    <InputCheckbox class="hc-form-check-input" @bind-Value="formModel.IsActive" />
+                                    <label class="hc-form-check-label">Enabled</label>
                                 </div>
                             </div>
-
-                            <div class="mt-4" style="display:flex;justify-content:flex-end;gap:0.5rem;">
-                                <button type="button" class="btn btn-outline-secondary" @onclick="CloseForm">Cancel</button>
-                                <button type="submit" class="btn btn-primary" disabled="@isSaving">
-                                    @if (isSaving)
-                                    {
-                                        <span>Saving...</span>
-                                    }
-                                    else
-                                    {
-                                        <span>Save</span>
-                                    }
-                                </button>
+                            <div class="col-12">
+                                <label class="hc-form-label">Description</label>
+                                <InputTextArea class="hc-form-control" @bind-Value="formModel.Description" rows="3" />
                             </div>
-                        </EditForm>
-                    </div>
+                        </div>
+
+                        <div class="hc-modal-footer">
+                            <button type="button" class="hc-btn hc-btn-cancel" @onclick="CloseForm">Cancel</button>
+                            <button type="submit" class="hc-btn hc-btn-primary" disabled="@isSaving">
+                                @if (isSaving)
+                                {
+                                    <span>Saving...</span>
+                                }
+                                else
+                                {
+                                    <span><i class="bi bi-check-lg"></i> Save</span>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
                 </div>
             </div>
         </div>
-        <div class="modal-backdrop fade show"></div>
-    }
-</div>
+    </div>
+}
 
 @code {
     private bool isLoading = true;

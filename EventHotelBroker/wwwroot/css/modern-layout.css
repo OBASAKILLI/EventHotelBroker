@@ -531,24 +531,64 @@ body {
 }
 
 /* ============================================
+   Sidebar Backdrop
+   ============================================ */
+
+.sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(2px);
+    z-index: 1000;
+}
+
+/* ============================================
    Responsive Design
    ============================================ */
 
-@media (max-width: 768px) {
-    .modern-sidebar {
+@media (max-width: 992px) {
+    /* On mobile, sidebar is hidden by default (when NOT collapsed). 
+       When toggled (collapsed class added), it slides in. */
+    .modern-sidebar:not(.collapsed) {
         transform: translateX(-100%);
     }
     
-    .modern-sidebar:not(.collapsed) {
+    .modern-sidebar.collapsed {
         transform: translateX(0);
-    }
-    
-    .modern-main-content {
-        margin-left: 0;
+        width: 260px !important; /* Full width instead of mini */
     }
 
-    .modern-app-bar {
-        left: 0;
+    /* Restore text/icons that get hidden by .collapsed on desktop */
+    .modern-sidebar.collapsed .nav-text,
+    .modern-sidebar.collapsed .section-title,
+    .modern-sidebar.collapsed .chevron {
+        display: block !important;
+    }
+    
+    .modern-sidebar.collapsed .modern-nav-link,
+    .modern-sidebar.collapsed .modern-nav-section-toggle {
+        justify-content: flex-start !important;
+        padding: 0.65rem 0.875rem !important;
+    }
+    
+    .modern-sidebar.collapsed .section-header {
+        gap: 0.5rem !important;
+    }
+    
+    .modern-sidebar.collapsed .modern-nav-submenu {
+        display: flex !important;
+    }
+
+    /* Main content & App bar always full width */
+    .modern-main-content,
+    .modern-sidebar.collapsed ~ .modern-main-content {
+        margin-left: 0 !important;
+    }
+
+    .modern-app-bar,
+    .modern-sidebar.collapsed ~ .modern-app-bar {
+        left: 0 !important;
     }
     
     .app-bar-brand .brand-text {
@@ -558,14 +598,18 @@ body {
     .user-name {
         display: none;
     }
+    
+    .sidebar-backdrop.active {
+        display: block;
+    }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 576px) {
     .app-bar-content {
         padding: 0 1rem;
     }
     
-    .modern-main-content {
-        padding: 1rem;
+    .content-wrapper > .container-fluid {
+        padding: 1rem !important;
     }
 }
