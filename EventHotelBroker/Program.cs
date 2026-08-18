@@ -160,4 +160,7 @@ app.MapControllers();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
+// Map lightweight endpoint to keep server alive (SmarterASP Scheduled Task)
+app.MapGet("/ping", () => Results.Ok("pong"));
+
 app.Run();

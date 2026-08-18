@@ -7,6 +7,7 @@
 @inject IEventService EventService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@inject Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider AuthStateProvider
 @implements IDisposable
 
 <PageTitle>Home - EventHotelBroker</PageTitle>
@@ -768,7 +769,7 @@
                             <span>Analytics and insights</span>
                         </div>
                     </div>
-                    <a href="/owner/create-hotel" class="btn-modern btn-gradient-success" style="padding: 1rem 2rem; font-size: 1.1rem;">
+                    <a href="@listVenueUrl" class="btn-modern btn-gradient-success" style="padding: 1rem 2rem; font-size: 1.1rem;">
                         <i class="bi bi-plus-circle me-2"></i>List Your Venue
                     </a>
                 </div>
@@ -799,6 +800,7 @@
     private List<EventEquipment>? featuredEquipments;
     private List<Hotel> filteredHotels = new();
     private string selectedCategory = "All";
+    private string listVenueUrl = "/enroll-as-owner";
     private DotNetObjectReference<Home>? objRef;
 
     protected override async Task OnInitializedAsync()
@@ -817,6 +819,18 @@
             // Load featured equipment
             var allEquipments = await EventService.GetAllEquipmentsAsync();
             featuredEquipments = allEquipments.Where(e => e.IsApproved && e.IsAvailable).Take(8).ToList();
+            
+            // Check auth state for venue button
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                var role = user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? user.FindFirst("AccountType")?.Value;
+                if (role == "HotelOwner")
+                {
+                    listVenueUrl = "/owner/create-hotel";
+                }
+            }
         }
         catch
         {
