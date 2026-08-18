@@ -115,21 +115,56 @@
             display: flex !important;
             position: fixed;
             inset: 0;
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(8px);
+            background: rgba(240, 242, 245, 0.95);
+            backdrop-filter: blur(10px);
             z-index: 99999;
             align-items: center;
             justify-content: center;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
         }
         .reconnect-content {
             background: white;
-            padding: 3rem;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
             text-align: center;
-            max-width: 400px;
+            max-width: 420px;
             width: 90%;
-            animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .reconnect-icon-wrapper {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            box-shadow: 0 10px 20px rgba(217, 119, 6, 0.2);
+        }
+        .reconnect-btn {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 16px rgba(217, 119, 6, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .reconnect-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 20px rgba(217, 119, 6, 0.3);
+            color: white;
         }
         @keyframes pop-in {
             0% { transform: scale(0.9); opacity: 0; }
@@ -138,11 +173,15 @@
     </style>
     <div id="components-reconnect-modal" class="my-reconnect-modal components-reconnect-hide">
         <div class="reconnect-content">
-            <i class="bi bi-arrow-clockwise" style="font-size: 3rem; color: #C87941; margin-bottom: 1rem; display: inline-block;"></i>
-            <h3 style="font-weight: 700; color: #2A2A2A; margin-bottom: 0.5rem;">Session Idle</h3>
-            <p style="color: #6c757d; margin-bottom: 1.5rem;">Your connection was paused to save resources. Please reload to continue.</p>
-            <button class="btn-modern btn-gradient-success" style="padding: 0.75rem 2rem; font-size: 1.1rem;" onclick="location.reload()">
-                Reload Page
+            <div class="reconnect-icon-wrapper">
+                <i class="bi bi-arrow-clockwise" style="font-size: 2.2rem; color: white;"></i>
+            </div>
+            <h3 style="font-weight: 800; color: #1a1a1a; margin-bottom: 12px; font-size: 1.5rem;">Session Idle</h3>
+            <p style="color: #6c757d; margin-bottom: 32px; font-size: 0.95rem; line-height: 1.6;">
+                Your connection was paused to save resources. Please reload to resume your session.
+            </p>
+            <button class="reconnect-btn" onclick="location.reload()">
+                <i class="bi bi-arrow-clockwise"></i> Reload Safari Vents
             </button>
         </div>
     </div>
