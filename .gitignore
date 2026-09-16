@@ -90,3 +90,9 @@ node_modules/
 *.db
 *.db-shm
 *.db-wal
+
+# Secrets - never commit these
+**/appsettings.Production.json
+**/appsettings.Development.json
+**/appsettings.*.json
+!**/appsettings.json

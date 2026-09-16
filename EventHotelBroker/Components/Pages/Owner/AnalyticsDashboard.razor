@@ -1,11 +1,21 @@
 @page "/owner/analytics"
 @rendermode InteractiveServer
+@using EventHotelBroker.Models
+@using EventHotelBroker.Services
+@using EventHotelBroker.Utils
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IHotelService HotelService
+@inject IBookingService BookingService
+@inject IEventService EventService
 @inject NavigationManager Navigation
 @inject ToastService ToastService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Analytics Dashboard - EventHotelBroker</PageTitle>
 
-<link href="/css/owner-analytics.css?v=1" rel="stylesheet" />
+<link href="/css/owner-analytics.css?v=2" rel="stylesheet" />
 
 <div class="oa">
     <Breadcrumb Items="@breadcrumbItems" />
@@ -14,14 +24,15 @@
     <div class="oa-header">
         <div>
             <h1 class="oa-header-title"><i class="bi bi-graph-up"></i> Analytics Dashboard</h1>
-            <p class="oa-header-sub">Track your performance and revenue</p>
+            <p class="oa-header-sub">Track your property performance and revenue insights</p>
         </div>
         <div class="oa-header-actions">
-            <select class="oa-select" @bind="selectedPeriod">
+            <select class="oa-select" value="@selectedPeriod" @onchange="OnPeriodChanged">
                 <option value="7">Last 7 Days</option>
                 <option value="30">Last 30 Days</option>
                 <option value="90">Last 3 Months</option>
                 <option value="365">Last Year</option>
+                <option value="all">All Time</option>
             </select>
             <button type="button" class="oa-btn oa-btn-primary" @onclick="ExportReport">
                 <i class="bi bi-download"></i> Export
@@ -29,174 +40,315 @@
         </div>
     </div>
 
-    <!-- Metric Cards -->
-    <div class="oa-metrics">
-        <div class="oa-metric">
-            <div class="oa-metric-icon oa-icon-teal"><i class="bi bi-cash-stack"></i></div>
-            <div>
-                <div class="oa-metric-label">Total Revenue</div>
-                <div class="oa-metric-value">KES 2.5M</div>
-                <div class="oa-metric-change up"><i class="bi bi-arrow-up"></i> 12.5% from last month</div>
+    @if (isLoading)
+    {
+        <div class="oa-card">
+            <div class="oa-loading">
+                <i class="bi bi-arrow-repeat"></i>
+                <p>Loading analytics data...</p>
             </div>
         </div>
-        <div class="oa-metric">
-            <div class="oa-metric-icon oa-icon-terracotta"><i class="bi bi-calendar-check"></i></div>
-            <div>
-                <div class="oa-metric-label">Total Bookings</div>
-                <div class="oa-metric-value">145</div>
-                <div class="oa-metric-change up"><i class="bi bi-arrow-up"></i> 8.3% from last month</div>
+    }
+    else
+    {
+        @if (ownerHotels.Count == 0 && ownerPackages.Count == 0)
+        {
+            <div class="oa-card" style="border-left: 4px solid #C87941; margin-bottom: 1rem;">
+                <div class="oa-card-body" style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;flex-wrap:wrap;gap:1rem;">
+                    <div style="display:flex;align-items:center;gap:0.75rem;">
+                        <i class="bi bi-info-circle-fill" style="font-size:1.5rem;color:#C87941;"></i>
+                        <div>
+                            <div style="font-weight:700;font-size:0.8125rem;color:#2A2A2A;">No properties or packages found</div>
+                            <div style="font-size:0.6875rem;color:#8a8177;">Add your first hotel property or event package to start tracking real-time performance and revenue.</div>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:0.5rem;">
+                        <a href="/owner/create-hotel" class="oa-btn oa-btn-primary"><i class="bi bi-plus-lg"></i> Add Hotel</a>
+                        <a href="/owner/create-package" class="oa-btn oa-btn-ghost"><i class="bi bi-gift"></i> Create Package</a>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div class="oa-metric">
-            <div class="oa-metric-icon oa-icon-bronze"><i class="bi bi-pie-chart"></i></div>
-            <div>
-                <div class="oa-metric-label">Occupancy Rate</div>
-                <div class="oa-metric-value">78%</div>
-                <div class="oa-metric-change up"><i class="bi bi-arrow-up"></i> 5.2% from last month</div>
-            </div>
-        </div>
-        <div class="oa-metric">
-            <div class="oa-metric-icon oa-icon-charcoal"><i class="bi bi-wallet2"></i></div>
-            <div>
-                <div class="oa-metric-label">Avg Booking Value</div>
-                <div class="oa-metric-value">KES 17.2K</div>
-                <div class="oa-metric-change down"><i class="bi bi-arrow-down"></i> 2.1% from last month</div>
-            </div>
-        </div>
-    </div>
+        }
 
-    <div class="row g-3">
-        <!-- Revenue Chart -->
-        <div class="col-lg-8">
-            <div class="oa-card">
-                <div class="oa-card-header">
-                    <h5 class="oa-card-title"><i class="bi bi-graph-up"></i> Revenue Trend</h5>
-                    <div class="oa-chart-toggle">
-                        <button type="button" class="oa-btn oa-btn-ghost @(chartView == "daily" ? "active" : "")" @onclick='() => chartView = "daily"'>Daily</button>
-                        <button type="button" class="oa-btn oa-btn-ghost @(chartView == "weekly" ? "active" : "")" @onclick='() => chartView = "weekly"'>Weekly</button>
-                        <button type="button" class="oa-btn oa-btn-ghost @(chartView == "monthly" ? "active" : "")" @onclick='() => chartView = "monthly"'>Monthly</button>
-                    </div>
-                </div>
-                <div class="oa-card-body">
-                    <div class="oa-chart">
-                        <svg viewBox="0 0 800 220" style="width: 100%; height: 220px;">
-                            <defs>
-                                <linearGradient id="oaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                                    <stop offset="0%" style="stop-color:#C87941;stop-opacity:0.2" />
-                                    <stop offset="100%" style="stop-color:#C87941;stop-opacity:0" />
-                                </linearGradient>
-                            </defs>
-                            <polyline points="0,180 100,145 200,130 300,155 400,105 500,118 600,82 700,96 800,65"
-                                      fill="url(#oaGrad)" stroke="#C87941" stroke-width="2.5" fill-opacity="1"/>
-                            <circle cx="100" cy="145" r="3.5" fill="#C87941"/>
-                            <circle cx="200" cy="130" r="3.5" fill="#C87941"/>
-                            <circle cx="300" cy="155" r="3.5" fill="#C87941"/>
-                            <circle cx="400" cy="105" r="3.5" fill="#C87941"/>
-                            <circle cx="500" cy="118" r="3.5" fill="#C87941"/>
-                            <circle cx="600" cy="82" r="3.5" fill="#C87941"/>
-                            <circle cx="700" cy="96" r="3.5" fill="#C87941"/>
-                            <circle cx="800" cy="65" r="3.5" fill="#C87941"/>
-                        </svg>
+        <!-- Metric Cards -->
+        <div class="oa-metrics">
+            <div class="oa-metric">
+                <div class="oa-metric-icon oa-icon-teal"><i class="bi bi-cash-stack"></i></div>
+                <div>
+                    <div class="oa-metric-label">Total Revenue</div>
+                    <div class="oa-metric-value">KES @FormatCompactNumber(totalRevenue)</div>
+                    <div class="oa-metric-change @(revChangeIsUp ? "up" : "down")">
+                        <i class="bi @(revChangeIsUp ? "bi-arrow-up" : "bi-arrow-down")"></i>
+                        @revChangePct.ToString("F1")% vs prior period
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Booking Sources -->
-        <div class="col-lg-4">
-            <div class="oa-card">
-                <div class="oa-card-header">
-                    <h5 class="oa-card-title"><i class="bi bi-pie-chart"></i> Booking Sources</h5>
-                </div>
-                <div class="oa-card-body">
-                    <div class="oa-chart" style="text-align:center;">
-                        <svg viewBox="0 0 200 200" style="width: 140px; height: 140px;">
-                            <circle cx="100" cy="100" r="80" fill="none" stroke="rgba(158,139,99,0.08)" stroke-width="30"/>
-                            <circle cx="100" cy="100" r="80" fill="none" stroke="#C87941" stroke-width="30"
-                                    stroke-dasharray="251.2 502.4" transform="rotate(-90 100 100)"/>
-                            <circle cx="100" cy="100" r="80" fill="none" stroke="#488C82" stroke-width="30"
-                                    stroke-dasharray="125.6 502.4" stroke-dashoffset="-251.2" transform="rotate(-90 100 100)"/>
-                            <circle cx="100" cy="100" r="80" fill="none" stroke="#9E8B63" stroke-width="30"
-                                    stroke-dasharray="62.8 502.4" stroke-dashoffset="-376.8" transform="rotate(-90 100 100)"/>
-                        </svg>
+            <div class="oa-metric">
+                <div class="oa-metric-icon oa-icon-terracotta"><i class="bi bi-calendar-check"></i></div>
+                <div>
+                    <div class="oa-metric-label">Total Bookings</div>
+                    <div class="oa-metric-value">@totalBookings</div>
+                    <div class="oa-metric-change @(bookingsChangeIsUp ? "up" : "down")">
+                        <i class="bi @(bookingsChangeIsUp ? "bi-arrow-up" : "bi-arrow-down")"></i>
+                        @bookingsChangePct.ToString("F1")% vs prior period
                     </div>
-                    <div class="oa-legend">
-                        <div class="oa-legend-item">
-                            <span class="oa-legend-dot" style="background:#C87941;"></span>
-                            <span class="oa-legend-label">Direct</span>
-                            <span class="oa-legend-value">50%</span>
-                        </div>
-                        <div class="oa-legend-item">
-                            <span class="oa-legend-dot" style="background:#488C82;"></span>
-                            <span class="oa-legend-label">Platform</span>
-                            <span class="oa-legend-value">30%</span>
-                        </div>
-                        <div class="oa-legend-item">
-                            <span class="oa-legend-dot" style="background:#9E8B63;"></span>
-                            <span class="oa-legend-label">Referral</span>
-                            <span class="oa-legend-value">20%</span>
-                        </div>
+                </div>
+            </div>
+            <div class="oa-metric">
+                <div class="oa-metric-icon oa-icon-bronze"><i class="bi bi-pie-chart"></i></div>
+                <div>
+                    <div class="oa-metric-label">Confirmation Rate</div>
+                    <div class="oa-metric-value">@occupancyRate%</div>
+                    <div class="oa-metric-change @(occChangeIsUp ? "up" : "down")">
+                        <i class="bi @(occChangeIsUp ? "bi-arrow-up" : "bi-arrow-down")"></i>
+                        @occChangePct.ToString("F1")% vs prior period
+                    </div>
+                </div>
+            </div>
+            <div class="oa-metric">
+                <div class="oa-metric-icon oa-icon-charcoal"><i class="bi bi-wallet2"></i></div>
+                <div>
+                    <div class="oa-metric-label">Avg Booking Value</div>
+                    <div class="oa-metric-value">KES @FormatCompactNumber(avgBookingValue)</div>
+                    <div class="oa-metric-change @(avgValChangeIsUp ? "up" : "down")">
+                        <i class="bi @(avgValChangeIsUp ? "bi-arrow-up" : "bi-arrow-down")"></i>
+                        @avgValChangePct.ToString("F1")% vs prior period
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Top Performing Hotels -->
-        <div class="col-lg-6">
-            <div class="oa-card">
-                <div class="oa-card-header">
-                    <h5 class="oa-card-title"><i class="bi bi-trophy"></i> Top Performing Hotels</h5>
-                </div>
-                <div class="oa-card-body">
-                    @foreach (var hotel in topHotels)
-                    {
-                        <div class="oa-perf-item">
-                            <div class="oa-perf-row">
-                                <div class="oa-perf-rank">@hotel.Rank</div>
-                                <div style="flex:1;">
-                                    <h6 class="oa-perf-name">@hotel.Name</h6>
-                                    <span class="oa-perf-bookings">@hotel.Bookings bookings</span>
+        <div class="row g-3">
+            <!-- Revenue Chart -->
+            <div class="col-lg-8">
+                <div class="oa-card">
+                    <div class="oa-card-header">
+                        <h5 class="oa-card-title"><i class="bi bi-graph-up"></i> Revenue Trend</h5>
+                        <div class="oa-chart-toggle">
+                            <button type="button" class="oa-btn oa-btn-ghost @(chartView == "daily" ? "active" : "")" @onclick='() => SetChartView("daily")'>Daily</button>
+                            <button type="button" class="oa-btn oa-btn-ghost @(chartView == "weekly" ? "active" : "")" @onclick='() => SetChartView("weekly")'>Weekly</button>
+                            <button type="button" class="oa-btn oa-btn-ghost @(chartView == "monthly" ? "active" : "")" @onclick='() => SetChartView("monthly")'>Monthly</button>
+                        </div>
+                    </div>
+                    <div class="oa-card-body">
+                        <div class="oa-chart" style="position:relative;">
+                            <svg viewBox="0 0 800 220" style="width: 100%; height: 220px; overflow: visible;">
+                                <defs>
+                                    <linearGradient id="oaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#C87941;stop-opacity:0.25" />
+                                        <stop offset="100%" style="stop-color:#C87941;stop-opacity:0" />
+                                    </linearGradient>
+                                </defs>
+                                <!-- Grid Baseline -->
+                                <line x1="20" y1="185" x2="780" y2="185" stroke="#eae7e1" stroke-width="1" stroke-dasharray="4" />
+                                <line x1="20" y1="105" x2="780" y2="105" stroke="#eae7e1" stroke-width="1" stroke-dasharray="4" />
+                                <line x1="20" y1="25" x2="780" y2="25" stroke="#eae7e1" stroke-width="1" stroke-dasharray="4" />
+
+                                @if (totalRevenue > 0 && chartPoints.Count > 1)
+                                {
+                                    <!-- Area Fill -->
+                                    <polygon points="@chartPolygonPoints" fill="url(#oaGrad)" />
+                                    <!-- Line Path -->
+                                    <polyline points="@chartPolylinePoints" fill="none" stroke="#C87941" stroke-width="2.5" />
+                                    <!-- Data Dots -->
+                                    @foreach (var pt in chartPoints)
+                                    {
+                                        <circle cx="@pt.X" cy="@pt.Y" r="4" fill="#C87941" stroke="#fff" stroke-width="2">
+                                            <title>@pt.Label: KES @pt.Revenue.ToString("N0")</title>
+                                        </circle>
+                                    }
+                                }
+                                else
+                                {
+                                    <!-- Flat Zero Line -->
+                                    <line x1="30" y1="185" x2="770" y2="185" stroke="#C87941" stroke-width="2" />
+                                }
+                            </svg>
+
+                            @if (totalRevenue == 0)
+                            {
+                                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:0.75rem;color:#8a8177;font-weight:500;text-align:center;background:rgba(255,255,255,0.85);padding:0.35rem 0.75rem;border-radius:6px;">
+                                    <i class="bi bi-info-circle me-1"></i> No revenue recorded in this period
                                 </div>
-                                <div class="oa-perf-right">
-                                    <div class="oa-perf-revenue">KES @hotel.Revenue.ToString("N0")</div>
-                                    <span class="oa-perf-occ">@hotel.OccupancyRate% occupied</span>
-                                </div>
-                            </div>
-                            <div class="oa-progress">
-                                <div class="oa-progress-bar" style="width: @hotel.OccupancyRate%"></div>
-                            </div>
+                            }
                         </div>
-                    }
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Recent Activity -->
-        <div class="col-lg-6">
-            <div class="oa-card">
-                <div class="oa-card-header">
-                    <h5 class="oa-card-title"><i class="bi bi-clock-history"></i> Recent Activity</h5>
-                </div>
-                <div class="oa-card-body">
-                    @foreach (var activity in recentActivities)
-                    {
-                        <div class="oa-activity">
-                            <div class="oa-activity-icon @activity.Type">
-                                <i class="bi bi-@activity.Icon"></i>
+            <!-- Booking Sources / Types -->
+            <div class="col-lg-4">
+                <div class="oa-card">
+                    <div class="oa-card-header">
+                        <h5 class="oa-card-title"><i class="bi bi-pie-chart"></i> Booking Breakdown</h5>
+                    </div>
+                    <div class="oa-card-body">
+                        <div class="oa-chart" style="text-align:center; padding: 0.5rem 0;">
+                            <svg viewBox="0 0 200 200" style="width: 140px; height: 140px;">
+                                <circle cx="100" cy="100" r="80" fill="none" stroke="rgba(158,139,99,0.1)" stroke-width="28"/>
+                                @if (totalBookings > 0)
+                                {
+                                    @if (hotelBookingsPct > 0)
+                                    {
+                                        <circle cx="100" cy="100" r="80" fill="none" stroke="#C87941" stroke-width="28"
+                                                stroke-dasharray="@($"{hotelStrokeDash:F1} 502.65")" transform="rotate(-90 100 100)"/>
+                                    }
+                                    @if (eventBookingsPct > 0)
+                                    {
+                                        <circle cx="100" cy="100" r="80" fill="none" stroke="#488C82" stroke-width="28"
+                                                stroke-dasharray="@($"{eventStrokeDash:F1} 502.65")" stroke-dashoffset="@($"-{hotelStrokeDash:F1}")" transform="rotate(-90 100 100)"/>
+                                    }
+                                }
+                            </svg>
+                        </div>
+                        <div class="oa-legend">
+                            <div class="oa-legend-item">
+                                <span class="oa-legend-dot" style="background:#C87941;"></span>
+                                <span class="oa-legend-label">Hotel Bookings</span>
+                                <span class="oa-legend-value">@hotelBookingsCount (@hotelBookingsPct%)</span>
                             </div>
-                            <div>
-                                <p class="oa-activity-msg">@activity.Message</p>
-                                <span class="oa-activity-time">@activity.Time</span>
+                            <div class="oa-legend-item">
+                                <span class="oa-legend-dot" style="background:#488C82;"></span>
+                                <span class="oa-legend-label">Event Packages</span>
+                                <span class="oa-legend-value">@eventBookingsCount (@eventBookingsPct%)</span>
                             </div>
                         </div>
-                    }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Performing Hotels -->
+            <div class="col-lg-6">
+                <div class="oa-card">
+                    <div class="oa-card-header">
+                        <h5 class="oa-card-title"><i class="bi bi-trophy"></i> Top Performing Hotels</h5>
+                        @if (ownerHotels.Any())
+                        {
+                            <a href="/owner/hotels" class="oa-btn oa-btn-ghost" style="font-size:0.625rem;padding:0.2rem 0.5rem;">View Hotels</a>
+                        }
+                    </div>
+                    <div class="oa-card-body">
+                        @if (topHotels.Any())
+                        {
+                            @foreach (var hotel in topHotels)
+                            {
+                                <div class="oa-perf-item">
+                                    <div class="oa-perf-row">
+                                        <div class="oa-perf-rank">@hotel.Rank</div>
+                                        <div style="flex:1; min-width:0;">
+                                            <h6 class="oa-perf-name text-truncate">@hotel.Name</h6>
+                                            <span class="oa-perf-bookings">@hotel.Bookings booking@(hotel.Bookings != 1 ? "s" : "")</span>
+                                        </div>
+                                        <div class="oa-perf-right">
+                                            <div class="oa-perf-revenue">KES @hotel.Revenue.ToString("N0")</div>
+                                            <span class="oa-perf-occ">@hotel.ConfirmationRate% confirmed</span>
+                                        </div>
+                                    </div>
+                                    <div class="oa-progress">
+                                        <div class="oa-progress-bar" style="width: @(maxHotelRevenue > 0 ? (int)(hotel.Revenue * 100 / maxHotelRevenue) : 0)%"></div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="oa-empty-sm">
+                                <i class="bi bi-building"></i>
+                                <p>No hotels added yet</p>
+                                <a href="/owner/create-hotel" class="oa-btn oa-btn-primary" style="margin-top:0.5rem;">
+                                    <i class="bi bi-plus-lg"></i> Add Hotel
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="col-lg-6">
+                <div class="oa-card">
+                    <div class="oa-card-header">
+                        <h5 class="oa-card-title"><i class="bi bi-clock-history"></i> Recent Activity</h5>
+                        @if (recentActivities.Any())
+                        {
+                            <a href="/owner/bookings" class="oa-btn oa-btn-ghost" style="font-size:0.625rem;padding:0.2rem 0.5rem;">View Bookings</a>
+                        }
+                    </div>
+                    <div class="oa-card-body">
+                        @if (recentActivities.Any())
+                        {
+                            @foreach (var activity in recentActivities)
+                            {
+                                <div class="oa-activity">
+                                    <div class="oa-activity-icon @activity.Type">
+                                        <i class="bi bi-@activity.Icon"></i>
+                                    </div>
+                                    <div style="flex:1; min-width:0;">
+                                        <p class="oa-activity-msg text-truncate">@activity.Message</p>
+                                        <span class="oa-activity-time">@activity.Time</span>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="oa-empty-sm">
+                                <i class="bi bi-calendar-x"></i>
+                                <p>No recent activity recorded yet</p>
+                            </div>
+                        }
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    }
 </div>
 
 @code {
+    private bool isLoading = true;
+    private string? currentUserId;
+    private string selectedPeriod = "30";
+    private string chartView = "daily";
+
+    private List<Hotel> ownerHotels = new();
+    private List<EventPackage> ownerPackages = new();
+    private List<Booking> allHotelBookings = new();
+    private List<EventBooking> allEventBookings = new();
+
+    // Aggregated Metrics
+    private decimal totalRevenue = 0;
+    private int totalBookings = 0;
+    private int occupancyRate = 0;
+    private decimal avgBookingValue = 0;
+
+    // Changes vs Prior Period
+    private double revChangePct = 0;
+    private bool revChangeIsUp = true;
+    private double bookingsChangePct = 0;
+    private bool bookingsChangeIsUp = true;
+    private double occChangePct = 0;
+    private bool occChangeIsUp = true;
+    private double avgValChangePct = 0;
+    private bool avgValChangeIsUp = true;
+
+    // Chart Coordinates
+    private string chartPolylinePoints = "";
+    private string chartPolygonPoints = "";
+    private List<ChartPoint> chartPoints = new();
+
+    // Breakdown (Donut)
+    private int hotelBookingsCount = 0;
+    private int hotelBookingsPct = 0;
+    private double hotelStrokeDash = 0;
+    private int eventBookingsCount = 0;
+    private int eventBookingsPct = 0;
+    private double eventStrokeDash = 0;
+
+    // Top Hotels & Activities
+    private List<TopHotelItem> topHotels = new();
+    private decimal maxHotelRevenue = 0;
+    private List<ActivityItem> recentActivities = new();
+
     private List<BreadcrumbItem> breadcrumbItems = new()
     {
         new BreadcrumbItem { Text = "Home", Url = "/" },
@@ -204,45 +356,421 @@
         new BreadcrumbItem { Text = "Analytics", IsActive = true }
     };
 
-    private string selectedPeriod = "30";
-    private string chartView = "daily";
-
-    private List<TopHotel> topHotels = new()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        new() { Rank = 1, Name = "Grand Plaza Hotel", Bookings = 45, Revenue = 850000, OccupancyRate = 92 },
-        new() { Rank = 2, Name = "Sunset Resort", Bookings = 38, Revenue = 720000, OccupancyRate = 85 },
-        new() { Rank = 3, Name = "City Center Inn", Bookings = 32, Revenue = 580000, OccupancyRate = 78 },
-        new() { Rank = 4, Name = "Beach View Hotel", Bookings = 30, Revenue = 520000, OccupancyRate = 72 }
-    };
+        if (firstRender)
+        {
+            try
+            {
+                var token = await JSRuntime.InvokeAsync<string>("authHelpers.getCookie", "JWToken");
+                if (!string.IsNullOrEmpty(token))
+                {
+                    var customAuth = (CustomAuthenticationStateProvider)AuthStateProvider;
+                    await customAuth.MarkUserAsAuthenticated(token);
+                }
 
-    private List<Activity> recentActivities = new()
+                currentUserId = await GetCurrentUserIdAsync();
+
+                if (!string.IsNullOrEmpty(currentUserId))
+                {
+                    await LoadDataAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[OwnerAnalytics] Error: {ex.Message}");
+            }
+            finally
+            {
+                isLoading = false;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task<string?> GetCurrentUserIdAsync()
     {
-        new() { Icon = "calendar-check", Type = "booking", Message = "New booking for Grand Plaza Hotel", Time = "5 minutes ago" },
-        new() { Icon = "cash", Type = "payment", Message = "Payment received - KES 45,000", Time = "12 minutes ago" },
-        new() { Icon = "star-fill", Type = "review", Message = "New 5-star review for Sunset Resort", Time = "1 hour ago" },
-        new() { Icon = "calendar-check", Type = "booking", Message = "Booking confirmed for City Center Inn", Time = "2 hours ago" },
-        new() { Icon = "x-circle", Type = "cancellation", Message = "Booking cancelled - Refund processed", Time = "3 hours ago" }
-    };
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState?.User;
+            if (user?.Identity?.IsAuthenticated == true)
+            {
+                var nameClaim = user.FindFirst(ClaimTypes.Name)?.Value;
+                if (!string.IsNullOrEmpty(nameClaim))
+                {
+                    var parts = nameClaim.Split(',');
+                    if (parts.Length > 0) return parts[0];
+                }
+            }
+        }
+        catch { }
+        return null;
+    }
+
+    private async Task LoadDataAsync()
+    {
+        if (string.IsNullOrEmpty(currentUserId)) return;
+
+        // Load Hotels
+        ownerHotels = (await HotelService.GetHotelsByOwnerAsync(currentUserId)).ToList();
+
+        // Load Hotel Bookings
+        allHotelBookings.Clear();
+        foreach (var hotel in ownerHotels)
+        {
+            var hb = await BookingService.GetBookingsByHotelAsync(hotel.Id);
+            allHotelBookings.AddRange(hb);
+        }
+
+        // Load Event Packages & Bookings
+        ownerPackages = (await EventService.GetPackagesByProviderAsync(currentUserId)).ToList();
+        var packageIds = ownerPackages.Select(p => p.Id).ToHashSet();
+        var allEvt = await EventService.GetAllBookingsAsync();
+        allEventBookings = allEvt.Where(b => b.PackageId.HasValue && packageIds.Contains(b.PackageId.Value)).ToList();
+
+        RecalculateMetrics();
+    }
+
+    private void OnPeriodChanged(ChangeEventArgs e)
+    {
+        selectedPeriod = e.Value?.ToString() ?? "30";
+        RecalculateMetrics();
+    }
+
+    private void SetChartView(string view)
+    {
+        chartView = view;
+        RecalculateMetrics();
+    }
+
+    private void RecalculateMetrics()
+    {
+        int days = selectedPeriod switch
+        {
+            "7" => 7,
+            "30" => 30,
+            "90" => 90,
+            "365" => 365,
+            _ => 3650
+        };
+
+        var now = DateTime.UtcNow;
+        var periodStart = selectedPeriod == "all" ? DateTime.MinValue : now.AddDays(-days);
+        var priorStart = selectedPeriod == "all" ? DateTime.MinValue : periodStart.AddDays(-days);
+
+        // Current period bookings
+        var curHotelBks = allHotelBookings.Where(b => b.CreatedAt >= periodStart).ToList();
+        var curEventBks = allEventBookings.Where(b => b.CreatedAt >= periodStart).ToList();
+
+        // Prior period bookings
+        var priorHotelBks = selectedPeriod == "all" ? new List<Booking>() : allHotelBookings.Where(b => b.CreatedAt >= priorStart && b.CreatedAt < periodStart).ToList();
+        var priorEventBks = selectedPeriod == "all" ? new List<EventBooking>() : allEventBookings.Where(b => b.CreatedAt >= priorStart && b.CreatedAt < periodStart).ToList();
+
+        // Total Revenue (Confirmed hotel bookings + Confirmed/Completed event bookings)
+        decimal curHotelRev = curHotelBks
+            .Where(b => b.Status == BookingStatus.Confirmed)
+            .Sum(b => (b.Hotel?.PricePerNight ?? 0m) * Math.Max(1, (b.EndDate - b.StartDate).Days));
+        decimal curEventRev = curEventBks
+            .Where(b => b.Status == EventBookingStatus.Confirmed || b.Status == EventBookingStatus.Completed)
+            .Sum(b => b.TotalAmount);
+        totalRevenue = curHotelRev + curEventRev;
+
+        // Total Bookings
+        totalBookings = curHotelBks.Count + curEventBks.Count;
+
+        // Confirmation Rate
+        int curConfirmedCount = curHotelBks.Count(b => b.Status == BookingStatus.Confirmed) +
+                               curEventBks.Count(b => b.Status == EventBookingStatus.Confirmed || b.Status == EventBookingStatus.Completed);
+        occupancyRate = totalBookings > 0 ? (int)Math.Round((double)curConfirmedCount * 100.0 / totalBookings) : 0;
+
+        // Average Booking Value
+        avgBookingValue = curConfirmedCount > 0 ? (totalRevenue / curConfirmedCount) : 0m;
+
+        // Prior Period Metrics
+        decimal priorHotelRev = priorHotelBks
+            .Where(b => b.Status == BookingStatus.Confirmed)
+            .Sum(b => (b.Hotel?.PricePerNight ?? 0m) * Math.Max(1, (b.EndDate - b.StartDate).Days));
+        decimal priorEventRev = priorEventBks
+            .Where(b => b.Status == EventBookingStatus.Confirmed || b.Status == EventBookingStatus.Completed)
+            .Sum(b => b.TotalAmount);
+        decimal priorRevenue = priorHotelRev + priorEventRev;
+        int priorBookings = priorHotelBks.Count + priorEventBks.Count;
+        int priorConfirmedCount = priorHotelBks.Count(b => b.Status == BookingStatus.Confirmed) +
+                                 priorEventBks.Count(b => b.Status == EventBookingStatus.Confirmed || b.Status == EventBookingStatus.Completed);
+        int priorOccupancyRate = priorBookings > 0 ? (int)Math.Round((double)priorConfirmedCount * 100.0 / priorBookings) : 0;
+        decimal priorAvgVal = priorConfirmedCount > 0 ? (priorRevenue / priorConfirmedCount) : 0m;
+
+        // Changes
+        ComputeChange(totalRevenue, priorRevenue, out revChangePct, out revChangeIsUp);
+        ComputeChange(totalBookings, priorBookings, out bookingsChangePct, out bookingsChangeIsUp);
+        ComputeChange(occupancyRate, priorOccupancyRate, out occChangePct, out occChangeIsUp);
+        ComputeChange(avgBookingValue, priorAvgVal, out avgValChangePct, out avgValChangeIsUp);
+
+        // Booking Breakdown (Donut)
+        hotelBookingsCount = curHotelBks.Count;
+        eventBookingsCount = curEventBks.Count;
+        if (totalBookings > 0)
+        {
+            hotelBookingsPct = (int)Math.Round((double)hotelBookingsCount * 100.0 / totalBookings);
+            eventBookingsPct = 100 - hotelBookingsPct;
+            double circumference = 502.65;
+            hotelStrokeDash = (hotelBookingsPct / 100.0) * circumference;
+            eventStrokeDash = (eventBookingsPct / 100.0) * circumference;
+        }
+        else
+        {
+            hotelBookingsPct = 0;
+            eventBookingsPct = 0;
+            hotelStrokeDash = 0;
+            eventStrokeDash = 0;
+        }
+
+        // Top Performing Hotels
+        topHotels.Clear();
+        int rank = 1;
+        var hotelMetrics = ownerHotels.Select(h =>
+        {
+            var hBookings = curHotelBks.Where(b => b.HotelId == h.Id).ToList();
+            int bCount = hBookings.Count;
+            int bConfirmed = hBookings.Count(b => b.Status == BookingStatus.Confirmed);
+            decimal bRev = hBookings.Where(b => b.Status == BookingStatus.Confirmed)
+                .Sum(b => (b.Hotel?.PricePerNight ?? h.PricePerNight) * Math.Max(1, (b.EndDate - b.StartDate).Days));
+            int confRate = bCount > 0 ? (int)Math.Round((double)bConfirmed * 100.0 / bCount) : 0;
+            return new TopHotelItem
+            {
+                Id = h.Id,
+                Name = h.Name,
+                Bookings = bCount,
+                Revenue = bRev,
+                ConfirmationRate = confRate
+            };
+        })
+        .OrderByDescending(x => x.Revenue)
+        .ThenByDescending(x => x.Bookings)
+        .Take(5)
+        .ToList();
+
+        foreach (var item in hotelMetrics)
+        {
+            item.Rank = rank++;
+            topHotels.Add(item);
+        }
+        maxHotelRevenue = topHotels.Any() ? topHotels.Max(h => h.Revenue) : 0m;
+
+        // Recent Activity
+        recentActivities.Clear();
+        var allRecent = new List<RawActivity>();
+        foreach (var b in curHotelBks)
+        {
+            var icon = b.Status switch
+            {
+                BookingStatus.Confirmed => "check-circle",
+                BookingStatus.Pending => "calendar-check",
+                _ => "x-circle"
+            };
+            var type = b.Status switch
+            {
+                BookingStatus.Confirmed => "payment",
+                BookingStatus.Pending => "booking",
+                _ => "cancellation"
+            };
+            allRecent.Add(new RawActivity
+            {
+                CreatedAt = b.CreatedAt,
+                Icon = icon,
+                Type = type,
+                Message = $"Booking #{b.Id} for {b.Hotel?.Name ?? "Hotel"} ({b.Status})"
+            });
+        }
+        foreach (var eb in curEventBks)
+        {
+            var icon = eb.Status switch
+            {
+                EventBookingStatus.Confirmed or EventBookingStatus.Completed => "check-circle",
+                EventBookingStatus.Pending => "gift",
+                _ => "x-circle"
+            };
+            var type = eb.Status switch
+            {
+                EventBookingStatus.Confirmed or EventBookingStatus.Completed => "payment",
+                EventBookingStatus.Pending => "booking",
+                _ => "cancellation"
+            };
+            allRecent.Add(new RawActivity
+            {
+                CreatedAt = eb.CreatedAt,
+                Icon = icon,
+                Type = type,
+                Message = $"Event booking: {eb.EventName} ({eb.Status})"
+            });
+        }
+
+        recentActivities = allRecent
+            .OrderByDescending(a => a.CreatedAt)
+            .Take(5)
+            .Select(a => new ActivityItem
+            {
+                Icon = a.Icon,
+                Type = a.Type,
+                Message = a.Message,
+                Time = FormatRelativeTime(a.CreatedAt)
+            })
+            .ToList();
+
+        // Build Revenue Trend SVG Points
+        BuildTrendChart(curHotelBks, curEventBks, periodStart, now);
+    }
+
+    private void BuildTrendChart(List<Booking> curHotelBks, List<EventBooking> curEventBks, DateTime periodStart, DateTime now)
+    {
+        chartPoints.Clear();
+
+        int numBuckets = chartView switch
+        {
+            "daily" => selectedPeriod == "7" ? 7 : (selectedPeriod == "30" ? 10 : (selectedPeriod == "90" ? 12 : 12)),
+            "weekly" => selectedPeriod == "7" ? 7 : 8,
+            "monthly" => 12,
+            _ => 10
+        };
+
+        if (periodStart == DateTime.MinValue)
+        {
+            periodStart = now.AddDays(-365);
+        }
+
+        var totalSpan = (now - periodStart).TotalSeconds;
+        var bucketSpanSeconds = totalSpan / numBuckets;
+
+        decimal maxBucketRev = 0;
+        var bucketRevs = new List<(string Label, decimal Revenue)>();
+
+        for (int i = 0; i < numBuckets; i++)
+        {
+            var bStart = periodStart.AddSeconds(i * bucketSpanSeconds);
+            var bEnd = periodStart.AddSeconds((i + 1) * bucketSpanSeconds);
+
+            decimal bHotelRev = curHotelBks
+                .Where(b => b.Status == BookingStatus.Confirmed && b.CreatedAt >= bStart && b.CreatedAt < bEnd)
+                .Sum(b => (b.Hotel?.PricePerNight ?? 0m) * Math.Max(1, (b.EndDate - b.StartDate).Days));
+
+            decimal bEventRev = curEventBks
+                .Where((b => (b.Status == EventBookingStatus.Confirmed || b.Status == EventBookingStatus.Completed) && b.CreatedAt >= bStart && b.CreatedAt < bEnd))
+                .Sum(b => b.TotalAmount);
+
+            decimal bTotal = bHotelRev + bEventRev;
+            if (bTotal > maxBucketRev) maxBucketRev = bTotal;
+
+            string label = chartView == "monthly" ? bStart.ToString("MMM") : bStart.ToString("MMM dd");
+            bucketRevs.Add((label, bTotal));
+        }
+
+        int svgLeft = 30;
+        int svgRight = 770;
+        int svgBottom = 185;
+        int svgTop = 25;
+
+        for (int i = 0; i < bucketRevs.Count; i++)
+        {
+            int x = svgLeft + (int)((double)i * (svgRight - svgLeft) / Math.Max(1, bucketRevs.Count - 1));
+            int y = maxBucketRev > 0
+                ? svgBottom - (int)((bucketRevs[i].Revenue / maxBucketRev) * (svgBottom - svgTop))
+                : svgBottom;
+
+            chartPoints.Add(new ChartPoint
+            {
+                X = x,
+                Y = y,
+                Label = bucketRevs[i].Label,
+                Revenue = bucketRevs[i].Revenue
+            });
+        }
+
+        if (chartPoints.Count > 1)
+        {
+            var pointsList = chartPoints.Select(p => $"{p.X},{p.Y}").ToList();
+            chartPolylinePoints = string.Join(" ", pointsList);
+            chartPolygonPoints = $"0,{svgBottom} " + chartPolylinePoints + $" 800,{svgBottom}";
+        }
+    }
+
+    private void ComputeChange(decimal current, decimal prior, out double pct, out bool isUp)
+    {
+        if (prior == 0)
+        {
+            pct = current > 0 ? 100.0 : 0.0;
+            isUp = current >= 0;
+            return;
+        }
+        double change = (double)((current - prior) / prior) * 100.0;
+        pct = Math.Abs(Math.Round(change, 1));
+        isUp = change >= 0;
+    }
+
+    private string FormatCompactNumber(decimal value)
+    {
+        if (value >= 1_000_000)
+            return $"{(value / 1_000_000m):F1}M";
+        if (value >= 1_000)
+            return $"{(value / 1_000m):F1}K";
+        return value.ToString("N0");
+    }
+
+    private string FormatRelativeTime(DateTime dt)
+    {
+        var diff = DateTime.UtcNow - dt;
+        if (diff.TotalMinutes < 2) return "Just now";
+        if (diff.TotalMinutes < 60) return $"{(int)diff.TotalMinutes} minutes ago";
+        if (diff.TotalHours < 24) return $"{(int)diff.TotalHours} hours ago";
+        if (diff.TotalDays < 2) return "Yesterday";
+        if (diff.TotalDays < 30) return $"{(int)diff.TotalDays} days ago";
+        return dt.ToString("MMM dd, yyyy");
+    }
 
     private void ExportReport()
     {
-        ToastService.ShowSuccess("Export Started", "Your analytics report is being generated");
+        string periodText = selectedPeriod switch
+        {
+            "7" => "Last 7 Days",
+            "30" => "Last 30 Days",
+            "90" => "Last 3 Months",
+            "365" => "Last Year",
+            _ => "All Time"
+        };
+        ToastService.ShowSuccess("Export Ready", $"Exported analytics for {periodText}: KES {totalRevenue:N0} total revenue across {totalBookings} bookings.");
     }
 
-    public class TopHotel
+    public class ChartPoint
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
+        public string Label { get; set; } = "";
+        public decimal Revenue { get; set; }
+    }
+
+    public class TopHotelItem
     {
         public int Rank { get; set; }
+        public int Id { get; set; }
         public string Name { get; set; } = "";
         public int Bookings { get; set; }
         public decimal Revenue { get; set; }
-        public int OccupancyRate { get; set; }
+        public int ConfirmationRate { get; set; }
     }
 
-    public class Activity
+    public class ActivityItem
     {
         public string Icon { get; set; } = "";
         public string Type { get; set; } = "";
         public string Message { get; set; } = "";
         public string Time { get; set; } = "";
+    }
+
+    private class RawActivity
+    {
+        public DateTime CreatedAt { get; set; }
+        public string Icon { get; set; } = "";
+        public string Type { get; set; } = "";
+        public string Message { get; set; } = "";
     }
 }
