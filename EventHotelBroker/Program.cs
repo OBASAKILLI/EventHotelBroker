@@ -33,6 +33,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IMpesaPaymentService, MpesaPaymentService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<ToastService>();
+builder.Services.AddSingleton<EventHotelBroker.Services.TokenStore>(); // Singleton: survives reconnects
 
 // Session & Authentication
 builder.Services.AddHttpClient();
@@ -96,9 +97,16 @@ using (var scope = app.Services.CreateScope())
         
         // Seed data
         logger.LogInformation("Seeding database...");
-        await DbSeeder.SeedAsync(services);
-        await SampleDataSeeder.SeedSampleDataAsync(services);
-        await EventDataSeeder.SeedEventDataAsync(services);
+        await DbSeeder.SeedAsync(services); // Always seed admin + essential config
+        
+        // Only seed sample/demo data in development - never in production
+        if (app.Environment.IsDevelopment())
+        {
+            await SampleDataSeeder.SeedSampleDataAsync(services);
+            await EventDataSeeder.SeedEventDataAsync(services);
+            logger.LogInformation("Development sample data seeded.");
+        }
+        
         logger.LogInformation("Database seeding completed.");
     }
     catch (Exception ex)

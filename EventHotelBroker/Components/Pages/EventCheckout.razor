@@ -4,6 +4,7 @@
 @inject IEventService EventService
 @inject IJSRuntime JSRuntime
 @inject AuthenticationStateProvider AuthStateProvider
+@inject IMpesaPaymentService PaymentService
 @using EventHotelBroker.Services
 @using EventHotelBroker.Models
 @using EventHotelBroker.Utils
@@ -569,44 +570,79 @@
     {
         currentStep = 3;
         bookingError = false;
-
-        // Simulate payment processing delay
-        await Task.Delay(2500);
+        StateHasChanged();
 
         try
         {
             var userId = await GetCurrentUserIdAsync();
-            if (!string.IsNullOrEmpty(userId) && package != null)
-            {
-                var booking = new EventBooking
-                {
-                    UserId = userId,
-                    PackageId = package.Id,
-                    EventName = eventName,
-                    EventType = package.PackageType,
-                    EventDate = eventDate,
-                    Venue = venueName,
-                    ExpectedGuests = numberOfGuests,
-                    TotalAmount = totalAmount,
-                    DepositAmount = selectedPayment == "cash" ? 0 : totalAmount,
-                    Status = selectedPayment == "cash" ? EventBookingStatus.Pending : EventBookingStatus.Pending,
-                    SpecialRequests = string.IsNullOrWhiteSpace(specialRequests) ? null : specialRequests,
-                    ContactName = contactName,
-                    ContactPhone = contactPhone,
-                    ContactEmail = string.IsNullOrWhiteSpace(contactEmail) ? null : contactEmail
-                };
-
-                await EventService.CreateBookingAsync(booking);
-                paymentComplete = true;
-            }
-            else
+            if (string.IsNullOrEmpty(userId) || package == null)
             {
                 bookingError = true;
                 paymentComplete = true;
+                return;
             }
+
+            // --- M-Pesa (real STK push) ---
+            if (selectedPayment == "mpesa")
+            {
+                var mpesaPhone = phoneNumber.Trim();
+                if (string.IsNullOrWhiteSpace(mpesaPhone))
+                {
+                    bookingError = true;
+                    validationError = "Please enter your M-Pesa phone number.";
+                    currentStep = 2;
+                    paymentComplete = false;
+                    return;
+                }
+
+                // Use owner/business phone as the receiver (same as hotel checkout)
+                // The owner's phone should ideally come from the package's owner user record
+                var ownerPhone = "0700000000"; // fallback - admin receives commission via ClemPay
+                var commission  = Math.Round(totalAmount * 0.05m, 2); // 5% platform fee
+
+                var paymentResult = await PaymentService.InitiatePaymentAsync(
+                    senderPhone:    mpesaPhone,
+                    receiverPhone:  ownerPhone,
+                    totalAmount:    totalAmount,
+                    commissionValue: commission
+                );
+
+                if (!paymentResult.Success)
+                {
+                    bookingError = true;
+                    paymentComplete = true;
+                    validationError = paymentResult.Message ?? "Payment failed. Please try again.";
+                    return;
+                }
+            }
+
+            // --- Create the booking record (for both mpesa and cash) ---
+            var booking = new EventBooking
+            {
+                UserId          = userId,
+                PackageId       = package.Id,
+                EventName       = eventName,
+                EventType       = package.PackageType,
+                EventDate       = eventDate,
+                Venue           = venueName,
+                ExpectedGuests  = numberOfGuests,
+                TotalAmount     = totalAmount,
+                DepositAmount   = selectedPayment == "cash" ? 0 : totalAmount,
+                Status          = selectedPayment == "cash"
+                                    ? EventBookingStatus.Pending
+                                    : EventBookingStatus.Pending,
+                SpecialRequests = string.IsNullOrWhiteSpace(specialRequests) ? null : specialRequests,
+                ContactName     = contactName,
+                ContactPhone    = contactPhone,
+                ContactEmail    = string.IsNullOrWhiteSpace(contactEmail) ? null : contactEmail
+            };
+
+            await EventService.CreateBookingAsync(booking);
+            paymentComplete = true;
         }
-        catch
+        catch (Exception ex)
         {
+            _ = ex; // suppress unused warning
             bookingError = true;
             paymentComplete = true;
         }

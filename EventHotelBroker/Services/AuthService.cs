@@ -35,10 +35,15 @@ public class AuthService : IAuthService
             }
 
             // In a real application, you would verify the password hash here
-            // For now, we'll use a simple check (you should implement proper password hashing)
             if (!VerifyPassword(password, user.PasswordHash))
             {
                 return (false, "Invalid email or password", null);
+            }
+
+            // Silently upgrade legacy passwords to BCrypt on first login
+            if (!string.IsNullOrEmpty(user.PasswordHash) && !user.PasswordHash.StartsWith("$2"))
+            {
+                _ = UpgradeLegacyPasswordAsync(user, password);
             }
 
             return (true, "Login successful", user);
@@ -182,9 +187,9 @@ public class AuthService : IAuthService
                 return (false, "Reset link has expired. Please request a new one.");
             }
 
-            // Encrypt and set new password
+            // Hash and set new password using BCrypt
             var encryption = new Encryption();
-            user.password_hash = encryption.Encryptstring(newPassword);
+            user.password_hash = HashPassword(newPassword);
 
             // Clear reset token
             user.ResetToken = null;
@@ -205,13 +210,48 @@ public class AuthService : IAuthService
     private bool VerifyPassword(string password, string? passwordHash)
     {
         if (string.IsNullOrEmpty(passwordHash))
-        {
             return false;
+
+        // 1. Try BCrypt first (new secure format - starts with $2)
+        if (passwordHash.StartsWith("$2"))
+        {
+            return BCrypt.Net.BCrypt.Verify(password, passwordHash);
         }
 
+        // 2. Legacy fallback: old Encryption class (Base64-like encoding)
+        // If it matches, transparently upgrade the hash to BCrypt in DB
         var encryption = new Encryption();
-        var encryptedInput = encryption.Encryptstring(password);
-        return encryptedInput == passwordHash;
+        var legacyHash = encryption.Encryptstring(password);
+        if (legacyHash == passwordHash)
+        {
+            // Upgrade is handled in LoginAsync after this returns true
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Hash a password securely using BCrypt.
+    /// </summary>
+    public static string HashPassword(string password)
+        => BCrypt.Net.BCrypt.HashPassword(password, workFactor: 12);
+
+    /// <summary>
+    /// After a successful legacy-password login, silently upgrade the stored hash to BCrypt.
+    /// </summary>
+    private async Task UpgradeLegacyPasswordAsync(Users user, string plainPassword)
+    {
+        try
+        {
+            user.password_hash = HashPassword(plainPassword);
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Password hash upgraded to BCrypt for user {UserId}", user.strid);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to upgrade password hash for user {UserId}", user.strid);
+        }
     }
 
     public async Task<(bool Success, string Message, string? NewToken)> EnrollAsOwnerAsync(string userId)
@@ -271,7 +311,7 @@ public class AuthService : IAuthService
                 FullName   = fullName.Trim(),
                 Email      = email.Trim(),
                 PhoneNumber = phone?.Trim() ?? "",
-                password_hash = encryption.Encryptstring(password),
+                password_hash = HashPassword(password),   // BCrypt hash
                 Role        = "Admin",
                 AccountType = "Admin",
                 IsActive    = true,
