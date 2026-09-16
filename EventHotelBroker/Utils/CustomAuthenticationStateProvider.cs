@@ -1,5 +1,4 @@
-﻿using EventHotelBroker.Services;
-using Microsoft.AspNetCore.Components.Authorization;
+﻿using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Text;
@@ -10,111 +9,106 @@ namespace EventHotelBroker.Utils
     {
         private readonly ClaimsPrincipal _anonymous = new ClaimsPrincipal(new ClaimsIdentity());
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly TokenStore _tokenStore;
+        
+        // In-memory token storage - survives SignalR connections where HttpContext.Session is null
+        private string? _currentToken;
 
-        public CustomAuthenticationStateProvider(
-            IHttpContextAccessor httpContextAccessor,
-            TokenStore tokenStore)
+        public CustomAuthenticationStateProvider(IHttpContextAccessor httpContextAccessor)
         {
-            _httpContextAccessor  = httpContextAccessor;
-            _tokenStore           = tokenStore;
+            _httpContextAccessor = httpContextAccessor;
         }
 
-        // Stable browser-level key stored in an HTTP-only cookie
-        private string ClientId
-        {
-            get
-            {
-                var ctx = _httpContextAccessor.HttpContext;
-                if (ctx == null) return "anonymous";
-                if (!ctx.Request.Cookies.TryGetValue("_cid", out var cid) || string.IsNullOrEmpty(cid))
-                {
-                    cid = Guid.NewGuid().ToString("N");
-                    ctx.Response.Cookies.Append("_cid", cid, new CookieOptions
-                    {
-                        HttpOnly = true,
-                        Secure   = true,
-                        SameSite = SameSiteMode.Lax,
-                        Expires  = DateTimeOffset.UtcNow.AddDays(30)
-                    });
-                }
-                return cid;
-            }
-        }
-
-        public string? CurrentToken
-        {
-            get
-            {
-                // 1. Singleton store keyed by stable client ID
-                var token = _tokenStore.Get(ClientId);
-                // 2. Fall back to session (initial HTTP request)
-                if (string.IsNullOrEmpty(token))
-                    token = _httpContextAccessor.HttpContext?.Session?.GetString("JWToken");
-                // 3. Fall back to JWT cookie
-                if (string.IsNullOrEmpty(token))
-                    _httpContextAccessor.HttpContext?.Request?.Cookies?.TryGetValue("JWToken", out token);
-                return token;
-            }
-        }
+        // Public property so pages can read the current token
+        public string? CurrentToken => _currentToken ?? _httpContextAccessor.HttpContext?.Session?.GetString("JWToken");
 
         public override Task<AuthenticationState> GetAuthenticationStateAsync()
         {
             try
             {
-                var token = CurrentToken;
+                // 1. Try in-memory token first (persists across SignalR)
+                string? token = _currentToken;
+                
+                // 2. Fall back to session (available during initial HTTP request)
+                if (string.IsNullOrEmpty(token))
+                {
+                    try
+                    {
+                        token = _httpContextAccessor.HttpContext?.Session?.GetString("JWToken");
+                    }
+                    catch { }
+                }
+                
+                // 3. Fall back to cookie (set by JS during login)
+                if (string.IsNullOrEmpty(token))
+                {
+                    try
+                    {
+                        _httpContextAccessor.HttpContext?.Request?.Cookies?.TryGetValue("JWToken", out token);
+                    }
+                    catch { }
+                }
 
                 if (!string.IsNullOrEmpty(token))
                 {
-                    // Persist to the singleton store so all circuits for this browser share it
-                    _tokenStore.Set(ClientId, token);
-
+                    // Cache in memory so it survives the HTTP → SignalR transition
+                    _currentToken = token;
+                    
                     var claims = ParseClaimsFromJwt(token);
-                    var user   = new ClaimsPrincipal(new ClaimsIdentity(claims, "jwt"));
-                    return Task.FromResult(new AuthenticationState(user));
+                    var authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(claims, "jwt"));
+                    return Task.FromResult(new AuthenticationState(authenticatedUser));
                 }
-
-                return Task.FromResult(new AuthenticationState(_anonymous));
+                else
+                {
+                    return Task.FromResult(new AuthenticationState(_anonymous));
+                }
             }
-            catch
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"[Auth] Exception: {ex.Message}");
                 return Task.FromResult(new AuthenticationState(_anonymous));
             }
         }
 
-        public async Task MarkUserAsAuthenticated(string token)
+        public Task MarkUserAsAuthenticated(string token)
         {
-            // Store in singleton (cross-circuit)
-            _tokenStore.Set(ClientId, token);
-
-            // Also persist in session when available
+            // Store token in memory (critical for Blazor Server SignalR connections)
+            _currentToken = token;
+            
+            // Also try to store in session if available and response has not started
             try
             {
-                var session = _httpContextAccessor.HttpContext?.Session;
-                if (session != null)
+                var ctx = _httpContextAccessor.HttpContext;
+                if (ctx != null && !ctx.Response.HasStarted)
                 {
-                    session.SetString("JWToken", token);
-                    await session.CommitAsync();
+                    var session = ctx.Session;
+                    session?.SetString("JWToken", token);
                 }
             }
-            catch { /* Session unavailable during SignalR */ }
+            catch { /* Session/Response may not be available or editable during SignalR */ }
 
-            var user      = new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt"));
-            var authState = Task.FromResult(new AuthenticationState(user));
+            var authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt"));
+            var authState = Task.FromResult(new AuthenticationState(authenticatedUser));
             NotifyAuthenticationStateChanged(authState);
+            return Task.CompletedTask;
         }
 
-        public async Task MarkUserAsLoggedOut()
+        public Task MarkUserAsLoggedOut()
         {
-            _tokenStore.Remove(ClientId);
-
-            try { _httpContextAccessor.HttpContext?.Session?.Clear(); }
-            catch { }
-
-            NotifyAuthenticationStateChanged(
-                Task.FromResult(new AuthenticationState(_anonymous)));
-
-            await Task.CompletedTask;
+            _currentToken = null;
+            
+            try
+            {
+                var ctx = _httpContextAccessor.HttpContext;
+                if (ctx != null && !ctx.Response.HasStarted)
+                {
+                    ctx.Session?.Clear();
+                }
+            }
+            catch { /* Session/Response may not be available during SignalR */ }
+            
+            var authState = Task.FromResult(new AuthenticationState(_anonymous));
+            NotifyAuthenticationStateChanged(authState);
+            return Task.CompletedTask;
         }
 
         private IEnumerable<Claim> ParseClaimsFromJwt(string jwt)
@@ -126,30 +120,37 @@ namespace EventHotelBroker.Utils
                 if (parts.Length < 2) return claims;
 
                 byte[] jsonBytes = ParseBase64WithoutPadding(parts[1]);
-                string decoded   = Encoding.UTF8.GetString(jsonBytes);
-                var kv           = JsonSerializer.Deserialize<Dictionary<string, object>>(decoded);
-                if (kv == null) return claims;
+                string decodedString = Encoding.UTF8.GetString(jsonBytes);
+                var keyValuePairs = JsonSerializer.Deserialize<Dictionary<string, object>>(decodedString);
+                if (keyValuePairs == null) return claims;
 
-                kv.TryGetValue(ClaimTypes.Name,       out var userId);
-                if (userId == null) kv.TryGetValue("unique_name", out userId);
+                object? userId = null;
+                keyValuePairs.TryGetValue(ClaimTypes.Name, out userId);
+                if (userId == null) keyValuePairs.TryGetValue("unique_name", out userId);
+                
+                object? givenName = null;
+                keyValuePairs.TryGetValue(ClaimTypes.GivenName, out givenName);
+                if (givenName == null) keyValuePairs.TryGetValue("given_name", out givenName);
+                
+                object? email = null;
+                keyValuePairs.TryGetValue(ClaimTypes.Email, out email);
+                if (email == null) keyValuePairs.TryGetValue("email", out email);
 
-                kv.TryGetValue(ClaimTypes.GivenName, out var givenName);
-                if (givenName == null) kv.TryGetValue("given_name", out givenName);
-
-                kv.TryGetValue(ClaimTypes.Email, out var email);
-                if (email == null) kv.TryGetValue("email", out email);
-
-                kv.TryGetValue("AccountType", out var accountType);
+                object? accountType = null;
+                keyValuePairs.TryGetValue("AccountType", out accountType);
 
                 if (userId != null)
                 {
-                    claims.Add(new Claim(ClaimTypes.Name,      userId.ToString()!));
+                    claims.Add(new Claim(ClaimTypes.Name, userId.ToString()!));
                     claims.Add(new Claim(ClaimTypes.GivenName, givenName?.ToString() ?? ""));
-                    claims.Add(new Claim(ClaimTypes.Email,     email?.ToString()     ?? ""));
-                    claims.Add(new Claim("AccountType",        accountType?.ToString() ?? ""));
+                    claims.Add(new Claim(ClaimTypes.Email, email?.ToString() ?? ""));
+                    claims.Add(new Claim("AccountType", accountType?.ToString() ?? ""));
                 }
             }
-            catch { /* Return empty claims on parse failure */ }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[Auth] Exception parsing JWT: {ex.Message}");
+            }
             return claims;
         }
 
@@ -158,7 +159,7 @@ namespace EventHotelBroker.Utils
             switch (base64.Length % 4)
             {
                 case 2: base64 += "=="; break;
-                case 3: base64 += "=";  break;
+                case 3: base64 += "="; break;
             }
             return Convert.FromBase64String(base64);
         }

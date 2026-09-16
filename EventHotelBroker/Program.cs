@@ -33,7 +33,6 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IMpesaPaymentService, MpesaPaymentService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<ToastService>();
-builder.Services.AddSingleton<EventHotelBroker.Services.TokenStore>(); // Singleton: survives reconnects
 
 // Session & Authentication
 builder.Services.AddHttpClient();
