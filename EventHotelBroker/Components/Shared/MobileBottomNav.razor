@@ -1,0 +1,76 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+
+<nav class="mobile-bottom-nav d-md-none" aria-label="Mobile Bottom Navigation">
+    <NavLink href="" Match="NavLinkMatch.All" class="mob-nav-tab" ActiveClass="mob-nav-active">
+        <i class="bi bi-house-door"></i>
+        <span>Explore</span>
+    </NavLink>
+    <NavLink href="search" class="mob-nav-tab" ActiveClass="mob-nav-active">
+        <i class="bi bi-search"></i>
+        <span>Venues</span>
+    </NavLink>
+    @if (isLoggedIn)
+    {
+        <NavLink href="my-bookings" class="mob-nav-tab" ActiveClass="mob-nav-active">
+            <i class="bi bi-calendar-check"></i>
+            <span>Trips</span>
+        </NavLink>
+    }
+    else
+    {
+        <NavLink href="events" class="mob-nav-tab" ActiveClass="mob-nav-active">
+            <i class="bi bi-gift"></i>
+            <span>Events</span>
+        </NavLink>
+    }
+    @if (isOwner)
+    {
+        <NavLink href="owner/dashboard" class="mob-nav-tab" ActiveClass="mob-nav-active">
+            <i class="bi bi-briefcase"></i>
+            <span>Host Hub</span>
+        </NavLink>
+    }
+    else if (isLoggedIn)
+    {
+        <NavLink href="chat" class="mob-nav-tab" ActiveClass="mob-nav-active">
+            <i class="bi bi-chat-dots"></i>
+            <span>Inbox</span>
+        </NavLink>
+    }
+    <NavLink href="@(isLoggedIn ? "user/dashboard" : "login")" class="mob-nav-tab" ActiveClass="mob-nav-active">
+        <i class="bi bi-person-circle"></i>
+        <span>@(isLoggedIn ? "Profile" : "Log In")</span>
+    </NavLink>
+</nav>
+
+@code {
+    private bool isLoggedIn = false;
+    private bool isOwner = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            if (user?.Identity?.IsAuthenticated == true)
+            {
+                isLoggedIn = true;
+                var accountType = user.FindFirst("AccountType")?.Value ?? "";
+                var nameClaim = user.FindFirst(ClaimTypes.Name)?.Value ?? "";
+                if (string.IsNullOrEmpty(accountType) && nameClaim.Contains(","))
+                {
+                    var parts = nameClaim.Split(',');
+                    if (parts.Length > 1) accountType = parts[1];
+                }
+
+                isOwner = accountType.Contains("HotelOwner", StringComparison.OrdinalIgnoreCase) ||
+                          accountType.Contains("Owner", StringComparison.OrdinalIgnoreCase);
+            }
+        }
+        catch { }
+    }
+}

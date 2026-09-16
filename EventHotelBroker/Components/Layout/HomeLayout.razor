@@ -1,4 +1,4 @@
-@inherits LayoutComponentBase
+﻿@inherits LayoutComponentBase
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Components.Authorization
 @inject IHttpContextAccessor HttpContextAccessor
@@ -8,6 +8,7 @@
 
 <link href="/css/design-system.css" rel="stylesheet" />
 <link href="/css/dark-mode.css" rel="stylesheet" />
+<link href="/css/mobile-native.css?v=27" rel="stylesheet" />
 
 <ToastContainer />
 
@@ -180,6 +181,8 @@
             </div>
         </footer>
     </main>
+
+    <MobileBottomNav />
 
     <!-- Floating Chat Button -->
     <a href="/chat" class="floating-chat-btn" title="Open Messages">
@@ -575,7 +578,7 @@
         border: 2px solid #18181b;
     }
 
-    /* Modern Footer — Luxury Light Theme */
+    /* Modern Footer â€” Luxury Light Theme */
     .modern-footer {
         background: #ffffff;
         color: #6b7280;
