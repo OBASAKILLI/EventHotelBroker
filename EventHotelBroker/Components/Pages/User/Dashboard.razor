@@ -675,94 +675,17 @@
             currentUserId = await GetCurrentUserIdAsync();
             if (!string.IsNullOrEmpty(currentUserId))
             {
-                // Load hotel bookings
+                // Load hotel bookings from database
                 hotelBookings = (await BookingService.GetBookingsByUserAsync(currentUserId)).ToList();
-            }
-            
-            // Add dummy hotel bookings if none exist
-            if (!hotelBookings.Any())
-            {
-                hotelBookings = new List<Booking>
-                {
-                    new Booking
-                    {
-                        Id = 1,
-                        HotelId = 5,
-                        Hotel = new Hotel { Id = 5, Name = "Grand Plaza Hotel", PricePerNight = 15000 },
-                        StartDate = DateTime.Now.AddDays(10),
-                        EndDate = DateTime.Now.AddDays(12),
-                        HeadCount = 2,
-                        Status = BookingStatus.Confirmed,
-                        UserId = currentUserId ?? "guest"
-                    },
-                    new Booking
-                    {
-                        Id = 2,
-                        HotelId = 3,
-                        Hotel = new Hotel { Id = 3, Name = "Sunset Resort", PricePerNight = 18000 },
-                        StartDate = DateTime.Now.AddDays(20),
-                        EndDate = DateTime.Now.AddDays(23),
-                        HeadCount = 4,
-                        Status = BookingStatus.Pending,
-                        UserId = currentUserId ?? "guest"
-                    },
-                    new Booking
-                    {
-                        Id = 3,
-                        HotelId = 7,
-                        Hotel = new Hotel { Id = 7, Name = "City Center Inn", PricePerNight = 12000 },
-                        StartDate = DateTime.Now.AddDays(-5),
-                        EndDate = DateTime.Now.AddDays(-3),
-                        HeadCount = 2,
-                        Status = BookingStatus.Confirmed,
-                        UserId = currentUserId ?? "guest"
-                    }
-                };
-            }
-            
-            // Load event bookings
-            if (!string.IsNullOrEmpty(currentUserId))
-            {
+                
+                // Load event bookings from database
                 eventBookings = (await EventService.GetBookingsByUserAsync(currentUserId)).ToList();
             }
-            
-            // Add dummy event bookings if none exist
-            if (!eventBookings.Any())
+            else
             {
-                eventBookings = new List<EventBooking>
-                {
-                    new EventBooking
-                    {
-                        Id = 1,
-                        EventName = "Wedding Reception",
-                        EventType = "Wedding",
-                        EventDate = DateTime.Now.AddDays(30),
-                        ExpectedGuests = 150,
-                        Venue = "Grand Ballroom",
-                        TotalAmount = 250000,
-                        DepositAmount = 75000,
-                        Status = EventBookingStatus.Confirmed,
-                        UserId = currentUserId
-                    },
-                    new EventBooking
-                    {
-                        Id = 2,
-                        EventName = "Corporate Conference",
-                        EventType = "Conference",
-                        EventDate = DateTime.Now.AddDays(45),
-                        ExpectedGuests = 200,
-                        Venue = "Convention Center",
-                        TotalAmount = 180000,
-                        DepositAmount = 54000,
-                        Status = EventBookingStatus.Pending,
-                        UserId = currentUserId
-                    }
-                };
+                hotelBookings = new List<Booking>();
+                eventBookings = new List<EventBooking>();
             }
-            
-            // Load messages (sample data)
-            messages = GetSampleMessages();
-            
         }
         catch (Exception)
         {
@@ -772,58 +695,6 @@
         {
             isLoading = false;
         }
-    }
-
-    private List<UserMessage> GetSampleMessages()
-    {
-        return new List<UserMessage>
-        {
-            new UserMessage
-            {
-                Id = 1,
-                SenderName = "Grand Plaza Hotel",
-                Subject = "Booking Confirmation",
-                MessagePreview = "Your booking has been confirmed for March 15-17, 2025. We look forward to hosting you!",
-                SentAt = DateTime.Now.AddHours(-2),
-                IsRead = false
-            },
-            new UserMessage
-            {
-                Id = 2,
-                SenderName = "Elite Events Co.",
-                Subject = "Event Package Details",
-                MessagePreview = "Thank you for your interest in our Premium Wedding Package. Here are the details you requested...",
-                SentAt = DateTime.Now.AddDays(-1),
-                IsRead = false
-            },
-            new UserMessage
-            {
-                Id = 3,
-                SenderName = "Sunset Resort",
-                Subject = "Special Offer for You",
-                MessagePreview = "We noticed you viewed our venue. Book now and get 15% off your stay!",
-                SentAt = DateTime.Now.AddDays(-2),
-                IsRead = true
-            },
-            new UserMessage
-            {
-                Id = 4,
-                SenderName = "Perfect Events",
-                Subject = "Your Event Booking Update",
-                MessagePreview = "We've received your event booking request and are reviewing the details. We'll get back to you within 24 hours.",
-                SentAt = DateTime.Now.AddDays(-3),
-                IsRead = true
-            },
-            new UserMessage
-            {
-                Id = 5,
-                SenderName = "Luxury Venues Ltd",
-                Subject = "Payment Reminder",
-                MessagePreview = "This is a friendly reminder that your deposit payment of $500 is due by March 1st.",
-                SentAt = DateTime.Now.AddDays(-5),
-                IsRead = true
-            }
-        };
     }
 
     private int GetPendingCount()

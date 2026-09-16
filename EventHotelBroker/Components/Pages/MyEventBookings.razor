@@ -269,163 +269,23 @@
                 var allBookings = await EventService.GetBookingsByUserAsync(currentUserId);
                 bookings = allBookings.ToList();
             }
-            
-            // If no bookings found, add sample hardcoded data
-            if (!bookings.Any())
+            else
             {
-                bookings = GetSampleEventBookings();
+                bookings = new List<EventBooking>();
             }
             
             upcomingEvents = bookings.Count(b => b.EventDate >= DateTime.Today && 
                                                  (b.Status == EventBookingStatus.Confirmed || b.Status == EventBookingStatus.Pending));
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            // If error occurs, show sample data
-            bookings = GetSampleEventBookings();
-            upcomingEvents = bookings.Count(b => b.EventDate >= DateTime.Today && 
-                                                 (b.Status == EventBookingStatus.Confirmed || b.Status == EventBookingStatus.Pending));
+            bookings = new List<EventBooking>();
+            upcomingEvents = 0;
         }
         finally
         {
             isLoading = false;
         }
-    }
-
-    private List<EventBooking> GetSampleEventBookings()
-    {
-        return new List<EventBooking>
-        {
-            new EventBooking
-            {
-                Id = 1,
-                UserId = currentUserId,
-                EventName = "Annual Corporate Gala",
-                EventType = "Corporate Event",
-                EventDate = DateTime.Now.AddDays(20),
-                EventEndDate = DateTime.Now.AddDays(20),
-                Venue = "Grand Plaza Hotel Nairobi",
-                ExpectedGuests = 250,
-                TotalAmount = 450000,
-                DepositAmount = 225000,
-                Status = EventBookingStatus.Confirmed,
-                SpecialRequests = "Need stage setup, professional sound system, and LED screens for presentations.",
-                CreatedAt = DateTime.Now.AddDays(-10)
-            },
-            new EventBooking
-            {
-                Id = 2,
-                UserId = currentUserId,
-                EventName = "Beach Wedding Ceremony",
-                EventType = "Wedding",
-                EventDate = DateTime.Now.AddDays(45),
-                EventEndDate = DateTime.Now.AddDays(47),
-                Venue = "Serena Beach Resort & Spa, Mombasa",
-                ExpectedGuests = 150,
-                TotalAmount = 680000,
-                DepositAmount = 340000,
-                Status = EventBookingStatus.Pending,
-                SpecialRequests = "Beach setup with white chairs, floral arch, and sunset ceremony timing. Reception dinner for 150 guests.",
-                CreatedAt = DateTime.Now.AddDays(-5)
-            },
-            new EventBooking
-            {
-                Id = 3,
-                UserId = currentUserId,
-                EventName = "Product Launch Event",
-                EventType = "Product Launch",
-                EventDate = DateTime.Now.AddDays(12),
-                EventEndDate = null,
-                Venue = "Westlands Conference Center, Nairobi",
-                ExpectedGuests = 300,
-                TotalAmount = 520000,
-                DepositAmount = 260000,
-                Status = EventBookingStatus.Confirmed,
-                SpecialRequests = "Full day event with breakfast, lunch, and evening cocktails. Need demo area and product display stands.",
-                CreatedAt = DateTime.Now.AddDays(-8)
-            },
-            new EventBooking
-            {
-                Id = 4,
-                UserId = currentUserId,
-                EventName = "Team Building Retreat",
-                EventType = "Team Building",
-                EventDate = DateTime.Now.AddDays(-15),
-                EventEndDate = DateTime.Now.AddDays(-13),
-                Venue = "Mount Kenya Safari Lodge, Nanyuki",
-                ExpectedGuests = 80,
-                TotalAmount = 320000,
-                DepositAmount = 160000,
-                Status = EventBookingStatus.Completed,
-                SpecialRequests = "Outdoor activities, team challenges, and bonfire setup. All meals included.",
-                CreatedAt = DateTime.Now.AddDays(-30)
-            },
-            new EventBooking
-            {
-                Id = 5,
-                UserId = currentUserId,
-                EventName = "Birthday Party Celebration",
-                EventType = "Birthday Party",
-                EventDate = DateTime.Now.AddDays(8),
-                EventEndDate = null,
-                Venue = "Karen Blixen Garden Estate, Nairobi",
-                ExpectedGuests = 100,
-                TotalAmount = 180000,
-                DepositAmount = 90000,
-                Status = EventBookingStatus.Pending,
-                SpecialRequests = "Garden party setup with DJ, catering for 100 guests, and kids entertainment area.",
-                CreatedAt = DateTime.Now.AddDays(-3)
-            },
-            new EventBooking
-            {
-                Id = 6,
-                UserId = currentUserId,
-                EventName = "Charity Fundraiser Dinner",
-                EventType = "Charity Event",
-                EventDate = DateTime.Now.AddDays(-5),
-                EventEndDate = null,
-                Venue = "Grand Plaza Hotel Nairobi",
-                ExpectedGuests = 200,
-                TotalAmount = 380000,
-                DepositAmount = 190000,
-                Status = EventBookingStatus.Rejected,
-                RejectionReason = "Venue already booked for the requested date. Please contact us to discuss alternative dates.",
-                SpecialRequests = "Formal dinner setup with auction area and stage for speeches.",
-                CreatedAt = DateTime.Now.AddDays(-20)
-            },
-            new EventBooking
-            {
-                Id = 7,
-                UserId = currentUserId,
-                EventName = "Annual General Meeting",
-                EventType = "Conference",
-                EventDate = DateTime.Now.AddDays(35),
-                EventEndDate = null,
-                Venue = "Westlands Conference Center, Nairobi",
-                ExpectedGuests = 180,
-                TotalAmount = 290000,
-                DepositAmount = 145000,
-                Status = EventBookingStatus.Confirmed,
-                SpecialRequests = "Full day conference with projector, sound system, and lunch for all attendees.",
-                CreatedAt = DateTime.Now.AddDays(-7)
-            },
-            new EventBooking
-            {
-                Id = 8,
-                UserId = currentUserId,
-                EventName = "Family Reunion Weekend",
-                EventType = "Social Gathering",
-                EventDate = DateTime.Now.AddDays(-40),
-                EventEndDate = DateTime.Now.AddDays(-38),
-                Venue = "Lake Nakuru View Hotel, Nakuru",
-                ExpectedGuests = 60,
-                TotalAmount = 150000,
-                DepositAmount = 75000,
-                Status = EventBookingStatus.Cancelled,
-                SpecialRequests = "Weekend package with accommodation, all meals, and game drive.",
-                CreatedAt = DateTime.Now.AddDays(-55)
-            }
-        };
     }
 
     private void ViewDetails(int bookingId)
