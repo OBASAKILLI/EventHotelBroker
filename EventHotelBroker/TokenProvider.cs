@@ -100,17 +100,34 @@ namespace EventHotelBroker
 
             var tokenHandler = new JwtSecurityTokenHandler();
 
-            var tokenDescriptor = new SecurityTokenDescriptor
+            var claimsList = new List<Claim>
             {
-                Subject = new ClaimsIdentity(new Claim[]
-                {
                 new Claim(ClaimTypes.Name, $"{user.strid},{user.AccountType ?? user.Role},{user.IsTwoFAEnabled}"),
                 new Claim(ClaimTypes.GivenName, $"{user.FullName}"),
                 new Claim(ClaimTypes.Email, $"{user.Email}"),
-                new Claim("AccountType", user.AccountType ?? user.Role ?? "User"),
-               // new Claim(ClaimTypes.Role, ""),
-                 
-        }),
+                new Claim("AccountType", user.AccountType ?? user.Role ?? "User")
+            };
+
+            // Populate standard ClaimTypes.Role claims for role-based authorization
+            var rawRoles = $"{user.Role},{user.AccountType}";
+            var distinctRoles = rawRoles
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Distinct(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var r in distinctRoles)
+            {
+                claimsList.Add(new Claim(ClaimTypes.Role, r));
+            }
+
+            // Ensure base User role is always present for authenticated users
+            if (!claimsList.Any(c => c.Type == ClaimTypes.Role && c.Value.Equals("User", StringComparison.OrdinalIgnoreCase)))
+            {
+                claimsList.Add(new Claim(ClaimTypes.Role, "User"));
+            }
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claimsList),
                 Expires = DateTime.UtcNow.AddMinutes(60),
                 Issuer = _issuer,
                 Audience = _audience,

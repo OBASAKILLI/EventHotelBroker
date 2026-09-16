@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Text;
@@ -54,7 +54,7 @@ namespace EventHotelBroker.Utils
                     _currentToken = token;
                     
                     var claims = ParseClaimsFromJwt(token);
-                    var authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(claims, "jwt"));
+                    var authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(claims, "jwt", ClaimTypes.Name, ClaimTypes.Role));
                     return Task.FromResult(new AuthenticationState(authenticatedUser));
                 }
                 else
@@ -86,7 +86,7 @@ namespace EventHotelBroker.Utils
             }
             catch { /* Session/Response may not be available or editable during SignalR */ }
 
-            var authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt"));
+            var authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt", ClaimTypes.Name, ClaimTypes.Role));
             var authState = Task.FromResult(new AuthenticationState(authenticatedUser));
             NotifyAuthenticationStateChanged(authState);
             return Task.CompletedTask;
@@ -145,6 +145,57 @@ namespace EventHotelBroker.Utils
                     claims.Add(new Claim(ClaimTypes.GivenName, givenName?.ToString() ?? ""));
                     claims.Add(new Claim(ClaimTypes.Email, email?.ToString() ?? ""));
                     claims.Add(new Claim("AccountType", accountType?.ToString() ?? ""));
+                }
+
+                // Parse and populate standard ClaimTypes.Role claims
+                var roleSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                void AddRole(string? r)
+                {
+                    if (string.IsNullOrWhiteSpace(r)) return;
+                    foreach (var part in r.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                    {
+                        roleSet.Add(part);
+                    }
+                }
+
+                // Check role claim from JWT (could be single string or array)
+                if (keyValuePairs.TryGetValue(ClaimTypes.Role, out var roleObj) || keyValuePairs.TryGetValue("role", out roleObj))
+                {
+                    if (roleObj is JsonElement element && element.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var item in element.EnumerateArray())
+                        {
+                            AddRole(item.GetString());
+                        }
+                    }
+                    else
+                    {
+                        AddRole(roleObj?.ToString());
+                    }
+                }
+
+                // Also check AccountType
+                AddRole(accountType?.ToString());
+
+                // Fallback: check if Name claim contains comma-separated roles
+                if (userId != null)
+                {
+                    var partsList = userId.ToString()!.Split(',');
+                    if (partsList.Length > 1)
+                    {
+                        AddRole(partsList[1]);
+                    }
+                }
+
+                if (roleSet.Count == 0)
+                {
+                    roleSet.Add("User");
+                }
+
+                foreach (var r in roleSet)
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, r));
                 }
             }
             catch (Exception ex)

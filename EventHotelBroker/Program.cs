@@ -48,6 +48,14 @@ builder.Services.AddScoped<EventHotelBroker.TokenProvider>();
 builder.Services.AddScoped<EventHotelBroker.Utils.CustomAuthenticationStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(provider =>
     provider.GetRequiredService<EventHotelBroker.Utils.CustomAuthenticationStateProvider>());
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddAuthentication("Cookies")
+    .AddCookie("Cookies", options =>
+    {
+        options.LoginPath = "/login";
+        options.AccessDeniedPath = "/access-denied";
+    });
+builder.Services.AddAuthorization();
 
 // Add SignalR for real-time messaging
 builder.Services.AddSignalR();
@@ -137,6 +145,9 @@ app.Use(async (context, next) =>
     }
     await next();
 });
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseAntiforgery();
 

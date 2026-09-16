@@ -1,0 +1,29 @@
+﻿@page "/access-denied"
+@layout EventHotelBroker.Components.Layout.MainLayout
+@inject NavigationManager Navigation
+
+<PageTitle>Access Denied - Safari Vents</PageTitle>
+
+<div style="min-height: 70vh; display: flex; align-items: center; justify-content: center; padding: 2rem;">
+    <div style="background: white; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.08); padding: 40px; max-width: 520px; width: 100%; text-align: center; border: 1px solid #f0f0f0;">
+        <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #ef4444, #b91c1c); display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.25);">
+            <i class="bi bi-shield-slash" style="font-size: 2.2rem; color: white;"></i>
+        </div>
+
+        <h2 style="font-weight: 800; color: #1a1a1a; margin-bottom: 12px; font-size: 1.8rem;">Access Restricted</h2>
+        <p style="color: #6c757d; font-size: 1rem; line-height: 1.6; margin-bottom: 28px;">
+            You do not have the required permissions to view this section of Safari Vents. If you believe this is an error, please contact support or switch accounts.
+        </p>
+
+        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+            <button @onclick='() => Navigation.NavigateTo("/")'
+                    style="padding: 12px 24px; border-radius: 50px; background: #2A2A2A; color: white; border: none; font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s ease;">
+                <i class="bi bi-house"></i> Home
+            </button>
+            <button @onclick='() => Navigation.NavigateTo("/user/dashboard")'
+                    style="padding: 12px 24px; border-radius: 50px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s ease;">
+                <i class="bi bi-speedometer2"></i> My Dashboard
+            </button>
+        </div>
+    </div>
+</div>
