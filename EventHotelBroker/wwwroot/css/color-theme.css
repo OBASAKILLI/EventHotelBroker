@@ -1,35 +1,56 @@
 /* ========================================
-   MODERN CORPORATE BLUE & GOLD THEME
-   Professional Color Palette for EventHotelBroker
+   CORPORATE CHARCOAL & WARM COPPER THEME
+   Safari Vents Design System
    ======================================== */
 
 :root {
-    /* ===== PRIMARY COLORS (Blue) ===== */
-    --primary-navy: #1a365d;
-    --primary-blue: #2563eb;
-    --primary-light: #3b82f6;
-    --primary-lighter: #60a5fa;
-    --primary-lightest: #dbeafe;
-    --primary-dark: #1e3a8a;
-    --primary-darker: #0f172a;
+    /* ===== TYPOGRAPHY ===== */
+    --font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+    /* ===== CHARCOAL & MATTE DARK ===== */
+    --primary-charcoal: #18181b;
+    --primary-charcoal-light: #242428;
+    --primary-dark: #121214;
+    --primary-surface: #222225;
+
+    /* ===== WARM COPPER / CARAMEL ACCENTS ===== */
+    --accent-copper: #b86d26;
+    --accent-copper-hover: #a25c1a;
+    --accent-copper-active: #8f4d12;
+    --accent-copper-light: rgba(184, 109, 38, 0.15);
+    --accent-copper-glow: rgba(184, 109, 38, 0.35);
+
+    /* ===== SAND / LINEN BACKGROUNDS ===== */
+    --bg-sand: #f5eee6;
+    --bg-sand-light: #faf6f1;
+    --card-surface: #ffffff;
+
+    /* ===== LEGACY BLUE & GOLD MAPPINGS ===== */
+    --primary-navy: #18181b;
+    --primary-blue: #18181b;
+    --primary-light: #242428;
+    --primary-lighter: #3f3f46;
+    --primary-lightest: #f5eee6;
+    --primary-dark: #121214;
+    --primary-darker: #09090b;
     
-    /* ===== ACCENT COLORS (Gold) ===== */
-    --accent-gold: #f59e0b;
-    --accent-amber: #fbbf24;
-    --accent-light: #fcd34d;
-    --accent-lighter: #fef3c7;
-    --accent-dark: #d97706;
-    --accent-darker: #b45309;
+    /* ===== ACCENT COLORS (Copper) ===== */
+    --accent-gold: #b86d26;
+    --accent-amber: #c07429;
+    --accent-light: #f5eee6;
+    --accent-lighter: #faf6f1;
+    --accent-dark: #a25c1a;
+    --accent-darker: #8f4d12;
     
     /* ===== NEUTRAL COLORS ===== */
-    --text-primary: #1f2937;
-    --text-secondary: #6b7280;
-    --text-muted: #9ca3af;
-    --text-light: #d1d5db;
+    --text-primary: #18181b;
+    --text-secondary: #4b5563;
+    --text-muted: #6b7280;
+    --text-light: #9ca3af;
     
     --background-white: #ffffff;
-    --background-light: #f9fafb;
-    --background-gray: #f3f4f6;
+    --background-light: #faf6f1;
+    --background-gray: #f5eee6;
     --background-dark: #e5e7eb;
     
     --border-light: #e5e7eb;
@@ -188,4 +209,14 @@
 
 .hover-blue:hover {
     box-shadow: var(--shadow-blue);
+}
+
+/* Global Font Application */
+body, html, button, input, select, textarea {
+    font-family: var(--font-primary) !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-primary) !important;
+    letter-spacing: -0.02em;
 }

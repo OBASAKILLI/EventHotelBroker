@@ -12,11 +12,16 @@
 <ToastContainer />
 
 <div class="modern-layout home-layout">
-    <!-- Modern App Bar (no sidebar toggle) -->
+    <!-- Modern Corporate App Bar -->
     <header class="modern-app-bar home-app-bar">
         <div class="app-bar-content">
-            <a href="/" class="app-bar-brand" style="text-decoration:none;">
-                <span class="brand-text">Safari Vents</span>
+            <a href="/" class="app-bar-brand" style="text-decoration:none; display:flex; align-items:center; gap:10px;">
+                <div class="brand-icon-box">
+                    <i class="bi bi-compass"></i>
+                </div>
+                <span class="brand-text">
+                    Safari <span class="brand-accent">Vents</span>
+                </span>
             </a>
             <div class="app-bar-actions">
                 <button class="app-bar-btn" title="Toggle Theme" @onclick="ToggleTheme">
@@ -43,25 +48,25 @@
                         <i class="bi bi-gear"></i>
                     </button>
                     <div class="user-profile" style="cursor: pointer; position: relative;" @onclick="ToggleUserMenu">
-                        <div class="user-avatar" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
-                            <span style="font-size: 0.85rem; font-weight: 600;">@userInitials</span>
+                        <div class="user-avatar">
+                            <span>@userInitials</span>
                         </div>
                         <span class="user-name">@userName</span>
-                        <i class="bi bi-chevron-down" style="font-size: 0.7rem; margin-left: 4px; color: #6c757d;"></i>
+                        <i class="bi bi-chevron-down" style="font-size: 0.7rem; margin-left: 4px; color: #9ca3af;"></i>
                     </div>
                     @if (showUserMenu)
                     {
-                        <div style="position: absolute; top: 50px; right: 16px; background: white; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); min-width: 220px; z-index: 2000; overflow: hidden;">
-                            <div style="padding: 16px; border-bottom: 1px solid #f0f0f0;">
-                                <div style="font-weight: 600; color: #2A2A2A; font-size: 0.9rem;">@userName</div>
-                                <div style="color: #6c757d; font-size: 0.78rem;">@userEmail</div>
-                                <span style="display: inline-block; margin-top: 6px; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; background: rgba(102,126,234,0.1); color: #667eea;">@userRole</span>
+                        <div class="user-dropdown-menu">
+                            <div class="user-dropdown-header">
+                                <div class="dropdown-name">@userName</div>
+                                <div class="dropdown-email">@userEmail</div>
+                                <span class="dropdown-role-badge">@userRole</span>
                             </div>
-                            <a href="/profile" style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; color: #333; text-decoration: none; font-size: 0.85rem; transition: background 0.15s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='transparent'">
+                            <a href="/profile" class="dropdown-item">
                                 <i class="bi bi-person"></i> Profile
                             </a>
-                            <div style="border-top: 1px solid #f0f0f0;">
-                                <button onclick="document.getElementById('logoutModalHome').style.display='flex'" style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; color: #dc3545; background: none; border: none; width: 100%; text-align: left; font-size: 0.85rem; cursor: pointer; transition: background 0.15s;" onmouseover="this.style.background='#fff5f5'" onmouseout="this.style.background='transparent'">
+                            <div class="dropdown-divider">
+                                <button onclick="document.getElementById('logoutModalHome').style.display='flex'" class="dropdown-logout-btn">
                                     <i class="bi bi-box-arrow-right"></i> Log out
                                 </button>
                             </div>
@@ -70,9 +75,9 @@
                 }
                 else
                 {
-                    <div style="display: flex; gap: 10px; margin-left: 10px;">
-                        <a href="/login" style="padding: 8px 16px; border-radius: 8px; color: #2A2A2A; text-decoration: none; font-weight: 600; font-size: 0.85rem; transition: background 0.2s;" onmouseover="this.style.background='rgba(158,139,99,0.1)'" onmouseout="this.style.background='transparent'">Log in</a>
-                        <a href="/register" style="padding: 8px 16px; border-radius: 8px; background: #2A2A2A; color: white; text-decoration: none; font-weight: 600; font-size: 0.85rem; transition: background 0.2s;" onmouseover="this.style.background='#444'" onmouseout="this.style.background='#2A2A2A'">Sign up</a>
+                    <div style="display: flex; gap: 10px; align-items: center; margin-left: 10px;">
+                        <a href="/login" class="nav-btn-login">Log in</a>
+                        <a href="/register" class="nav-btn-signup">Sign up</a>
                     </div>
                 }
             </div>
@@ -82,6 +87,94 @@
     <!-- Main Content (full width, no sidebar offset) -->
     <main class="home-main-content">
         @Body
+
+        <!-- Modern Corporate Footer -->
+        <footer class="modern-footer">
+            <div class="footer-top">
+                <div class="container">
+                    <div class="row g-4">
+                        <div class="col-lg-4 col-md-6">
+                            <div class="footer-brand mb-3">
+                                <div class="brand-icon-box">
+                                    <i class="bi bi-compass"></i>
+                                </div>
+                                <span class="brand-text">Safari <span class="brand-accent">Vents</span></span>
+                            </div>
+                            <p class="footer-desc">
+                                Kenya's premier venue & event broker platform. Connecting event planners with verified hotels, venues, and audio-visual equipment.
+                            </p>
+                            <div class="footer-socials">
+                                <a href="#" class="social-link" title="Twitter"><i class="bi bi-twitter-x"></i></a>
+                                <a href="#" class="social-link" title="Instagram"><i class="bi bi-instagram"></i></a>
+                                <a href="#" class="social-link" title="LinkedIn"><i class="bi bi-linkedin"></i></a>
+                                <a href="#" class="social-link" title="Facebook"><i class="bi bi-facebook"></i></a>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-2 col-md-6 col-6">
+                            <h6 class="footer-heading">Explore</h6>
+                            <ul class="footer-links">
+                                <li><a href="/search">All Hotels</a></li>
+                                <li><a href="/events">Event Packages</a></li>
+                                <li><a href="/search?category=Airbnb">Airbnb & Villas</a></li>
+                                <li><a href="/search?category=Restaurant">Restaurants</a></li>
+                                <li><a href="/search">Equipment Rental</a></li>
+                            </ul>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6 col-6">
+                            <h6 class="footer-heading">For Property Owners</h6>
+                            <ul class="footer-links">
+                                <li><a href="/enroll-as-owner">List Your Venue</a></li>
+                                <li><a href="/owner/dashboard">Owner Dashboard</a></li>
+                                <li><a href="/owner/analytics">Analytics & Insights</a></li>
+                                <li><a href="/owner/bookings">Booking Requests</a></li>
+                                <li><a href="/how-it-works">How It Works</a></li>
+                            </ul>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <h6 class="footer-heading">Contact & Support</h6>
+                            <ul class="footer-contact">
+                                <li>
+                                    <i class="bi bi-geo-alt-fill"></i>
+                                    <span>Nairobi, Kenya</span>
+                                </li>
+                                <li>
+                                    <i class="bi bi-envelope-fill"></i>
+                                    <span>support@safarivents.com</span>
+                                </li>
+                                <li>
+                                    <i class="bi bi-telephone-fill"></i>
+                                    <span>+254 (0) 700 000 000</span>
+                                </li>
+                                <li>
+                                    <i class="bi bi-shield-check"></i>
+                                    <span>Verified M-PESA & Card Payments</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <div class="container">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center py-3">
+                        <div class="copyright-text">
+                            &copy; 2026 Safari Vents. All rights reserved.
+                        </div>
+                        <div class="footer-legal-links">
+                            <a href="/privacy">Privacy Policy</a>
+                            <span class="divider">&bull;</span>
+                            <a href="/terms">Terms of Service</a>
+                            <span class="divider">&bull;</span>
+                            <a href="/security">Security</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
     </main>
 
     <!-- Floating Chat Button -->
@@ -92,16 +185,16 @@
 </div>
 
 <!-- Logout Confirmation Modal (JS-driven) -->
-<div id="logoutModalHome" onclick="if(event.target===this)this.style.display='none'" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:9999; align-items:center; justify-content:center;">
-    <div style="background:white; border-radius:16px; padding:32px; max-width:380px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.2); text-align:center;">
-        <div style="width:56px; height:56px; border-radius:50%; background:#fff5f5; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
-            <i class="bi bi-box-arrow-right" style="font-size:1.5rem; color:#dc3545;"></i>
+<div id="logoutModalHome" onclick="if(event.target===this)this.style.display='none'" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); backdrop-filter:blur(4px); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:#ffffff; border-radius:20px; padding:32px; max-width:400px; width:90%; box-shadow:0 24px 64px rgba(0,0,0,0.25); text-align:center;">
+        <div style="width:60px; height:60px; border-radius:50%; background:#fef2f2; display:flex; align-items:center; justify-content:center; margin:0 auto 18px;">
+            <i class="bi bi-box-arrow-right" style="font-size:1.6rem; color:#dc2626;"></i>
         </div>
-        <h3 style="margin:0 0 8px; color:#2A2A2A; font-size:1.15rem;">Log out</h3>
-        <p style="color:#6c757d; font-size:0.9rem; margin:0 0 24px;">Are you sure you want to log out of your account?</p>
+        <h3 style="margin:0 0 8px; color:#18181b; font-size:1.25rem; font-weight:700;">Log out</h3>
+        <p style="color:#6b7280; font-size:0.92rem; margin:0 0 24px; line-height:1.5;">Are you sure you want to log out of your Safari Vents account?</p>
         <div style="display:flex; gap:12px; justify-content:center;">
-            <button onclick="document.getElementById('logoutModalHome').style.display='none'" style="padding:10px 24px; border-radius:8px; border:1px solid #dee2e6; background:white; color:#333; font-size:0.9rem; cursor:pointer; font-weight:500;">Cancel</button>
-            <button onclick="window.location.href='/logout'" style="padding:10px 24px; border-radius:8px; border:none; background:#dc3545; color:white; font-size:0.9rem; cursor:pointer; font-weight:500;">Log out</button>
+            <button onclick="document.getElementById('logoutModalHome').style.display='none'" style="padding:10px 24px; border-radius:10px; border:1px solid #e5e7eb; background:#f9fafb; color:#374151; font-size:0.9rem; cursor:pointer; font-weight:600;">Cancel</button>
+            <button onclick="window.location.href='/logout'" style="padding:10px 24px; border-radius:10px; border:none; background:#dc2626; color:white; font-size:0.9rem; cursor:pointer; font-weight:600;">Log out</button>
         </div>
     </div>
 </div>
@@ -113,47 +206,289 @@
     }
 
     .home-app-bar {
+        position: fixed;
+        top: 0;
         left: 0 !important;
         width: 100% !important;
+        height: 72px;
+        background: #18181b !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        z-index: 1050;
+        display: flex;
+        align-items: center;
+        padding: 0 1.5rem;
+    }
+
+    .app-bar-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        max-width: 1320px;
+        margin: 0 auto;
+    }
+
+    .brand-icon-box {
+        width: 38px;
+        height: 38px;
+        background: #b86d26;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 14px rgba(184, 109, 38, 0.4);
+        color: #ffffff;
+        font-size: 1.2rem;
+    }
+
+    .brand-text {
+        font-size: 1.35rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        color: #ffffff !important;
+        margin: 0;
+    }
+
+    .brand-accent {
+        color: #b86d26 !important;
+    }
+
+    .app-bar-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .app-bar-btn {
+        background: transparent;
+        border: none;
+        color: #9ca3af !important;
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+        position: relative;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+
+    .app-bar-btn:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: #ffffff !important;
+    }
+
+    .notification-badge {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        background: #b86d26;
+        color: #ffffff;
+        font-size: 0.65rem;
+        font-weight: 700;
+        min-width: 17px;
+        height: 17px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #18181b;
+    }
+
+    .user-profile {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 12px 4px 6px;
+        border-radius: 24px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        transition: all 0.2s;
+    }
+
+    .user-profile:hover {
+        background: rgba(255, 255, 255, 0.12);
+    }
+
+    .user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #b86d26;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.8rem;
+    }
+
+    .user-name {
+        color: #ffffff;
+        font-size: 0.88rem;
+        font-weight: 600;
+    }
+
+    .user-dropdown-menu {
+        position: absolute;
+        top: 56px;
+        right: 0;
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 16px 40px rgba(0,0,0,0.18);
+        min-width: 240px;
+        z-index: 2000;
+        overflow: hidden;
+        border: 1px solid rgba(0,0,0,0.06);
+    }
+
+    .user-dropdown-header {
+        padding: 16px;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .dropdown-name {
+        font-weight: 700;
+        color: #18181b;
+        font-size: 0.95rem;
+    }
+
+    .dropdown-email {
+        color: #6b7280;
+        font-size: 0.8rem;
+        margin-top: 2px;
+    }
+
+    .dropdown-role-badge {
+        display: inline-block;
+        margin-top: 8px;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        background: rgba(184, 109, 38, 0.12);
+        color: #b86d26;
+    }
+
+    .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 18px;
+        color: #374151;
+        text-decoration: none;
+        font-size: 0.88rem;
+        font-weight: 500;
+        transition: background 0.15s;
+    }
+
+    .dropdown-item:hover {
+        background: #f9fafb;
+        color: #18181b;
+    }
+
+    .dropdown-divider {
+        border-top: 1px solid #f3f4f6;
+    }
+
+    .dropdown-logout-btn {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 18px;
+        color: #dc2626;
+        background: none;
+        border: none;
+        width: 100%;
+        text-align: left;
+        font-size: 0.88rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+
+    .dropdown-logout-btn:hover {
+        background: #fef2f2;
+    }
+
+    .nav-btn-login {
+        padding: 8px 18px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #f3f4f6;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.88rem;
+        transition: all 0.2s ease;
+    }
+
+    .nav-btn-login:hover {
+        border-color: #b86d26;
+        color: #b86d26;
+        background: rgba(184, 109, 38, 0.08);
+    }
+
+    .nav-btn-signup {
+        padding: 8px 20px;
+        border-radius: 10px;
+        background: #b86d26;
+        color: #ffffff;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.88rem;
+        box-shadow: 0 4px 14px rgba(184, 109, 38, 0.35);
+        transition: all 0.2s ease;
+    }
+
+    .nav-btn-signup:hover {
+        background: #a25c1a;
+        color: #ffffff;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(184, 109, 38, 0.45);
     }
 
     .home-main-content {
         margin-left: 0 !important;
-        padding-top: 60px;
+        padding-top: 72px;
         min-height: 100vh;
+        background: #f5eee6;
     }
 
     .floating-chat-btn {
         position: fixed;
         bottom: 2rem;
         right: 2rem;
-        width: 52px;
-        height: 52px;
+        width: 54px;
+        height: 54px;
         border-radius: 50%;
-        background: #2A2A2A;
-        color: white;
+        background: #18181b;
+        color: #ffffff;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.25rem;
-        box-shadow: 0 4px 16px rgba(42, 42, 42, 0.3);
+        font-size: 1.35rem;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        border: 2px solid rgba(184, 109, 38, 0.4);
         z-index: 1000;
-        transition: all 0.2s;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         text-decoration: none;
     }
 
     .floating-chat-btn:hover {
-        transform: scale(1.08);
-        box-shadow: 0 6px 20px rgba(42, 42, 42, 0.4);
-        background: #9E8B63;
-        color: white;
+        transform: scale(1.1);
+        box-shadow: 0 12px 32px rgba(184, 109, 38, 0.4);
+        background: #b86d26;
+        color: #ffffff;
     }
 
     .chat-badge {
         position: absolute;
         top: -4px;
         right: -4px;
-        background: #9E8B63;
+        background: #b86d26;
         color: white;
         width: 20px;
         height: 20px;
@@ -162,8 +497,140 @@
         align-items: center;
         justify-content: center;
         font-size: 0.65rem;
-        font-weight: 600;
-        border: 2px solid white;
+        font-weight: 700;
+        border: 2px solid #18181b;
+    }
+
+    /* Modern Footer */
+    .modern-footer {
+        background: #121214;
+        color: #9ca3af;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .footer-top {
+        padding: 5rem 0 3.5rem;
+    }
+
+    .footer-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .footer-desc {
+        font-size: 0.92rem;
+        line-height: 1.7;
+        color: #9ca3af;
+        max-width: 340px;
+        margin-bottom: 1.5rem;
+    }
+
+    .footer-socials {
+        display: flex;
+        gap: 12px;
+    }
+
+    .social-link {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #d1d5db;
+        transition: all 0.2s;
+        text-decoration: none;
+        font-size: 1rem;
+    }
+
+    .social-link:hover {
+        background: #b86d26;
+        color: #ffffff;
+        border-color: #b86d26;
+        transform: translateY(-2px);
+    }
+
+    .footer-heading {
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 1rem;
+        letter-spacing: -0.01em;
+        margin-bottom: 1.25rem;
+    }
+
+    .footer-links {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .footer-links li {
+        margin-bottom: 0.75rem;
+    }
+
+    .footer-links a {
+        color: #9ca3af;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: color 0.2s;
+    }
+
+    .footer-links a:hover {
+        color: #b86d26;
+    }
+
+    .footer-contact {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .footer-contact li {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.9rem;
+        color: #9ca3af;
+        margin-bottom: 0.85rem;
+    }
+
+    .footer-contact i {
+        color: #b86d26;
+        font-size: 1rem;
+    }
+
+    .footer-bottom {
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        font-size: 0.85rem;
+        color: #6b7280;
+    }
+
+    .copyright-text {
+        font-family: var(--font-primary);
+        color: #9ca3af;
+    }
+
+    .footer-legal-links {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .footer-legal-links a {
+        color: #9ca3af;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    .footer-legal-links a:hover {
+        color: #b86d26;
+    }
+
+    .footer-legal-links .divider {
+        color: #4b5563;
     }
 </style>
 
@@ -171,23 +638,25 @@
 {
     <style>
         body, html, .modern-layout.home-layout {
-            background-color: #000000 !important;
+            background-color: #121214 !important;
             color: #d1d5db !important;
         }
 
-        /* Hero / General Backgrounds */
+        .home-main-content {
+            background: #121214 !important;
+        }
+
         .modern-hero {
-            background: linear-gradient(160deg, #111111 0%, #000000 40%, #050505 100%) !important;
+            background: #18181b !important;
         }
         .how-it-works-section, .explore-section, .cta-section, .featured-section {
-            background-color: #000000 !important;
+            background-color: #121214 !important;
             color: #d1d5db !important;
         }
         
-        /* Typography overrides */
         .hero-title, .stat-number, .stat-value, .section-title, .feature-title, .card-title, .venue-title,
         .price-amount, .equip-title-home, .hotel-name, .package-title, .cta-title {
-            color: #f9fafb !important;
+            color: #ffffff !important;
         }
         .hero-subtitle, .stat-label, .section-subtitle, .feature-text, .card-subtitle, 
         .venue-location, .cta-text, .hotel-description, .package-description, .equip-desc-home,
@@ -195,7 +664,6 @@
             color: #9ca3af !important;
         }
 
-        /* Cards and Elements */
         .modern-app-bar.home-app-bar,
         .modern-card,
         #logoutModalHome > div,
@@ -208,65 +676,60 @@
         .equip-card-home, 
         .cta-card, 
         .cta-stat {
-            background-color: #111111 !important;
-            border-color: #2a2a2a !important;
-            color: #f9fafb !important;
-            box-shadow: 0 4px 16px rgba(234, 88, 12, 0.05) !important;
-            transition: all 0.3s ease;
+            background-color: #18181b !important;
+            border-color: rgba(255, 255, 255, 0.08) !important;
+            color: #ffffff !important;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4) !important;
         }
         
         .floating-card:hover, .feature-card:hover, .venue-card:hover, .hotel-card:hover, .package-card-home:hover, .equip-card-home:hover {
-            border-color: #ea580c !important;
-            box-shadow: 0 8px 24px rgba(234, 88, 12, 0.15) !important;
+            border-color: #b86d26 !important;
+            box-shadow: 0 12px 32px rgba(184, 109, 38, 0.25) !important;
             transform: translateY(-4px);
         }
 
         .search-box input {
-            color: #f9fafb !important;
+            color: #ffffff !important;
         }
         .search-box input::placeholder {
             color: #6b7280 !important;
         }
 
-        /* Tabs */
         .modern-tabs {
-            background-color: transparent !important;
+            background-color: #18181b !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
         }
         .modern-tabs .nav-link {
-            background-color: #111111 !important;
+            background-color: transparent !important;
             color: #9ca3af !important;
-            border: 1px solid #2a2a2a !important;
+            border: none !important;
         }
         .modern-tabs .nav-link:hover {
-            color: #ea580c !important;
-            border-color: #ea580c !important;
+            color: #b86d26 !important;
         }
         .modern-tabs .nav-link.active {
             color: #ffffff !important;
-            background-color: #ea580c !important;
-            border-color: #ea580c !important;
+            background-color: #b86d26 !important;
         }
 
         .venue-capacity, .venue-footer, .hotel-footer, .package-footer, .equip-footer-home {
-            background-color: #0d0d0d !important;
+            background-color: #141416 !important;
             color: #d1d5db !important;
-            border-top: 1px solid #2a2a2a !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
         }
         
-        /* App Bar specific */
         .app-bar-btn, .brand-text {
-            color: #f9fafb !important;
-            transition: color 0.2s;
+            color: #ffffff !important;
         }
         .app-bar-btn:hover {
-            color: #ea580c !important;
+            color: #b86d26 !important;
         }
         .user-profile {
-            color: #f9fafb !important;
+            color: #ffffff !important;
         }
         .hotel-meta-row .hotel-rating i,
         .hotel-location i, .package-meta i {
-            color: #ea580c !important;
+            color: #b86d26 !important;
         }
     </style>
 }
