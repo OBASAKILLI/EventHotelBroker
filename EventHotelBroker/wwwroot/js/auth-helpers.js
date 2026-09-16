@@ -5,9 +5,9 @@ window.authHelpers = {
         return match ? decodeURIComponent(match[2]) : '';
     },
     setCookie: function (name, value, maxAgeSeconds) {
-        document.cookie = name + '=' + encodeURIComponent(value) + ';path=/;max-age=' + maxAgeSeconds + ';SameSite=Strict';
+        document.cookie = name + '=' + encodeURIComponent(value) + ';path=/;max-age=' + maxAgeSeconds + ';SameSite=Lax';
     },
     deleteCookie: function (name) {
-        document.cookie = name + '=;path=/;max-age=0;SameSite=Strict';
+        document.cookie = name + '=;path=/;max-age=0;SameSite=Lax';
     }
 };

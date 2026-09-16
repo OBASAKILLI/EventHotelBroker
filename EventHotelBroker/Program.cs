@@ -3,9 +3,13 @@ using EventHotelBroker.Data;
 using EventHotelBroker.Models;
 using EventHotelBroker.Repositories;
 using EventHotelBroker.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Security.Claims;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,13 +52,99 @@ builder.Services.AddScoped<EventHotelBroker.TokenProvider>();
 builder.Services.AddScoped<EventHotelBroker.Utils.CustomAuthenticationStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(provider =>
     provider.GetRequiredService<EventHotelBroker.Utils.CustomAuthenticationStateProvider>());
+builder.Services.AddScoped<IHostEnvironmentAuthenticationStateProvider>(provider =>
+    provider.GetRequiredService<EventHotelBroker.Utils.CustomAuthenticationStateProvider>());
 builder.Services.AddCascadingAuthenticationState();
-builder.Services.AddAuthentication("Cookies")
-    .AddCookie("Cookies", options =>
+
+var jwtKey = Encoding.ASCII.GetBytes("YourKey-2374-OFFKDI940NG7:56753253-tyuw-5769-0921-kfirox29zoxv");
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+{
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        options.LoginPath = "/login";
-        options.AccessDeniedPath = "/access-denied";
-    });
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(jwtKey),
+        ValidateIssuer = true,
+        ValidIssuer = "MyIssuer",
+        ValidateAudience = true,
+        ValidAudience = "MyAudience",
+        ClockSkew = TimeSpan.FromMinutes(5),
+        RoleClaimType = ClaimTypes.Role,
+        NameClaimType = ClaimTypes.Name
+    };
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            if (string.IsNullOrEmpty(context.Token))
+            {
+                if (context.Request.Cookies.TryGetValue("JWToken", out var cookieToken) && !string.IsNullOrEmpty(cookieToken))
+                {
+                    if (cookieToken.Contains('%'))
+                    {
+                        try { cookieToken = Uri.UnescapeDataString(cookieToken); } catch { }
+                    }
+                    context.Token = cookieToken;
+                }
+            }
+            return Task.CompletedTask;
+        },
+        OnTokenValidated = context =>
+        {
+            if (context.Principal?.Identity is ClaimsIdentity identity)
+            {
+                var accountType = identity.FindFirst("AccountType")?.Value;
+                if (!string.IsNullOrEmpty(accountType))
+                {
+                    foreach (var r in accountType.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                    {
+                        if (!identity.HasClaim(ClaimTypes.Role, r))
+                        {
+                            identity.AddClaim(new Claim(ClaimTypes.Role, r));
+                        }
+                    }
+                }
+                
+                foreach (var roleClaim in identity.FindAll("role").ToList())
+                {
+                    if (!identity.HasClaim(ClaimTypes.Role, roleClaim.Value))
+                    {
+                        identity.AddClaim(new Claim(ClaimTypes.Role, roleClaim.Value));
+                    }
+                }
+            }
+            return Task.CompletedTask;
+        },
+        OnChallenge = context =>
+        {
+            // For browser navigation requests (HTML), redirect to /login
+            if (!context.Request.Path.StartsWithSegments("/api"))
+            {
+                context.HandleResponse();
+                var returnUrl = Uri.EscapeDataString(context.Request.Path + context.Request.QueryString);
+                context.Response.Redirect($"/login?ReturnUrl={returnUrl}");
+            }
+            return Task.CompletedTask;
+        },
+        OnForbidden = context =>
+        {
+            if (!context.Request.Path.StartsWithSegments("/api"))
+            {
+                context.Response.Redirect("/access-denied");
+            }
+            return Task.CompletedTask;
+        }
+    };
+});
+
 builder.Services.AddAuthorization();
 
 // Add SignalR for real-time messaging

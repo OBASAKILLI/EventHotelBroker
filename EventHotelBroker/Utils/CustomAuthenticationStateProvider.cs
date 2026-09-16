@@ -5,40 +5,60 @@ using System.Text;
 
 namespace EventHotelBroker.Utils
 {
-    public class CustomAuthenticationStateProvider : AuthenticationStateProvider
+    public class CustomAuthenticationStateProvider : AuthenticationStateProvider, IHostEnvironmentAuthenticationStateProvider
     {
         private readonly ClaimsPrincipal _anonymous = new ClaimsPrincipal(new ClaimsIdentity());
         private readonly IHttpContextAccessor _httpContextAccessor;
         
         // In-memory token storage - survives SignalR connections where HttpContext.Session is null
         private string? _currentToken;
+        private Task<AuthenticationState>? _hostAuthenticationStateTask;
 
         public CustomAuthenticationStateProvider(IHttpContextAccessor httpContextAccessor)
         {
             _httpContextAccessor = httpContextAccessor;
         }
 
+        public void SetAuthenticationState(Task<AuthenticationState> authenticationStateTask)
+        {
+            _hostAuthenticationStateTask = authenticationStateTask;
+            NotifyAuthenticationStateChanged(authenticationStateTask);
+        }
+
         // Public property so pages can read the current token
         public string? CurrentToken => _currentToken ?? _httpContextAccessor.HttpContext?.Session?.GetString("JWToken");
 
-        public override Task<AuthenticationState> GetAuthenticationStateAsync()
+        public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
             try
             {
-                // 1. Try in-memory token first (persists across SignalR)
-                string? token = _currentToken;
-                
-                // 2. Fall back to session (available during initial HTTP request)
-                if (string.IsNullOrEmpty(token))
+                // 1. Try in-memory token explicitly set in this circuit (e.g. from Login component)
+                if (!string.IsNullOrEmpty(_currentToken))
                 {
-                    try
+                    var claims = ParseClaimsFromJwt(_currentToken);
+                    var authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(claims, "jwt", ClaimTypes.Name, ClaimTypes.Role));
+                    return new AuthenticationState(authenticatedUser);
+                }
+
+                // 2. Fall back to host environment authentication state (passed by ASP.NET Core SignalR hub from HTTP connection)
+                if (_hostAuthenticationStateTask != null)
+                {
+                    var hostState = await _hostAuthenticationStateTask;
+                    if (hostState.User.Identity?.IsAuthenticated == true)
                     {
-                        token = _httpContextAccessor.HttpContext?.Session?.GetString("JWToken");
+                        return hostState;
                     }
-                    catch { }
                 }
                 
-                // 3. Fall back to cookie (set by JS during login)
+                // 3. Fall back to session (available during initial HTTP request)
+                string? token = null;
+                try
+                {
+                    token = _httpContextAccessor.HttpContext?.Session?.GetString("JWToken");
+                }
+                catch { }
+                
+                // 4. Fall back to cookie (set by JS during login)
                 if (string.IsNullOrEmpty(token))
                 {
                     try
@@ -48,24 +68,41 @@ namespace EventHotelBroker.Utils
                     catch { }
                 }
 
+                // 5. Fall back to HttpContext.User directly if authenticated by JwtBearer
+                if (string.IsNullOrEmpty(token))
+                {
+                    try
+                    {
+                        var httpUser = _httpContextAccessor.HttpContext?.User;
+                        if (httpUser?.Identity?.IsAuthenticated == true)
+                        {
+                            return new AuthenticationState(httpUser);
+                        }
+                    }
+                    catch { }
+                }
+
                 if (!string.IsNullOrEmpty(token))
                 {
+                    if (token.Contains('%'))
+                    {
+                        try { token = Uri.UnescapeDataString(token); } catch { }
+                    }
+
                     // Cache in memory so it survives the HTTP → SignalR transition
                     _currentToken = token;
                     
                     var claims = ParseClaimsFromJwt(token);
                     var authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(claims, "jwt", ClaimTypes.Name, ClaimTypes.Role));
-                    return Task.FromResult(new AuthenticationState(authenticatedUser));
+                    return new AuthenticationState(authenticatedUser);
                 }
-                else
-                {
-                    return Task.FromResult(new AuthenticationState(_anonymous));
-                }
+
+                return new AuthenticationState(_anonymous);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[Auth] Exception: {ex.Message}");
-                return Task.FromResult(new AuthenticationState(_anonymous));
+                return new AuthenticationState(_anonymous);
             }
         }
 
@@ -88,6 +125,7 @@ namespace EventHotelBroker.Utils
 
             var authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt", ClaimTypes.Name, ClaimTypes.Role));
             var authState = Task.FromResult(new AuthenticationState(authenticatedUser));
+            _hostAuthenticationStateTask = authState;
             NotifyAuthenticationStateChanged(authState);
             return Task.CompletedTask;
         }
@@ -95,6 +133,7 @@ namespace EventHotelBroker.Utils
         public Task MarkUserAsLoggedOut()
         {
             _currentToken = null;
+            _hostAuthenticationStateTask = null;
             
             try
             {

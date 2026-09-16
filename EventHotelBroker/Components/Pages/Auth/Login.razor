@@ -158,6 +158,9 @@
     [SupplyParameterFromQuery(Name = "returnUrl")]
     public string? ReturnUrl { get; set; }
 
+    [SupplyParameterFromQuery(Name = "ReturnUrl")]
+    public string? ReturnUrlCapital { get; set; }
+
     [SupplyParameterFromQuery(Name = "enrolled")]
     public bool Enrolled { get; set; }
 
@@ -173,6 +176,60 @@
     private string maskedEmail = "";
     private bool isVerifying = false;
     private bool isResending = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ReturnUrl ??= ReturnUrlCapital;
+
+        if (string.IsNullOrWhiteSpace(ReturnUrl))
+        {
+            try
+            {
+                var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+                var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+                if (query.TryGetValue("ReturnUrl", out var r1) || query.TryGetValue("returnUrl", out r1))
+                {
+                    ReturnUrl = r1.ToString();
+                }
+            }
+            catch { }
+        }
+
+        // If user is already authenticated, redirect them away from the login page
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            if (authState.User.Identity?.IsAuthenticated == true)
+            {
+                var user = authState.User;
+                if (!string.IsNullOrWhiteSpace(ReturnUrl))
+                {
+                    var decoded = Uri.UnescapeDataString(ReturnUrl);
+                    if (decoded.StartsWith("/") && !decoded.StartsWith("//") &&
+                        !decoded.StartsWith("/login", StringComparison.OrdinalIgnoreCase) &&
+                        !decoded.StartsWith("/register", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Navigation.NavigateTo(decoded, forceLoad: true);
+                        return;
+                    }
+                }
+
+                if (user.IsInRole("Admin"))
+                {
+                    Navigation.NavigateTo("/admin/dashboard", forceLoad: true);
+                }
+                else if (user.IsInRole("HotelOwner"))
+                {
+                    Navigation.NavigateTo("/owner/dashboard", forceLoad: true);
+                }
+                else
+                {
+                    Navigation.NavigateTo("/user/dashboard", forceLoad: true);
+                }
+            }
+        }
+        catch { }
+    }
 
     private async Task HandleLogin()
     {
@@ -297,12 +354,15 @@
             ToastService.ShowSuccess("Login Successful!", $"Welcome back, {user.FullName}");
             await Task.Delay(500);
 
-            // If we have a returnUrl, always go there first
+            // If we have a returnUrl, validate and go there first
             if (!string.IsNullOrWhiteSpace(ReturnUrl))
             {
                 var decoded = Uri.UnescapeDataString(ReturnUrl);
-                // Safety: only allow relative paths to prevent open redirect attacks
-                if (decoded.StartsWith("/") && !decoded.StartsWith("//"))
+                // Safety: only allow relative paths, and prevent redirect loops to login/register/access-denied
+                if (decoded.StartsWith("/") && !decoded.StartsWith("//") &&
+                    !decoded.StartsWith("/login", StringComparison.OrdinalIgnoreCase) &&
+                    !decoded.StartsWith("/register", StringComparison.OrdinalIgnoreCase) &&
+                    !decoded.StartsWith("/access-denied", StringComparison.OrdinalIgnoreCase))
                 {
                     Navigation.NavigateTo(decoded, forceLoad: true);
                     return;
