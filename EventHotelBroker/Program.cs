@@ -90,6 +90,9 @@ using (var scope = app.Services.CreateScope())
         var context = services.GetRequiredService<ApplicationDbContext>();
         var logger = services.GetRequiredService<ILogger<Program>>();
         
+        // Align migration history with existing database tables if __EFMigrationsHistory was missing or incomplete
+        await EnsureMigrationsHistoryAlignedAsync(context, logger);
+
         // Apply pending migrations
         logger.LogInformation("Applying database migrations...");
         await context.Database.MigrateAsync();
@@ -163,3 +166,99 @@ app.MapRazorComponents<App>()
 app.MapGet("/ping", () => Results.Ok("pong"));
 
 app.Run();
+
+static async Task EnsureMigrationsHistoryAlignedAsync(ApplicationDbContext context, ILogger logger)
+{
+    try
+    {
+        var connection = context.Database.GetDbConnection();
+        if (connection.State != System.Data.ConnectionState.Open)
+        {
+            await connection.OpenAsync();
+        }
+
+        using (var cmd = connection.CreateCommand())
+        {
+            cmd.CommandText = @"
+                CREATE TABLE IF NOT EXISTS `__EFMigrationsHistory` (
+                    `MigrationId` varchar(150) CHARACTER SET utf8mb4 NOT NULL,
+                    `ProductVersion` varchar(32) CHARACTER SET utf8mb4 NOT NULL,
+                    CONSTRAINT `PK___EFMigrationsHistory` PRIMARY KEY (`MigrationId`)
+                ) CHARACTER SET=utf8mb4;";
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        async Task<bool> TableExistsAsync(string table)
+        {
+            using var c = connection.CreateCommand();
+            c.CommandText = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @t";
+            var p = c.CreateParameter();
+            p.ParameterName = "@t";
+            p.Value = table;
+            c.Parameters.Add(p);
+            return Convert.ToInt32(await c.ExecuteScalarAsync()) > 0;
+        }
+
+        async Task<bool> ColumnExistsAsync(string table, string column)
+        {
+            using var c = connection.CreateCommand();
+            c.CommandText = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @t AND COLUMN_NAME = @col";
+            var p1 = c.CreateParameter();
+            p1.ParameterName = "@t";
+            p1.Value = table;
+            c.Parameters.Add(p1);
+            var p2 = c.CreateParameter();
+            p2.ParameterName = "@col";
+            p2.Value = column;
+            c.Parameters.Add(p2);
+            return Convert.ToInt32(await c.ExecuteScalarAsync()) > 0;
+        }
+
+        async Task RecordMigrationAsync(string migrationId)
+        {
+            using var c = connection.CreateCommand();
+            c.CommandText = "INSERT IGNORE INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`) VALUES (@m, '8.0.0')";
+            var p = c.CreateParameter();
+            p.ParameterName = "@m";
+            p.Value = migrationId;
+            c.Parameters.Add(p);
+            await c.ExecuteNonQueryAsync();
+        }
+
+        if (await TableExistsAsync("Amenities"))
+            await RecordMigrationAsync("20251018174255_InitialCreate");
+
+        if (await TableExistsAsync("EventPackages"))
+            await RecordMigrationAsync("20251019080002_AddEventManagement");
+
+        if (await ColumnExistsAsync("EventPackages", "IsCustomizable"))
+            await RecordMigrationAsync("20251019190728_AddIsCustomizableToEventPackage");
+
+        if (await TableExistsAsync("Users"))
+        {
+            await RecordMigrationAsync("20251029161314_AddPasswordHashToUser");
+            await RecordMigrationAsync("20260324204832_AddUserRegistrationFields");
+        }
+
+        if (await ColumnExistsAsync("Bookings", "RejectionReason"))
+            await RecordMigrationAsync("20260330092613_AddBookingRejectionFields");
+
+        if (await ColumnExistsAsync("Hotels", "Category"))
+            await RecordMigrationAsync("20260511105312_AddCategoryToHotels");
+
+        if (await ColumnExistsAsync("Hotels", "Phone"))
+            await RecordMigrationAsync("20260511111011_AddPhoneToHotels");
+
+        if (await ColumnExistsAsync("Hotels", "Email"))
+            await RecordMigrationAsync("20260511131916_AddEmailToHotels");
+
+        if (await TableExistsAsync("Reviews"))
+            await RecordMigrationAsync("20260720094344_AddReviewsTable");
+
+        logger.LogInformation("Database migration history validated and aligned with existing tables.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogWarning(ex, "Could not check migration history alignment against existing database tables.");
+    }
+}
