@@ -95,18 +95,9 @@ using (var scope = app.Services.CreateScope())
         await context.Database.MigrateAsync();
         logger.LogInformation("Database migrations applied successfully.");
         
-        // Seed data
+        // Seed essential data (admin account only)
         logger.LogInformation("Seeding database...");
-        await DbSeeder.SeedAsync(services); // Always seed admin + essential config
-        
-        // Only seed sample/demo data in development - never in production
-        if (app.Environment.IsDevelopment())
-        {
-            await SampleDataSeeder.SeedSampleDataAsync(services);
-            await EventDataSeeder.SeedEventDataAsync(services);
-            logger.LogInformation("Development sample data seeded.");
-        }
-        
+        await DbSeeder.SeedAsync(services);
         logger.LogInformation("Database seeding completed.");
     }
     catch (Exception ex)
