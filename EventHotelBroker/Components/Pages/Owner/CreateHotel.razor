@@ -16,11 +16,10 @@
 @implements IDisposable
 @using EventHotelBroker.Utils
 
-<PageTitle>Create Hotel - EventHotelBroker</PageTitle>
+<PageTitle>Add New Hotel - Safari Vents</PageTitle>
 
-<link href="/css/create-hotel.css?v=1" rel="stylesheet" />
+<link href="/css/create-hotel.css?v=27" rel="stylesheet" />
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA7eRAscqIJa-F2uUfvyS-rg7dAg02sXCk&libraries=places,geometry"></script>
-
 
 <div class="ch">
     <Breadcrumb Items="@breadcrumbItems" />
@@ -32,176 +31,165 @@
             <p class="ch-header-sub">Create a new hotel listing for your property</p>
         </div>
         <button class="ch-btn ch-btn-cancel" @onclick="Cancel">
-            <i class="bi bi-x-lg"></i> Cancel
+            <i class="bi bi-arrow-left"></i> Back to Hotels
         </button>
     </div>
 
-    <!-- Form Card -->
-    <div class="row justify-content-center">
-        <div class="col-lg-9">
-            <div class="ch-card">
-                <div class="ch-card-body">
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div class="ch-alert ch-alert-success" style="max-width: 1240px; margin: 0 auto 14px auto;">
+            <i class="bi bi-check-circle-fill"></i>
+            <span><strong>Success!</strong> @successMessage</span>
+            <button class="ch-alert-close" @onclick="() => successMessage = null"><i class="bi bi-x"></i></button>
+        </div>
+    }
 
-                    @if (!string.IsNullOrEmpty(successMessage))
-                    {
-                        <div class="ch-alert ch-alert-success">
-                            <div class="ch-alert-icon"><i class="bi bi-check-circle-fill"></i></div>
-                            <span><strong>Success!</strong> @successMessage</span>
-                            <button class="ch-alert-close" @onclick="() => successMessage = null"><i class="bi bi-x"></i></button>
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="ch-alert ch-alert-error" style="max-width: 1240px; margin: 0 auto 14px auto;">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span><strong>Error!</strong> @errorMessage</span>
+            <button class="ch-alert-close" @onclick="() => errorMessage = null"><i class="bi bi-x"></i></button>
+        </div>
+    }
+
+    <EditForm Model="hotel" OnValidSubmit="HandleSubmit" FormName="createHotelForm">
+        <DataAnnotationsValidator />
+
+        <div class="ch-layout">
+            <!-- Left Main Column -->
+            <div class="ch-col-main">
+                <!-- Card 1: Basic Information -->
+                <div class="ch-card">
+                    <div class="ch-card-header">
+                        <h6 class="ch-card-header-title"><i class="bi bi-info-circle"></i> Basic Information</h6>
+                    </div>
+                    <div class="ch-card-body">
+                        <!-- Row 1: Name & Category -->
+                        <div class="ch-grid-name-cat">
+                            <div class="ch-field">
+                                <label class="ch-label" for="name">Hotel Name <span class="req">*</span></label>
+                                <InputText @bind-Value="hotel.Name" class="ch-input" id="name" placeholder="e.g., Grand Plaza Hotel" />
+                                <ValidationMessage For="@(() => hotel.Name)" />
+                            </div>
+                            <div class="ch-field">
+                                <label class="ch-label" for="category">Category <span class="req">*</span></label>
+                                <InputSelect @bind-Value="hotel.Category" class="ch-select" id="category">
+                                    <option value="">Select category</option>
+                                    @foreach (var category in availableCategories)
+                                    {
+                                        <option value="@category">@category</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="@(() => hotel.Category)" />
+                            </div>
                         </div>
-                    }
 
-                    @if (!string.IsNullOrEmpty(errorMessage))
-                    {
-                        <div class="ch-alert ch-alert-error">
-                            <div class="ch-alert-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
-                            <span><strong>Error!</strong> @errorMessage</span>
-                            <button class="ch-alert-close" @onclick="() => errorMessage = null"><i class="bi bi-x"></i></button>
+                        <!-- Row 2: Hotel Tier, Capacity, Price -->
+                        <div class="ch-grid-3">
+                            <div class="ch-field">
+                                <label class="ch-label" for="hotelCategory">Star Tier <span class="req">*</span></label>
+                                <InputSelect @bind-Value="hotel.HotelCategoryId" class="ch-select" id="hotelCategory">
+                                    <option value="0">Select tier</option>
+                                    @if (availableHotelCategories != null)
+                                    {
+                                        @foreach (var cat in availableHotelCategories)
+                                        {
+                                            <option value="@cat.Id">@cat.Name (@cat.Rating)</option>
+                                        }
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="@(() => hotel.HotelCategoryId)" />
+                            </div>
+                            <div class="ch-field">
+                                <label class="ch-label" for="capacity">Capacity (Guests) <span class="req">*</span></label>
+                                <InputNumber @bind-Value="hotel.Capacity" class="ch-input" id="capacity" />
+                                <ValidationMessage For="@(() => hotel.Capacity)" />
+                            </div>
+                            <div class="ch-field">
+                                <label class="ch-label" for="price">Price / Night (KES) <span class="req">*</span></label>
+                                <InputNumber @bind-Value="hotel.PricePerNight" class="ch-input" id="price" />
+                                <ValidationMessage For="@(() => hotel.PricePerNight)" />
+                            </div>
                         </div>
-                    }
 
-                    <EditForm Model="hotel" OnValidSubmit="HandleSubmit" FormName="createHotelForm">
-                        <DataAnnotationsValidator />
-
-                        <!-- Basic Information -->
-                        <div class="ch-section">
-                            <div class="ch-section-icon ch-icon-terracotta"><i class="bi bi-info-circle"></i></div>
-                            <h5 class="ch-section-title">Basic Information</h5>
+                        <!-- Row 3: Phone & Email -->
+                        <div class="ch-grid-2">
+                            <div class="ch-field">
+                                <label class="ch-label" for="phone">Phone Number <span class="req">*</span></label>
+                                <InputText @bind-Value="hotel.Phone" class="ch-input" id="phone" placeholder="+254 7XX XXX XXX" />
+                                <ValidationMessage For="@(() => hotel.Phone)" />
+                            </div>
+                            <div class="ch-field">
+                                <label class="ch-label" for="email">Contact Email <span class="req">*</span></label>
+                                <InputText @bind-Value="hotel.Email" class="ch-input" id="email" placeholder="hotel@example.com" />
+                                <ValidationMessage For="@(() => hotel.Email)" />
+                            </div>
                         </div>
 
+                        <!-- Row 4: Description -->
                         <div class="ch-field">
-                            <label class="ch-label" for="name">Hotel Name *</label>
-                            <InputText @bind-Value="hotel.Name" class="ch-input" id="name" placeholder="e.g., Grand Plaza Hotel" />
-                            <ValidationMessage For="@(() => hotel.Name)" />
-                        </div>
-
-                        <div class="ch-field">
-                            <label class="ch-label" for="description">Description *</label>
-                            <InputTextArea @bind-Value="hotel.Description" class="ch-input" id="description" rows="3"
-                                placeholder="Describe your hotel, amenities, and what makes it special..." />
+                            <label class="ch-label" for="description">Description <span class="req">*</span></label>
+                            <InputTextArea @bind-Value="hotel.Description" class="ch-input" id="description" rows="2"
+                                placeholder="Describe the hotel, key features, and highlights..." />
                             <ValidationMessage For="@(() => hotel.Description)" />
                         </div>
+                    </div>
+                </div>
 
-                        <div class="ch-field">
-                            <label class="ch-label" for="category">Category *</label>
-                            <InputSelect @bind-Value="hotel.Category" class="ch-input" id="category">
-                                <option value="">Select a category</option>
-                                @foreach (var category in availableCategories)
-                                {
-                                    <option value="@category">@category</option>
-                                }
-                            </InputSelect>
-                            <ValidationMessage For="@(() => hotel.Category)" />
-                        </div>
-
-                        <div class="ch-field">
-                            <label class="ch-label" for="hotelCategory">Hotel Category *</label>
-                            <InputSelect @bind-Value="hotel.HotelCategoryId" class="ch-input" id="hotelCategory">
-                                <option value="0">Select hotel category</option>
-                                @if (availableHotelCategories != null)
-                                {
-                                    @foreach (var cat in availableHotelCategories)
-                                    {
-                                        <option value="@cat.Id">@cat.Name (@cat.Rating) - KES @cat.ServiceFee service fee</option>
-                                    }
-                                }
-                            </InputSelect>
-                            <ValidationMessage For="@(() => hotel.HotelCategoryId)" />
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="ch-field">
-                                    <label class="ch-label" for="capacity">Guest Capacity *</label>
-                                    <InputNumber @bind-Value="hotel.Capacity" class="ch-input" id="capacity" />
-                                    <ValidationMessage For="@(() => hotel.Capacity)" />
-                                </div>
+                <!-- Card 2: Location Details -->
+                <div class="ch-card">
+                    <div class="ch-card-header">
+                        <h6 class="ch-card-header-title"><i class="bi bi-geo-alt"></i> Location Details</h6>
+                    </div>
+                    <div class="ch-card-body">
+                        <div class="ch-grid-loc-addr">
+                            <div class="ch-field">
+                                <label class="ch-label" for="address">Street Address <span class="req">*</span></label>
+                                <InputText @bind-Value="hotel.Address" class="ch-input" id="address" placeholder="e.g., Kenyatta Avenue" />
+                                <ValidationMessage For="@(() => hotel.Address)" />
                             </div>
-                            <div class="col-md-6">
-                                <div class="ch-field">
-                                    <label class="ch-label" for="price">Price per Night (KES) *</label>
-                                    <InputNumber @bind-Value="hotel.PricePerNight" class="ch-input" id="price" />
-                                    <ValidationMessage For="@(() => hotel.PricePerNight)" />
-                                </div>
+                            <div class="ch-field">
+                                <label class="ch-label" for="city">City <span class="req">*</span></label>
+                                <InputText @bind-Value="hotel.City" class="ch-input" id="city" placeholder="e.g., Nairobi" />
+                                <ValidationMessage For="@(() => hotel.City)" />
+                            </div>
+                            <div class="ch-field">
+                                <label class="ch-label" for="country">Country <span class="req">*</span></label>
+                                <InputText @bind-Value="hotel.Country" class="ch-input" id="country" placeholder="Kenya" />
+                                <ValidationMessage For="@(() => hotel.Country)" />
                             </div>
                         </div>
 
+                        <!-- Search Location & Map Toggle -->
                         <div class="ch-field">
-                            <label class="ch-label" for="phone">Phone Number *</label>
-                            <InputText @bind-Value="hotel.Phone" class="ch-input" id="phone" placeholder="+254 7XX XXX XXX" />
-                            <ValidationMessage For="@(() => hotel.Phone)" />
-                        </div>
-
-                        <div class="ch-field">
-                            <label class="ch-label" for="email">Email *</label>
-                            <InputText @bind-Value="hotel.Email" class="ch-input" id="email" placeholder="hotel@example.com" />
-                            <ValidationMessage For="@(() => hotel.Email)" />
-                        </div>
-
-                        <hr class="ch-divider" />
-
-                        <!-- Location -->
-                        <div class="ch-section">
-                            <div class="ch-section-icon ch-icon-teal"><i class="bi bi-geo-alt"></i></div>
-                            <h5 class="ch-section-title">Location Details</h5>
-                        </div>
-
-                        <div class="ch-field">
-                            <label class="ch-label" for="address">Address *</label>
-                            <InputText @bind-Value="hotel.Address" class="ch-input" id="address" placeholder="Street address" />
-                            <ValidationMessage For="@(() => hotel.Address)" />
-                        </div>
-
-                        <!-- Google Maps Search & Preview -->
-                        <div class="ch-field">
-                            <label class="ch-label">Search Location & Pin on Map</label>
+                            <label class="ch-label">Search Location &amp; Pin Coordinates</label>
                             <div class="map-search-container">
-                                <p style="font-size: 0.65rem; color: #8a8177; margin-bottom: 0.5rem;"><i class="bi bi-info-circle"></i> Type and select from the dropdown to automatically fill details.</p>
-                                <input id="mapSearchInput" type="text" class="ch-input mb-2" placeholder="Start typing hotel location..." autocomplete="off" />
-                                <div id="hotelMap" style="height: 400px; width: 100%; border-radius: 12px; border: 1px solid #dee2e6; display: none; margin-bottom: 1.5rem;"></div>
+                                <input id="mapSearchInput" type="text" class="ch-input" placeholder="Type to search on Google Maps (e.g. Westlands, Nairobi)..." autocomplete="off" />
+                                <div id="hotelMap" style="height: 220px; width: 100%; border-radius: 8px; border: 1px solid #E5E7EB; display: none; margin-top: 8px;"></div>
                             </div>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="ch-field">
-                                    <label class="ch-label" for="city">City *</label>
-                                    <InputText @bind-Value="hotel.City" class="ch-input" id="city" />
-                                    <ValidationMessage For="@(() => hotel.City)" />
-                                </div>
+                        <!-- Auto-filled Coordinates in compact row -->
+                        <div class="ch-grid-2">
+                            <div class="ch-field">
+                                <label class="ch-label" for="latitude">Latitude (Auto-filled)</label>
+                                <InputNumber @bind-Value="hotel.Latitude" class="ch-input" id="latitude" placeholder="-1.286389" readonly />
                             </div>
-                            <div class="col-md-6">
-                                <div class="ch-field">
-                                    <label class="ch-label" for="country">Country *</label>
-                                    <InputText @bind-Value="hotel.Country" class="ch-input" id="country" />
-                                    <ValidationMessage For="@(() => hotel.Country)" />
-                                </div>
+                            <div class="ch-field">
+                                <label class="ch-label" for="longitude">Longitude (Auto-filled)</label>
+                                <InputNumber @bind-Value="hotel.Longitude" class="ch-input" id="longitude" placeholder="36.817223" readonly />
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="ch-field">
-                                    <label class="ch-label" for="latitude">Latitude (Auto-filled)</label>
-                                    <InputNumber @bind-Value="hotel.Latitude" class="ch-input" id="latitude" placeholder="e.g., -1.286389" readonly />
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="ch-field">
-                                    <label class="ch-label" for="longitude">Longitude (Auto-filled)</label>
-                                    <InputNumber @bind-Value="hotel.Longitude" class="ch-input" id="longitude" placeholder="e.g., 36.817223" readonly />
-                                </div>
-                            </div>
-                        </div>
-
-                        <hr class="ch-divider" />
-
-                        <!-- Amenities -->
-                        <div class="ch-section">
-                            <div class="ch-section-icon ch-icon-bronze"><i class="bi bi-star"></i></div>
-                            <h5 class="ch-section-title">Amenities & Features</h5>
-                        </div>
-
+                <!-- Card 3: Amenities & Features -->
+                <div class="ch-card">
+                    <div class="ch-card-header">
+                        <h6 class="ch-card-header-title"><i class="bi bi-star"></i> Amenities &amp; Features (@selectedAmenityIds.Count selected)</h6>
+                    </div>
+                    <div class="ch-card-body">
                         @if (availableAmenities.Any())
                         {
                             <div class="ch-chips">
@@ -221,106 +209,107 @@
                         }
                         else
                         {
-                            <p style="font-size: 0.6875rem; color: #8a8177;">Loading amenities...</p>
+                            <p style="font-size: 0.75rem; color: #8a8177; margin: 0;">Loading amenities...</p>
                         }
+                    </div>
+                </div>
+            </div>
 
-                        <hr class="ch-divider" />
-
-                        <!-- Hotel Images -->
-                        <div class="ch-section">
-                            <div class="ch-section-icon ch-icon-terracotta"><i class="bi bi-images"></i></div>
-                            <h5 class="ch-section-title">Hotel Images</h5>
-                        </div>
-
-                        <div class="ch-field">
-                            <label class="ch-label">Upload Images (Max 5, up to 5MB each)</label>
-                            <div style="border: 2px dashed #c4b5a0; border-radius: 8px; padding: 24px; text-align: center; background: #faf8f5; cursor: pointer; position: relative;">
-                                <InputFile OnChange="OnImagesSelected" multiple accept="image/*"
-                                    style="position: absolute; inset: 0; opacity: 0; cursor: pointer;" />
-                                <i class="bi bi-cloud-arrow-up" style="font-size: 2rem; color: #8a8177;"></i>
-                                <div style="color: #5c5550; margin-top: 8px; font-size: 0.85rem;">
-                                    Click or drag images here to upload
-                                </div>
-                                <div style="color: #8a8177; font-size: 0.75rem; margin-top: 4px;">
-                                    Supported: JPG, PNG, WebP
-                                </div>
-                            </div>
-
-                            @if (selectedImages.Any())
-                            {
-                                <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px;">
-                                    @foreach (var img in selectedImages)
-                                    {
-                                        <div style="position: relative; border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden; width: 120px;">
-                                            @if (imagePreviewUrls.ContainsKey(img.Name))
-                                            {
-                                                <img src="@imagePreviewUrls[img.Name]" style="width: 120px; height: 90px; object-fit: cover;" />
-                                            }
-                                            else
-                                            {
-                                                <div style="width: 120px; height: 90px; display: flex; align-items: center; justify-content: center; background: #f0ebe4;">
-                                                    <i class="bi bi-image" style="font-size: 1.5rem; color: #8a8177;"></i>
-                                                </div>
-                                            }
-                                            <div style="padding: 4px 6px; font-size: 0.7rem; color: #5c5550; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                                @img.Name
-                                            </div>
-                                            <div style="padding: 0 6px 4px; display: flex; align-items: center; gap: 4px;">
-                                                <input type="radio" name="primaryImage" checked="@(primaryImageName == img.Name)"
-                                                    @onchange="() => primaryImageName = img.Name" />
-                                                <span style="font-size: 0.65rem; color: #8a8177;">Primary</span>
-                                            </div>
-                                            <button type="button" @onclick="() => RemoveImage(img.Name)"
-                                                style="position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 0.7rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                                                <i class="bi bi-x"></i>
-                                            </button>
-                                        </div>
-                                    }
-                                </div>
-                            }
-                        </div>
-
-                        <hr class="ch-divider" />
-
+            <!-- Right Sidebar Column (Sticky) -->
+            <div class="ch-col-side">
+                <!-- Actions & Status Card -->
+                <div class="ch-card">
+                    <div class="ch-card-header">
+                        <h6 class="ch-card-header-title"><i class="bi bi-send"></i> Publish &amp; Save</h6>
+                    </div>
+                    <div class="ch-card-body">
                         <!-- Publish Toggle -->
-                        <label class="ch-toggle">
-                            <InputCheckbox @bind-Value="hotel.IsPublished" id="isPublished" />
-                            Publish immediately (will be pending admin approval)
+                        <label class="ch-toggle-box">
+                            <div>
+                                <span class="ch-toggle-label">Publish Listing</span>
+                                <span class="ch-toggle-hint">Submit for admin approval</span>
+                            </div>
+                            <InputCheckbox @bind-Value="hotel.IsPublished" id="isPublished" style="width: 18px; height: 18px; cursor: pointer; accent-color: #DD7A28;" />
                         </label>
 
-                        <!-- Info Box -->
-                        <div class="ch-info" style="margin-top: 0.75rem;">
-                            <div class="ch-info-icon"><i class="bi bi-info-circle"></i></div>
-                            <div>
-                                <div class="ch-info-title">Review Process</div>
-                                <div class="ch-info-text">Your hotel listing will be reviewed by our admin team before it becomes visible to users. This typically takes 24-48 hours.</div>
+                        <!-- Review Process Info -->
+                        <div class="ch-review-note">
+                            <i class="bi bi-info-circle"></i>
+                            <div>New listings are reviewed by admin within 24-48 hours before public visibility.</div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <button type="submit" class="ch-btn ch-btn-submit-block" disabled="@isSubmitting">
+                            @if (isSubmitting)
+                            {
+                                <span class="ch-spinner me-1"></span>
+                                <span>Creating Hotel...</span>
+                            }
+                            else
+                            {
+                                <i class="bi bi-check-lg"></i>
+                                <span>Create Hotel</span>
+                            }
+                        </button>
+                        <button type="button" class="ch-btn ch-btn-cancel-block" @onclick="Cancel">
+                            <i class="bi bi-x-lg"></i> Cancel
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Photos Card -->
+                <div class="ch-card">
+                    <div class="ch-card-header">
+                        <h6 class="ch-card-header-title"><i class="bi bi-images"></i> Photos (@selectedImages.Count/5)</h6>
+                    </div>
+                    <div class="ch-card-body">
+                        <div class="ch-dropzone-compact">
+                            <InputFile OnChange="OnImagesSelected" multiple accept="image/*"
+                                style="position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;" />
+                            <i class="bi bi-cloud-arrow-up"></i>
+                            <div class="ch-dropzone-text">Click or drop images here</div>
+                            <div class="ch-dropzone-sub">Max 5 photos · Up to 5MB each</div>
+                        </div>
+
+                        @if (selectedImages.Any())
+                        {
+                            <div class="ch-thumb-grid">
+                                @foreach (var img in selectedImages)
+                                {
+                                    <div class="ch-thumb-item">
+                                        @if (imagePreviewUrls.ContainsKey(img.Name))
+                                        {
+                                            <img src="@imagePreviewUrls[img.Name]" alt="@img.Name" />
+                                        }
+                                        else
+                                        {
+                                            <div style="display:flex;align-items:center;justify-content:center;height:100%;background:#eee;">
+                                                <i class="bi bi-image" style="color:#999;"></i>
+                                            </div>
+                                        }
+                                        <button type="button" class="ch-thumb-del" @onclick="() => RemoveImage(img.Name)">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                        @if (primaryImageName == img.Name)
+                                        {
+                                            <span class="ch-thumb-primary"><i class="bi bi-star-fill"></i> Main</span>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" @onclick="() => primaryImageName = img.Name"
+                                                style="position: absolute; bottom: 2px; left: 2px; background: rgba(0,0,0,0.5); color: #fff; border: none; font-size: 8px; border-radius: 3px; padding: 1px 3px; cursor: pointer;">
+                                                Set Main
+                                            </button>
+                                        }
+                                    </div>
+                                }
                             </div>
-                        </div>
-
-                        <!-- Footer -->
-                        <div class="ch-footer">
-                            <button type="button" class="ch-btn ch-btn-muted" @onclick="Cancel">
-                                <i class="bi bi-x-lg"></i> Cancel
-                            </button>
-                            <button type="submit" class="ch-btn ch-btn-submit" disabled="@isSubmitting">
-                                @if (isSubmitting)
-                                {
-                                    <span class="ch-spinner"></span>
-                                    <span>Creating...</span>
-                                }
-                                else
-                                {
-                                    <i class="bi bi-check-lg"></i>
-                                    <span>Create Hotel</span>
-                                }
-                            </button>
-                        </div>
-                    </EditForm>
-
+                        }
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </EditForm>
 </div>
 
 @code {

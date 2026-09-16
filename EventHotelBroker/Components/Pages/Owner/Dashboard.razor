@@ -12,9 +12,9 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IJSRuntime JSRuntime
 
-<PageTitle>Owner Dashboard - EventHotelBroker</PageTitle>
+<PageTitle>Owner Dashboard - Safari Vents</PageTitle>
 
-<link href="/css/owner-dashboard.css?v=3" rel="stylesheet" />
+<link href="/css/owner-dashboard.css?v=27" rel="stylesheet" />
 
 <div class="od">
     <Breadcrumb Items="@breadcrumbItems" />
@@ -86,10 +86,10 @@
             </div>
         </div>
 
-        <!-- Main 8:4 Layout -->
-        <div class="row g-3">
+        <!-- Main Grid Layout -->
+        <div class="od-main-grid">
             <!-- Left Column: Hotels -->
-            <div class="col-lg-8">
+            <div class="od-col-main">
                 <div class="od-card">
                     <div class="od-card-head">
                         <span class="od-card-title"><i class="bi bi-building"></i> My Hotels</span>
@@ -139,7 +139,7 @@
             </div>
 
             <!-- Right Column -->
-            <div class="col-lg-4">
+            <div class="od-col-side">
                 <!-- Booking Requests -->
                 <div class="od-card">
                     <div class="od-card-head">

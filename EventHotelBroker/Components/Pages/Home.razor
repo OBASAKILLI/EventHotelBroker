@@ -10,103 +10,271 @@
 @inject Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider AuthStateProvider
 @implements IDisposable
 
-<PageTitle>Home - EventHotelBroker</PageTitle>
+<PageTitle>Home - Safari Vents</PageTitle>
 
-<!-- Modern Hero Section -->
+<!-- Modern Luxury Hero Section -->
 <div class="modern-hero">
     <div class="hero-background"></div>
     <div class="hero-content">
         <div class="container">
-            <div class="row align-items-center">
+            <div class="row align-items-center g-5">
+                <!-- Left Column: Branding, Title, Multi-Field Search, Trust -->
                 <div class="col-lg-6 animate-fade-in">
-                    <div class="hero-badge">
-                        <i class="bi bi-star-fill"></i>
-                        <span>Trusted by 10,000+ Event Planners</span>
+                    <div class="hero-brand-pill">
+                        <span class="pill-dot"></span>
+                        <span class="pill-text">Kenya's Premier Venue & Event Broker</span>
                     </div>
+                    
                     <h1 class="hero-title">
-                        Find Your Perfect<br />
-                        <span class="highlight-copper">Event Venue.</span>
+                        Find Exceptional Venues<br />
+                        <span class="highlight-copper">For Any Event.</span>
                     </h1>
+                    
                     <p class="hero-subtitle">
-                        Connect with premium hotels, venues, and audio-visual equipment providers across Kenya.
-                        From weddings to corporate summits, manage everything in one place.
+                        From iconic Nairobi luxury hotels and lush Naivasha wedding gardens to coastal Diani retreats and pro audio-visual rentals. Book directly with verified Kenyan hosts.
                     </p>
-                    <div class="hero-features-list">
-                        <div class="hero-feature-item">
-                            <div class="hero-feature-icon">
-                                <i class="bi bi-patch-check-fill"></i>
+
+                    <!-- Multi-Field Interactive Booking Search -->
+                    <div class="hero-search-card">
+                        <div class="hero-search-grid">
+                            <div class="search-field">
+                                <label class="field-label"><i class="bi bi-geo-alt-fill text-copper"></i> Destination</label>
+                                <select class="field-control" @bind="searchLocation">
+                                    <option value="">All Kenya</option>
+                                    <option value="Nairobi">Nairobi</option>
+                                    <option value="Mombasa">Mombasa / Diani</option>
+                                    <option value="Naivasha">Naivasha</option>
+                                    <option value="Nakuru">Nakuru</option>
+                                    <option value="Kisumu">Kisumu</option>
+                                    <option value="Eldoret">Eldoret</option>
+                                    <option value="Nanyuki">Nanyuki</option>
+                                </select>
                             </div>
-                            <div class="hero-feature-text">
-                                <div class="hero-feature-title">Verified Venues & Hotels</div>
-                                <div class="hero-feature-desc">M-PESA, card & instant booking in seconds</div>
+                            <div class="field-divider"></div>
+                            <div class="search-field">
+                                <label class="field-label"><i class="bi bi-building text-copper"></i> Venue Type</label>
+                                <select class="field-control" @bind="searchCategory">
+                                    <option value="">All Categories</option>
+                                    <option value="Hotel">Hotels & Resorts</option>
+                                    <option value="Airbnb">Airbnb & Villas</option>
+                                    <option value="Restaurant">Restaurants & Lounges</option>
+                                    <option value="Package">Event Packages</option>
+                                    <option value="Equipment">Sound & Stage Rental</option>
+                                </select>
                             </div>
+                            <div class="field-divider"></div>
+                            <div class="search-field">
+                                <label class="field-label"><i class="bi bi-people-fill text-copper"></i> Guests</label>
+                                <select class="field-control" @bind="searchCapacity">
+                                    <option value="">Any Size</option>
+                                    <option value="50">Up to 50</option>
+                                    <option value="200">50 - 200</option>
+                                    <option value="500">200 - 500</option>
+                                    <option value="1000">500+</option>
+                                </select>
+                            </div>
+                            <button type="button" class="btn-hero-search" @onclick="ExecuteHeroSearch">
+                                <i class="bi bi-search"></i>
+                                <span>Search</span>
+                            </button>
                         </div>
-                        <div class="hero-feature-item">
-                            <div class="hero-feature-icon">
-                                <i class="bi bi-box-seam"></i>
-                            </div>
-                            <div class="hero-feature-text">
-                                <div class="hero-feature-title">Event Equipment & Rentals</div>
-                                <div class="hero-feature-desc">Sound, stage, lighting & decor at fair rates</div>
-                            </div>
+                    </div>
+
+                    <!-- Trending Destination Tags -->
+                    <div class="hero-quick-tags">
+                        <span class="quick-tags-label">Trending:</span>
+                        <button type="button" class="quick-tag-pill" @onclick='() => QuickSearch("Nairobi")'>Nairobi</button>
+                        <button type="button" class="quick-tag-pill" @onclick='() => QuickSearch("Mombasa")'>Mombasa</button>
+                        <button type="button" class="quick-tag-pill" @onclick='() => QuickSearch("Naivasha")'>Naivasha</button>
+                        <button type="button" class="quick-tag-pill" @onclick='() => QuickFilterCategory("Hotel")'>Hotels</button>
+                        <button type="button" class="quick-tag-pill" @onclick='() => QuickFilterCategory("Airbnb")'>Villas</button>
+                    </div>
+
+                    <!-- Trust Stats Bar -->
+                    <div class="hero-trust-bar">
+                        <div class="trust-item">
+                            <div class="trust-num">500+</div>
+                            <div class="trust-lbl">Verified Venues</div>
                         </div>
-                        <div class="hero-feature-item">
-                            <div class="hero-feature-icon">
+                        <div class="trust-divider"></div>
+                        <div class="trust-item">
+                            <div class="trust-num">10K+</div>
+                            <div class="trust-lbl">Events Hosted</div>
+                        </div>
+                        <div class="trust-divider"></div>
+                        <div class="trust-item">
+                            <div class="trust-num">4.9★</div>
+                            <div class="trust-lbl">Host Rating</div>
+                        </div>
+                        <div class="trust-divider"></div>
+                        <div class="trust-item">
+                            <div class="trust-num">100%</div>
+                            <div class="trust-lbl">M-PESA Secure</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Visual Kenyan Venue Showcase (Fills the entire right side) -->
+                <div class="col-lg-6 d-none d-lg-block">
+                    <div class="hero-visual-wrapper">
+                        <!-- Main Showcase Card -->
+                        @if (featuredHotels?.Any() == true)
+                        {
+                            var topHotel = featuredHotels.First();
+                            var heroImg = topHotel.Images?.FirstOrDefault()?.Url ?? "/uploads/hotels/1_009d1e80674a4c7f9d338e68aa93eb85.jpg";
+                            <a href="/hotels/@topHotel.Id" class="hero-featured-card">
+                                <div class="featured-card-media">
+                                    <img src="@heroImg" alt="@topHotel.Name" class="featured-img" onerror="this.src='/uploads/hotels/1_009d1e80674a4c7f9d338e68aa93eb85.jpg'" />
+                                    <div class="badge-featured-verified">
+                                        <i class="bi bi-patch-check-fill"></i> Verified Partner
+                                    </div>
+                                    <div class="badge-featured-rating">
+                                        <i class="bi bi-star-fill"></i> 4.9 (142)
+                                    </div>
+                                    <div class="featured-card-scrim">
+                                        <div class="featured-venue-meta">
+                                            <span class="venue-badge-cat">@(topHotel.Category ?? "Luxury Venue")</span>
+                                            <h3 class="venue-badge-title">@topHotel.Name</h3>
+                                            <p class="venue-badge-location"><i class="bi bi-geo-alt-fill text-copper"></i> @topHotel.City, @topHotel.Country</p>
+                                        </div>
+                                        <div class="featured-venue-price">
+                                            <span class="price-prefix">From</span>
+                                            <span class="price-val">@topHotel.Currency @topHotel.PricePerNight.ToString("N0")</span>
+                                            <span class="price-unit">/night</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+
+                            @if (featuredHotels.Count > 1)
+                            {
+                                var subHotel = featuredHotels.Skip(1).First();
+                                var subImg = subHotel.Images?.FirstOrDefault()?.Url ?? "/uploads/hotels/1_19ac5448be1f47669ad686844f1a5722.jpg";
+                                <a href="/hotels/@subHotel.Id" class="hero-floating-subcard">
+                                    <img src="@subImg" alt="@subHotel.Name" class="sub-card-img" onerror="this.src='/uploads/hotels/1_19ac5448be1f47669ad686844f1a5722.jpg'" />
+                                    <div class="sub-card-info">
+                                        <div class="sub-card-cat">@(subHotel.Category ?? "Featured")</div>
+                                        <div class="sub-card-title">@subHotel.Name</div>
+                                        <div class="sub-card-price">@subHotel.Currency @subHotel.PricePerNight.ToString("N0") <span class="sub-unit">/night</span></div>
+                                    </div>
+                                </a>
+                            }
+                        }
+                        else
+                        {
+                            <!-- Default Fallback Showcase -->
+                            <a href="/search" class="hero-featured-card">
+                                <div class="featured-card-media">
+                                    <img src="/uploads/hotels/1_009d1e80674a4c7f9d338e68aa93eb85.jpg" alt="Villa Rosa Kempinski" class="featured-img" />
+                                    <div class="badge-featured-verified">
+                                        <i class="bi bi-patch-check-fill"></i> Verified Partner
+                                    </div>
+                                    <div class="badge-featured-rating">
+                                        <i class="bi bi-star-fill"></i> 4.9 (142)
+                                    </div>
+                                    <div class="featured-card-scrim">
+                                        <div class="featured-venue-meta">
+                                            <span class="venue-badge-cat">5-Star Luxury Hotel</span>
+                                            <h3 class="venue-badge-title">Villa Rosa Kempinski</h3>
+                                            <p class="venue-badge-location"><i class="bi bi-geo-alt-fill text-copper"></i> Chiromo Rd, Westlands, Nairobi</p>
+                                        </div>
+                                        <div class="featured-venue-price">
+                                            <span class="price-prefix">From</span>
+                                            <span class="price-val">KES 45,000</span>
+                                            <span class="price-unit">/night</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+
+                            <a href="/search?q=Diani" class="hero-floating-subcard">
+                                <img src="/uploads/hotels/1_19ac5448be1f47669ad686844f1a5722.jpg" alt="Diani Beach Resort" class="sub-card-img" />
+                                <div class="sub-card-info">
+                                    <div class="sub-card-cat">Beachfront Resort</div>
+                                    <div class="sub-card-title">Diani Reef Resort</div>
+                                    <div class="sub-card-price">KES 32,000 <span class="sub-unit">/night</span></div>
+                                </div>
+                            </a>
+                        }
+
+                        <!-- Floating Instant M-PESA Confirmation Badge -->
+                        <div class="hero-floating-pill pill-instant">
+                            <div class="pill-icon-circle green">
                                 <i class="bi bi-shield-check"></i>
                             </div>
-                            <div class="hero-feature-text">
-                                <div class="hero-feature-title">Direct Owner Communication</div>
-                                <div class="hero-feature-desc">Fast responses & transparent booking management</div>
+                            <div class="pill-text-block">
+                                <div class="pill-main">Instant Booking</div>
+                                <div class="pill-sub">Lipa na M-PESA & Card</div>
                             </div>
                         </div>
-                    </div>
-                    <div class="hero-search">
-                        <div class="search-box">
-                            <i class="bi bi-search"></i>
-                            <input type="text" placeholder="Search venues, hotels, locations..." @bind="searchQuery" @bind:event="oninput" @onkeyup="HandleSearchKeyUp" />
-                            <button type="button" class="btn-modern btn-gradient-primary" @onclick="ExecuteSearch">Search</button>
-                        </div>
-                    </div>
-                    <div class="hero-stats">
-                        <div class="stat-item">
-                            <div class="stat-number">500+</div>
-                            <div class="stat-label">Venues</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-number">50+</div>
-                            <div class="stat-label">Cities</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-number">10K+</div>
-                            <div class="stat-label">Happy Clients</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6 d-none d-lg-block">
-                    <div class="hero-image">
-                        <div class="floating-card card-1">
-                            <i class="bi bi-building"></i>
-                            <div>
-                                <div class="card-title">Premium Hotels</div>
-                                <div class="card-subtitle">200+ Venues</div>
+
+                        <!-- Floating Host Chat Pill -->
+                        <div class="hero-floating-pill pill-chat">
+                            <div class="pill-icon-circle copper">
+                                <i class="bi bi-chat-heart-fill"></i>
                             </div>
-                        </div>
-                        <div class="floating-card card-2">
-                            <i class="bi bi-calendar-check"></i>
-                            <div>
-                                <div class="card-title">Easy Booking</div>
-                                <div class="card-subtitle">Instant Confirmation</div>
-                            </div>
-                        </div>
-                        <div class="floating-card card-3">
-                            <i class="bi bi-star-fill"></i>
-                            <div>
-                                <div class="card-title">Top Rated</div>
-                                <div class="card-subtitle">4.9/5 Average</div>
+                            <div class="pill-text-block">
+                                <div class="pill-main">Direct Host Chat</div>
+                                <div class="pill-sub">Fast reply & custom quotes</div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Curated Categories Explorer Strip -->
+<div class="categories-strip-section">
+    <div class="container">
+        <div class="section-header-compact text-center mb-4">
+            <span class="section-badge">Explore Categories</span>
+            <h2 class="section-title">Find Venues by Event Type</h2>
+            <p class="section-subtitle">Tailored spaces for weddings, summits, private parties, and retreats</p>
+        </div>
+        <div class="row g-3">
+            <div class="col-6 col-md-4 col-lg-2">
+                <a href="/search?category=Hotel" class="category-strip-card">
+                    <div class="category-icon-wrap"><i class="bi bi-building"></i></div>
+                    <span class="category-name">Hotels & Resorts</span>
+                    <span class="category-sub">120+ venues</span>
+                </a>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <a href="/search?category=Airbnb" class="category-strip-card">
+                    <div class="category-icon-wrap"><i class="bi bi-house"></i></div>
+                    <span class="category-name">Airbnb & Villas</span>
+                    <span class="category-sub">85+ spaces</span>
+                </a>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <a href="/search?q=Lodge" class="category-strip-card">
+                    <div class="category-icon-wrap"><i class="bi bi-tree"></i></div>
+                    <span class="category-name">Safari Lodges</span>
+                    <span class="category-sub">40+ retreats</span>
+                </a>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <a href="/search?category=Restaurant" class="category-strip-card">
+                    <div class="category-icon-wrap"><i class="bi bi-cup-hot"></i></div>
+                    <span class="category-name">Restaurants</span>
+                    <span class="category-sub">65+ places</span>
+                </a>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <a href="/events" class="category-strip-card">
+                    <div class="category-icon-wrap"><i class="bi bi-gift"></i></div>
+                    <span class="category-name">Event Packages</span>
+                    <span class="category-sub">Bundled deals</span>
+                </a>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <a href="/events?tab=equipment" class="category-strip-card">
+                    <div class="category-icon-wrap"><i class="bi bi-speaker"></i></div>
+                    <span class="category-name">Audio & Lighting</span>
+                    <span class="category-sub">Sound & stage</span>
+                </a>
             </div>
         </div>
     </div>
@@ -767,6 +935,55 @@
     </div>
 </div>
 
+<!-- Why Choose EventHotelBroker Section -->
+<div class="why-us-section py-5">
+    <div class="container">
+        <div class="section-header text-center mb-5">
+            <span class="section-badge">Why EventHotelBroker</span>
+            <h2 class="section-title">Built For Seamless Event Success</h2>
+            <p class="section-subtitle">We remove the friction from discovering, booking, and managing venues across Kenya</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="why-card">
+                    <div class="why-icon-box">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h5 class="why-title">100% Verified Venues</h5>
+                    <p class="why-desc">Every hotel, lodge, and rental company is vetted for authentic photos, safety standards, and service excellence.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="why-card">
+                    <div class="why-icon-box">
+                        <i class="bi bi-phone"></i>
+                    </div>
+                    <h5 class="why-title">Instant M-PESA & Cards</h5>
+                    <p class="why-desc">Pay securely with Lipa na M-PESA, Visa, or Mastercard with instant automated receipts and booking confirmation.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="why-card">
+                    <div class="why-icon-box">
+                        <i class="bi bi-chat-heart"></i>
+                    </div>
+                    <h5 class="why-title">Direct Host Messaging</h5>
+                    <p class="why-desc">Chat directly with venue managers, schedule on-site tours, and request customized catering and setup packages.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="why-card">
+                    <div class="why-icon-box">
+                        <i class="bi bi-layers"></i>
+                    </div>
+                    <h5 class="why-title">Turnkey Event Logistics</h5>
+                    <p class="why-desc">Bundle spaces with certified pro audio, lighting, stages, and generators all under one easy booking.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- CTA Section -->
 <div class="cta-section">
     <div class="container">
@@ -831,6 +1048,9 @@
     private string selectedCategory = "All";
     private string listVenueUrl = "/enroll-as-owner";
     private string searchQuery = "";
+    private string searchLocation = "";
+    private string searchCategory = "";
+    private string searchCapacity = "";
     private DotNetObjectReference<Home>? objRef;
 
     private void HandleSearchKeyUp(KeyboardEventArgs e)
@@ -851,6 +1071,46 @@
         {
             Navigation.NavigateTo("/search");
         }
+    }
+
+    private void ExecuteHeroSearch()
+    {
+        var queryParams = new List<string>();
+        if (!string.IsNullOrWhiteSpace(searchLocation))
+            queryParams.Add($"city={Uri.EscapeDataString(searchLocation)}");
+        if (!string.IsNullOrWhiteSpace(searchCategory))
+        {
+            if (searchCategory == "Package")
+            {
+                Navigation.NavigateTo("/events");
+                return;
+            }
+            if (searchCategory == "Equipment")
+            {
+                Navigation.NavigateTo("/events?tab=equipment");
+                return;
+            }
+            queryParams.Add($"category={Uri.EscapeDataString(searchCategory)}");
+        }
+        if (!string.IsNullOrWhiteSpace(searchCapacity) && int.TryParse(searchCapacity, out var cap))
+        {
+            queryParams.Add($"capacity={cap}");
+        }
+
+        if (queryParams.Any())
+            Navigation.NavigateTo($"/search?{string.Join("&", queryParams)}");
+        else
+            Navigation.NavigateTo("/search");
+    }
+
+    private void QuickSearch(string city)
+    {
+        Navigation.NavigateTo($"/search?city={Uri.EscapeDataString(city)}");
+    }
+
+    private void QuickFilterCategory(string category)
+    {
+        Navigation.NavigateTo($"/search?category={Uri.EscapeDataString(category)}");
     }
 
     private async Task HandleListVenueClick()

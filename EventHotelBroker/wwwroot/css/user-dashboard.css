@@ -1,6 +1,7 @@
 /* ========================================
    USER DASHBOARD STYLING
-   Modern Blue & Gold Theme
+   Safari Vents — Luxury Light Theme
+   Canvas: #f4efe6 · Surfaces: #ffffff · Accent: #b86d26
    ======================================== */
 
 /* Messages List */
@@ -11,56 +12,58 @@
 }
 
 .message-item {
-    padding: 1rem;
-    border-bottom: 1px solid #e5e7eb;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #f0eae0;
     cursor: pointer;
-    transition: all 0.3s ease;
-    border-radius: 8px;
+    transition: all 0.2s ease;
+    border-radius: 12px;
     margin-bottom: 0.5rem;
+    background: #ffffff;
 }
 
 .message-item:hover {
-    background: #f9fafb;
+    background: #faf7f2;
     transform: translateX(4px);
 }
 
 .message-item.unread {
-    background: #eff6ff;
-    border-left: 3px solid #2563eb;
+    background: #fdfbf7;
+    border-left: 3px solid #b86d26;
 }
 
 .message-item.unread:hover {
-    background: #dbeafe;
+    background: #f8f4ec;
 }
 
 .message-avatar {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+    background: linear-gradient(135deg, #b86d26 0%, #a25c1a 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(184, 109, 38, 0.2);
 }
 
 .message-item h6 {
     font-size: 0.95rem;
-    font-weight: 600;
-    color: #1f2937;
+    font-weight: 700;
+    color: #18181b;
     margin: 0;
 }
 
 .message-subject {
-    font-size: 0.9rem;
-    font-weight: 500;
+    font-size: 0.88rem;
+    font-weight: 600;
     color: #374151;
 }
 
 .message-preview {
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     color: #6b7280;
     line-height: 1.4;
     display: -webkit-box;
@@ -71,24 +74,25 @@
 }
 
 .message-item.unread .message-subject {
-    font-weight: 600;
-    color: #1f2937;
+    font-weight: 700;
+    color: #18181b;
 }
 
 .message-item.unread .message-preview {
-    color: #374151;
+    color: #4b5563;
 }
 
 /* Booking Items */
 .list-group-item {
     border: none;
-    border-bottom: 1px solid #e5e7eb;
-    transition: all 0.3s ease;
+    border-bottom: 1px solid #f0eae0;
+    transition: all 0.2s ease;
+    background: transparent;
 }
 
 .list-group-item:hover {
-    background: #f9fafb;
-    padding-left: 0.5rem !important;
+    background: #faf7f2;
+    padding-left: 0.75rem !important;
 }
 
 .list-group-item:last-child {
@@ -97,60 +101,78 @@
 
 /* Stats Cards */
 .stats-card {
-    background: white;
+    background: #ffffff;
+    border: 1px solid #e8e2d8;
     border-radius: 16px;
     padding: 1.5rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stats-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: #e8e2d8;
 }
 
 .stats-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    transform: translateY(-3px);
+    border-color: #b86d26;
+    box-shadow: 0 8px 24px rgba(184, 109, 38, 0.12);
 }
 
 .stats-number {
     font-size: 2rem;
-    font-weight: 700;
-    color: #1f2937;
+    font-weight: 800;
+    color: #18181b;
+    letter-spacing: -0.02em;
     margin-bottom: 0.25rem;
 }
 
 .stats-label {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: #6b7280;
-    font-weight: 500;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 
 .stats-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.75rem;
-    color: white;
+    font-size: 1.5rem;
+    color: #b86d26;
+    background: rgba(184, 109, 38, 0.12);
 }
 
 /* Modern Card */
 .modern-card {
-    background: white;
+    background: #ffffff;
+    border: 1px solid #e8e2d8;
     border-radius: 16px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
     overflow: hidden;
 }
 
 .modern-card-header {
     padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid #e5e7eb;
-    background: #f9fafb;
+    border-bottom: 1px solid #e8e2d8;
+    background: #faf7f2;
 }
 
 .modern-card-header h5 {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #1f2937;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #18181b;
+    margin: 0;
 }
 
 .modern-card-body {
@@ -159,58 +181,63 @@
 
 /* Badge Styles */
 .badge-modern {
-    padding: 0.4rem 0.8rem;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
+    gap: 0.35rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 
 .badge-gradient-success {
-    background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-    color: white;
+    background: #ecfdf5;
+    color: #065f46;
 }
 
 .badge-gradient-warning {
-    background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
-    color: white;
+    background: #fffbeb;
+    color: #b45309;
 }
 
 .badge-gradient-danger {
-    background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
-    color: white;
+    background: #fef2f2;
+    color: #991b1b;
 }
 
 .badge-gradient-info {
-    background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
-    color: white;
+    background: rgba(184, 109, 38, 0.12);
+    color: #b86d26;
 }
 
 /* Page Header */
 .page-header {
-    margin-bottom: 2rem;
+    margin-bottom: 1.75rem;
 }
 
 .page-header h1 {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #1f2937;
-    margin-bottom: 0.5rem;
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #18181b;
+    letter-spacing: -0.025em;
+    margin-bottom: 0.35rem;
 }
 
 .page-header p {
     color: #6b7280;
-    font-size: 1rem;
+    font-size: 0.95rem;
+    margin: 0;
 }
 
 /* Quick Actions */
 .btn-modern {
     padding: 0.75rem 1.5rem;
-    border-radius: 50px;
-    font-weight: 600;
-    transition: all 0.3s ease;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.88rem;
+    transition: all 0.2s ease;
     border: none;
     display: inline-flex;
     align-items: center;
@@ -219,34 +246,29 @@
 }
 
 .btn-gradient-primary {
-    background: linear-gradient(135deg, #1a365d 0%, #2563eb 100%);
+    background: #b86d26;
     color: white;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    box-shadow: 0 4px 12px rgba(184, 109, 38, 0.25);
 }
 
 .btn-gradient-primary:hover {
-    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+    background: #a25c1a;
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+    box-shadow: 0 6px 18px rgba(184, 109, 38, 0.35);
     color: white;
 }
 
 .btn-gradient-accent {
-    background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+    background: #18181b;
     color: white;
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    box-shadow: 0 4px 12px rgba(24, 24, 27, 0.15);
 }
 
 .btn-gradient-accent:hover {
-    background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+    background: #27272a;
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+    box-shadow: 0 6px 18px rgba(24, 24, 27, 0.25);
     color: white;
-}
-
-/* Empty States */
-.text-center .display-4 {
-    opacity: 0.5;
 }
 
 /* Responsive */
@@ -256,19 +278,19 @@
     }
     
     .stats-icon {
-        width: 50px;
-        height: 50px;
-        font-size: 1.5rem;
-    }
-    
-    .message-avatar {
-        width: 35px;
-        height: 35px;
+        width: 44px;
+        height: 44px;
         font-size: 1.25rem;
     }
     
+    .message-avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 1.1rem;
+    }
+    
     .page-header h1 {
-        font-size: 1.5rem;
+        font-size: 1.4rem;
     }
 }
 
@@ -276,7 +298,7 @@
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(8px);
     }
     to {
         opacity: 1;
@@ -285,12 +307,14 @@
 }
 
 .animate-fade-in {
-    animation: fadeIn 0.4s ease-in-out;
+    animation: fadeIn 0.3s ease;
 }
 
 /* Loading Spinner */
 .spinner-modern {
-    width: 3rem;
-    height: 3rem;
-    border-width: 0.3rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-width: 3px;
+    border-color: rgba(184, 109, 38, 0.2);
+    border-top-color: #b86d26;
 }

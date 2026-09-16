@@ -15,9 +15,9 @@
 @inject IJSRuntime JSRuntime
 @inject IReviewService ReviewService
 
-<PageTitle>@(hotel?.Name ?? "Hotel Details") - EventHotelBroker</PageTitle>
+<PageTitle>@(hotel?.Name ?? "Hotel Details") - Safari Vents</PageTitle>
 
-<link href="/css/hotel-details.css" rel="stylesheet" />
+<link href="/css/hotel-details.css?v=27" rel="stylesheet" />
 
 <div class="hotel-details-page">
     @if (isLoading)
@@ -53,7 +53,7 @@
 
         @if (isAdmin && !hotel.IsApproved)
         {
-            <div class="alert alert-warning d-flex align-items-center justify-content-between p-3 mb-3" style="border-radius: 12px; background: rgba(200,121,65,0.1); border: 1px solid #C87941; color: #2A2A2A;">
+            <div class="alert alert-warning d-flex align-items-center justify-content-between p-3 mb-3" style="border-radius: 12px; background: rgba(221, 122, 40, 0.1); border: 1px solid #DD7A28; color: #1A1A1A;">
                 <div class="d-flex align-items-center gap-2">
                     <i class="bi bi-shield-exclamation text-warning" style="font-size: 1.5rem;"></i>
                     <div>

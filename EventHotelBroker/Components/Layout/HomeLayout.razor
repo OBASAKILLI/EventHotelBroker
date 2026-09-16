@@ -15,15 +15,20 @@
     <!-- Modern Corporate App Bar -->
     <header class="modern-app-bar home-app-bar">
         <div class="app-bar-content">
-            <a href="/" class="app-bar-brand" style="text-decoration:none; display:flex; align-items:center; gap:10px;">
-                <div class="brand-icon-box">
-                    <i class="bi bi-compass"></i>
-                </div>
-                <span class="brand-text">
-                    Safari <span class="brand-accent">Vents</span>
-                </span>
+            <a href="/" class="app-bar-brand" style="text-decoration:none; display:flex; align-items:center; gap:12px;">
+                <img src="/Images/LOGO.png" alt="Safari Vents" class="navbar-brand-logo" />
             </a>
+
+            <nav class="app-bar-nav-links d-none d-lg-flex">
+                <a href="/search" class="nav-link-item"><i class="bi bi-buildings me-1"></i>Venues</a>
+                <a href="/events" class="nav-link-item"><i class="bi bi-gift me-1"></i>Packages</a>
+                <a href="/events?tab=equipment" class="nav-link-item"><i class="bi bi-speaker me-1"></i>Equipment</a>
+                <a href="/search?category=Airbnb" class="nav-link-item"><i class="bi bi-house me-1"></i>Airbnb</a>
+            </nav>
             <div class="app-bar-actions">
+                <a href="/enroll-as-owner" class="nav-btn-list-venue d-none d-md-inline-flex">
+                    <i class="bi bi-plus-circle"></i> List Your Venue
+                </a>
                 <button class="app-bar-btn" title="Toggle Theme" @onclick="ToggleTheme">
                     @if (isDarkMode)
                     {
@@ -95,10 +100,9 @@
                     <div class="row g-4">
                         <div class="col-lg-4 col-md-6">
                             <div class="footer-brand mb-3">
-                                <div class="brand-icon-box">
-                                    <i class="bi bi-compass"></i>
-                                </div>
-                                <span class="brand-text">Safari <span class="brand-accent">Vents</span></span>
+                                <a href="/" style="text-decoration:none; display:inline-block;">
+                                    <img src="/Images/LOGO.png" alt="Safari Vents" class="footer-brand-logo" />
+                                </a>
                             </div>
                             <p class="footer-desc">
                                 Kenya's premier venue & event broker platform. Connecting event planners with verified hotels, venues, and audio-visual equipment.
@@ -142,7 +146,7 @@
                                 </li>
                                 <li>
                                     <i class="bi bi-envelope-fill"></i>
-                                    <span>support@safarivents.com</span>
+                                    <span>support@eventhotelbroker.com</span>
                                 </li>
                                 <li>
                                     <i class="bi bi-telephone-fill"></i>
@@ -211,8 +215,9 @@
         left: 0 !important;
         width: 100% !important;
         height: 72px;
-        background: #18181b !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        background: #ffffff !important;
+        border-bottom: 1px solid #e8e2d8 !important;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
         z-index: 1050;
         display: flex;
         align-items: center;
@@ -224,8 +229,76 @@
         justify-content: space-between;
         align-items: center;
         width: 100%;
-        max-width: 1320px;
+        max-width: 100%;
+        padding: 0 clamp(1.25rem, 2.5vw, 2.5rem);
         margin: 0 auto;
+    }
+
+    .navbar-brand-logo {
+        height: 44px;
+        width: auto;
+        border-radius: 6px;
+        object-fit: contain;
+        display: block;
+        transition: transform 0.2s ease;
+    }
+
+    .navbar-brand-logo:hover {
+        transform: scale(1.02);
+    }
+
+    .app-bar-nav-links {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        margin-left: 24px;
+    }
+
+    .nav-link-item {
+        color: #374151;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+    }
+
+    .nav-link-item:hover {
+        color: #b86d26;
+        background: rgba(184, 109, 38, 0.08);
+    }
+
+    .nav-btn-list-venue {
+        padding: 8px 16px;
+        border-radius: 10px;
+        background: #b86d26;
+        color: #ffffff !important;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 4px 14px rgba(184, 109, 38, 0.35);
+        transition: all 0.2s ease;
+    }
+
+    .nav-btn-list-venue:hover {
+        background: #a25c1a;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(184, 109, 38, 0.45);
+        color: #ffffff !important;
+    }
+
+    .footer-brand-logo {
+        height: 48px;
+        width: auto;
+        border-radius: 6px;
+        object-fit: contain;
+        display: block;
     }
 
     .brand-icon-box {
@@ -261,8 +334,8 @@
 
     .app-bar-btn {
         background: transparent;
-        border: none;
-        color: #9ca3af !important;
+        border: 1px solid #e8e2d8;
+        color: #4b5563 !important;
         width: 40px;
         height: 40px;
         border-radius: 10px;
@@ -277,8 +350,9 @@
     }
 
     .app-bar-btn:hover {
-        background: rgba(255, 255, 255, 0.08);
-        color: #ffffff !important;
+        background: rgba(184, 109, 38, 0.08);
+        border-color: #b86d26;
+        color: #b86d26 !important;
     }
 
     .notification-badge {
@@ -295,7 +369,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 2px solid #18181b;
+        border: 2px solid #ffffff;
     }
 
     .user-profile {
@@ -304,13 +378,13 @@
         gap: 8px;
         padding: 4px 12px 4px 6px;
         border-radius: 24px;
-        background: rgba(255, 255, 255, 0.06);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: #f4efe6;
+        border: 1px solid #e8e2d8;
         transition: all 0.2s;
     }
 
     .user-profile:hover {
-        background: rgba(255, 255, 255, 0.12);
+        background: #ede6d9;
     }
 
     .user-avatar {
@@ -327,7 +401,7 @@
     }
 
     .user-name {
-        color: #ffffff;
+        color: #18181b;
         font-size: 0.88rem;
         font-weight: 600;
     }
@@ -417,8 +491,8 @@
     .nav-btn-login {
         padding: 8px 18px;
         border-radius: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: #f3f4f6;
+        border: 1px solid #e8e2d8;
+        color: #374151;
         text-decoration: none;
         font-weight: 600;
         font-size: 0.88rem;
@@ -454,7 +528,7 @@
         margin-left: 0 !important;
         padding-top: 72px;
         min-height: 100vh;
-        background: #f5eee6;
+        background: #f4efe6;
     }
 
     .floating-chat-btn {
@@ -501,11 +575,11 @@
         border: 2px solid #18181b;
     }
 
-    /* Modern Footer */
+    /* Modern Footer — Luxury Light Theme */
     .modern-footer {
-        background: #121214;
-        color: #9ca3af;
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        background: #ffffff;
+        color: #6b7280;
+        border-top: 1px solid #e8e2d8;
     }
 
     .footer-top {
@@ -521,7 +595,7 @@
     .footer-desc {
         font-size: 0.92rem;
         line-height: 1.7;
-        color: #9ca3af;
+        color: #6b7280;
         max-width: 340px;
         margin-bottom: 1.5rem;
     }
@@ -535,12 +609,12 @@
         width: 40px;
         height: 40px;
         border-radius: 10px;
-        background: rgba(255, 255, 255, 0.06);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: #f4efe6;
+        border: 1px solid #e8e2d8;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #d1d5db;
+        color: #374151;
         transition: all 0.2s;
         text-decoration: none;
         font-size: 1rem;
@@ -554,7 +628,7 @@
     }
 
     .footer-heading {
-        color: #ffffff;
+        color: #18181b;
         font-weight: 700;
         font-size: 1rem;
         letter-spacing: -0.01em;
@@ -572,7 +646,7 @@
     }
 
     .footer-links a {
-        color: #9ca3af;
+        color: #6b7280;
         text-decoration: none;
         font-size: 0.9rem;
         transition: color 0.2s;
@@ -593,7 +667,7 @@
         align-items: center;
         gap: 10px;
         font-size: 0.9rem;
-        color: #9ca3af;
+        color: #6b7280;
         margin-bottom: 0.85rem;
     }
 
@@ -603,14 +677,14 @@
     }
 
     .footer-bottom {
-        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        border-top: 1px solid #e8e2d8;
         font-size: 0.85rem;
-        color: #6b7280;
+        color: #78716c;
     }
 
     .copyright-text {
         font-family: var(--font-primary);
-        color: #9ca3af;
+        color: #78716c;
     }
 
     .footer-legal-links {
@@ -620,7 +694,7 @@
     }
 
     .footer-legal-links a {
-        color: #9ca3af;
+        color: #78716c;
         text-decoration: none;
         transition: color 0.2s;
     }
@@ -630,7 +704,7 @@
     }
 
     .footer-legal-links .divider {
-        color: #4b5563;
+        color: #d1d5db;
     }
 </style>
 

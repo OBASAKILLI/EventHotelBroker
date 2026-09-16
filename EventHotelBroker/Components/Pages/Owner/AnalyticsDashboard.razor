@@ -13,9 +13,9 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IJSRuntime JSRuntime
 
-<PageTitle>Analytics Dashboard - EventHotelBroker</PageTitle>
+<PageTitle>Analytics Dashboard - Safari Vents</PageTitle>
 
-<link href="/css/owner-analytics.css?v=2" rel="stylesheet" />
+<link href="/css/owner-analytics.css?v=27" rel="stylesheet" />
 
 <div class="oa">
     <Breadcrumb Items="@breadcrumbItems" />
@@ -118,115 +118,114 @@
             </div>
         </div>
 
-        <div class="row g-3">
+        <!-- Charts Main Grid -->
+        <div class="oa-main-grid">
             <!-- Revenue Chart -->
-            <div class="col-lg-8">
-                <div class="oa-card">
-                    <div class="oa-card-header">
-                        <h5 class="oa-card-title"><i class="bi bi-graph-up"></i> Revenue Trend</h5>
-                        <div class="oa-chart-toggle">
-                            <button type="button" class="oa-btn oa-btn-ghost @(chartView == "daily" ? "active" : "")" @onclick='() => SetChartView("daily")'>Daily</button>
-                            <button type="button" class="oa-btn oa-btn-ghost @(chartView == "weekly" ? "active" : "")" @onclick='() => SetChartView("weekly")'>Weekly</button>
-                            <button type="button" class="oa-btn oa-btn-ghost @(chartView == "monthly" ? "active" : "")" @onclick='() => SetChartView("monthly")'>Monthly</button>
-                        </div>
+            <div class="oa-card">
+                <div class="oa-card-header">
+                    <h5 class="oa-card-title"><i class="bi bi-graph-up"></i> Revenue Trend</h5>
+                    <div class="oa-chart-toggle">
+                        <button type="button" class="oa-btn oa-btn-ghost @(chartView == "daily" ? "active" : "")" @onclick='() => SetChartView("daily")'>Daily</button>
+                        <button type="button" class="oa-btn oa-btn-ghost @(chartView == "weekly" ? "active" : "")" @onclick='() => SetChartView("weekly")'>Weekly</button>
+                        <button type="button" class="oa-btn oa-btn-ghost @(chartView == "monthly" ? "active" : "")" @onclick='() => SetChartView("monthly")'>Monthly</button>
                     </div>
-                    <div class="oa-card-body">
-                        <div class="oa-chart" style="position:relative;">
-                            <svg viewBox="0 0 800 220" style="width: 100%; height: 220px; overflow: visible;">
-                                <defs>
-                                    <linearGradient id="oaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                                        <stop offset="0%" style="stop-color:#C87941;stop-opacity:0.25" />
-                                        <stop offset="100%" style="stop-color:#C87941;stop-opacity:0" />
-                                    </linearGradient>
-                                </defs>
-                                <!-- Grid Baseline -->
-                                <line x1="20" y1="185" x2="780" y2="185" stroke="#eae7e1" stroke-width="1" stroke-dasharray="4" />
-                                <line x1="20" y1="105" x2="780" y2="105" stroke="#eae7e1" stroke-width="1" stroke-dasharray="4" />
-                                <line x1="20" y1="25" x2="780" y2="25" stroke="#eae7e1" stroke-width="1" stroke-dasharray="4" />
+                </div>
+                <div class="oa-card-body">
+                    <div class="oa-chart" style="position:relative;">
+                        <svg viewBox="0 0 800 220" style="width: 100%; height: 220px; overflow: visible;">
+                            <defs>
+                                <linearGradient id="oaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#DD7A28;stop-opacity:0.25" />
+                                    <stop offset="100%" style="stop-color:#DD7A28;stop-opacity:0" />
+                                </linearGradient>
+                            </defs>
+                            <!-- Grid Baseline -->
+                            <line x1="20" y1="185" x2="780" y2="185" stroke="#eae7e1" stroke-width="1" stroke-dasharray="4" />
+                            <line x1="20" y1="105" x2="780" y2="105" stroke="#eae7e1" stroke-width="1" stroke-dasharray="4" />
+                            <line x1="20" y1="25" x2="780" y2="25" stroke="#eae7e1" stroke-width="1" stroke-dasharray="4" />
 
-                                @if (totalRevenue > 0 && chartPoints.Count > 1)
-                                {
-                                    <!-- Area Fill -->
-                                    <polygon points="@chartPolygonPoints" fill="url(#oaGrad)" />
-                                    <!-- Line Path -->
-                                    <polyline points="@chartPolylinePoints" fill="none" stroke="#C87941" stroke-width="2.5" />
-                                    <!-- Data Dots -->
-                                    @foreach (var pt in chartPoints)
-                                    {
-                                        <circle cx="@pt.X" cy="@pt.Y" r="4" fill="#C87941" stroke="#fff" stroke-width="2">
-                                            <title>@pt.Label: KES @pt.Revenue.ToString("N0")</title>
-                                        </circle>
-                                    }
-                                }
-                                else
-                                {
-                                    <!-- Flat Zero Line -->
-                                    <line x1="30" y1="185" x2="770" y2="185" stroke="#C87941" stroke-width="2" />
-                                }
-                            </svg>
-
-                            @if (totalRevenue == 0)
+                            @if (totalRevenue > 0 && chartPoints.Count > 1)
                             {
-                                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:0.75rem;color:#8a8177;font-weight:500;text-align:center;background:rgba(255,255,255,0.85);padding:0.35rem 0.75rem;border-radius:6px;">
-                                    <i class="bi bi-info-circle me-1"></i> No revenue recorded in this period
-                                </div>
+                                <!-- Area Fill -->
+                                <polygon points="@chartPolygonPoints" fill="url(#oaGrad)" />
+                                <!-- Line Path -->
+                                <polyline points="@chartPolylinePoints" fill="none" stroke="#DD7A28" stroke-width="2.5" />
+                                <!-- Data Dots -->
+                                @foreach (var pt in chartPoints)
+                                {
+                                    <circle cx="@pt.X" cy="@pt.Y" r="4" fill="#DD7A28" stroke="#fff" stroke-width="2">
+                                        <title>@pt.Label: KES @pt.Revenue.ToString("N0")</title>
+                                    </circle>
+                                }
                             }
-                        </div>
+                            else
+                            {
+                                <!-- Flat Zero Line -->
+                                <line x1="30" y1="185" x2="770" y2="185" stroke="#DD7A28" stroke-width="2" />
+                            }
+                        </svg>
+
+                        @if (totalRevenue == 0)
+                        {
+                            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:0.75rem;color:#8a8177;font-weight:500;text-align:center;background:rgba(255,255,255,0.85);padding:0.35rem 0.75rem;border-radius:6px;">
+                                <i class="bi bi-info-circle me-1"></i> No revenue recorded in this period
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
 
             <!-- Booking Sources / Types -->
-            <div class="col-lg-4">
-                <div class="oa-card">
-                    <div class="oa-card-header">
-                        <h5 class="oa-card-title"><i class="bi bi-pie-chart"></i> Booking Breakdown</h5>
-                    </div>
-                    <div class="oa-card-body">
-                        <div class="oa-chart" style="text-align:center; padding: 0.5rem 0;">
-                            <svg viewBox="0 0 200 200" style="width: 140px; height: 140px;">
-                                <circle cx="100" cy="100" r="80" fill="none" stroke="rgba(158,139,99,0.1)" stroke-width="28"/>
-                                @if (totalBookings > 0)
+            <div class="oa-card">
+                <div class="oa-card-header">
+                    <h5 class="oa-card-title"><i class="bi bi-pie-chart"></i> Booking Breakdown</h5>
+                </div>
+                <div class="oa-card-body">
+                    <div class="oa-chart" style="text-align:center; padding: 0.5rem 0;">
+                        <svg viewBox="0 0 200 200" style="width: 140px; height: 140px;">
+                            <circle cx="100" cy="100" r="80" fill="none" stroke="rgba(158,139,99,0.1)" stroke-width="28"/>
+                            @if (totalBookings > 0)
+                            {
+                                @if (hotelBookingsPct > 0)
                                 {
-                                    @if (hotelBookingsPct > 0)
-                                    {
-                                        <circle cx="100" cy="100" r="80" fill="none" stroke="#C87941" stroke-width="28"
-                                                stroke-dasharray="@($"{hotelStrokeDash:F1} 502.65")" transform="rotate(-90 100 100)"/>
-                                    }
-                                    @if (eventBookingsPct > 0)
-                                    {
-                                        <circle cx="100" cy="100" r="80" fill="none" stroke="#488C82" stroke-width="28"
-                                                stroke-dasharray="@($"{eventStrokeDash:F1} 502.65")" stroke-dashoffset="@($"-{hotelStrokeDash:F1}")" transform="rotate(-90 100 100)"/>
-                                    }
+                                    <circle cx="100" cy="100" r="80" fill="none" stroke="#DD7A28" stroke-width="28"
+                                            stroke-dasharray="@($"{hotelStrokeDash:F1} 502.65")" transform="rotate(-90 100 100)"/>
                                 }
-                            </svg>
+                                @if (eventBookingsPct > 0)
+                                {
+                                    <circle cx="100" cy="100" r="80" fill="none" stroke="#488C82" stroke-width="28"
+                                            stroke-dasharray="@($"{eventStrokeDash:F1} 502.65")" stroke-dashoffset="@($"-{hotelStrokeDash:F1}")" transform="rotate(-90 100 100)"/>
+                                }
+                            }
+                        </svg>
+                    </div>
+                    <div class="oa-legend">
+                        <div class="oa-legend-item">
+                            <span class="oa-legend-dot" style="background:#DD7A28;"></span>
+                            <span class="oa-legend-label">Hotel Bookings</span>
+                            <span class="oa-legend-value">@hotelBookingsCount (@hotelBookingsPct%)</span>
                         </div>
-                        <div class="oa-legend">
-                            <div class="oa-legend-item">
-                                <span class="oa-legend-dot" style="background:#C87941;"></span>
-                                <span class="oa-legend-label">Hotel Bookings</span>
-                                <span class="oa-legend-value">@hotelBookingsCount (@hotelBookingsPct%)</span>
-                            </div>
-                            <div class="oa-legend-item">
-                                <span class="oa-legend-dot" style="background:#488C82;"></span>
-                                <span class="oa-legend-label">Event Packages</span>
-                                <span class="oa-legend-value">@eventBookingsCount (@eventBookingsPct%)</span>
-                            </div>
+                        <div class="oa-legend-item">
+                            <span class="oa-legend-dot" style="background:#488C82;"></span>
+                            <span class="oa-legend-label">Event Packages</span>
+                            <span class="oa-legend-value">@eventBookingsCount (@eventBookingsPct%)</span>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
+        <!-- Performance & Activity Grid -->
+        <div class="oa-perf-grid">
             <!-- Top Performing Hotels -->
-            <div class="col-lg-6">
-                <div class="oa-card">
-                    <div class="oa-card-header">
-                        <h5 class="oa-card-title"><i class="bi bi-trophy"></i> Top Performing Hotels</h5>
-                        @if (ownerHotels.Any())
-                        {
-                            <a href="/owner/hotels" class="oa-btn oa-btn-ghost" style="font-size:0.625rem;padding:0.2rem 0.5rem;">View Hotels</a>
-                        }
-                    </div>
+            <div class="oa-card">
+                <div class="oa-card-header">
+                    <h5 class="oa-card-title"><i class="bi bi-trophy"></i> Top Performing Hotels</h5>
+                    @if (ownerHotels.Any())
+                    {
+                        <a href="/owner/hotels" class="oa-btn oa-btn-ghost" style="font-size:0.625rem;padding:0.2rem 0.5rem;">View Hotels</a>
+                    }
+                </div>
                     <div class="oa-card-body">
                         @if (topHotels.Any())
                         {
@@ -262,42 +261,39 @@
                         }
                     </div>
                 </div>
-            </div>
 
             <!-- Recent Activity -->
-            <div class="col-lg-6">
-                <div class="oa-card">
-                    <div class="oa-card-header">
-                        <h5 class="oa-card-title"><i class="bi bi-clock-history"></i> Recent Activity</h5>
-                        @if (recentActivities.Any())
+            <div class="oa-card">
+                <div class="oa-card-header">
+                    <h5 class="oa-card-title"><i class="bi bi-clock-history"></i> Recent Activity</h5>
+                    @if (recentActivities.Any())
+                    {
+                        <a href="/owner/bookings" class="oa-btn oa-btn-ghost" style="font-size:0.625rem;padding:0.2rem 0.5rem;">View Bookings</a>
+                    }
+                </div>
+                <div class="oa-card-body">
+                    @if (recentActivities.Any())
+                    {
+                        @foreach (var activity in recentActivities)
                         {
-                            <a href="/owner/bookings" class="oa-btn oa-btn-ghost" style="font-size:0.625rem;padding:0.2rem 0.5rem;">View Bookings</a>
-                        }
-                    </div>
-                    <div class="oa-card-body">
-                        @if (recentActivities.Any())
-                        {
-                            @foreach (var activity in recentActivities)
-                            {
-                                <div class="oa-activity">
-                                    <div class="oa-activity-icon @activity.Type">
-                                        <i class="bi bi-@activity.Icon"></i>
-                                    </div>
-                                    <div style="flex:1; min-width:0;">
-                                        <p class="oa-activity-msg text-truncate">@activity.Message</p>
-                                        <span class="oa-activity-time">@activity.Time</span>
-                                    </div>
+                            <div class="oa-activity">
+                                <div class="oa-activity-icon @activity.Type">
+                                    <i class="bi bi-@activity.Icon"></i>
                                 </div>
-                            }
-                        }
-                        else
-                        {
-                            <div class="oa-empty-sm">
-                                <i class="bi bi-calendar-x"></i>
-                                <p>No recent activity recorded yet</p>
+                                <div style="flex:1; min-width:0;">
+                                    <p class="oa-activity-msg text-truncate">@activity.Message</p>
+                                    <span class="oa-activity-time">@activity.Time</span>
+                                </div>
                             </div>
                         }
-                    </div>
+                    }
+                    else
+                    {
+                        <div class="oa-empty-sm">
+                            <i class="bi bi-calendar-x"></i>
+                            <p>No recent activity recorded yet</p>
+                        </div>
+                    }
                 </div>
             </div>
         </div>

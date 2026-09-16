@@ -1,0 +1,259 @@
+@inherits LayoutComponentBase
+@using Microsoft.AspNetCore.Components.Authorization
+@using EventHotelBroker.Components.Shared
+@using System.Security.Claims
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>Admin Portal | Safari Vents</PageTitle>
+
+<div class="ehb-admin-shell">
+    
+    <!-- Mobile Backdrop -->
+    @if (isMobileSidebarOpen)
+    {
+        <div class="ehb-sidebar-backdrop" @onclick="() => isMobileSidebarOpen = false"></div>
+    }
+
+    <!-- Sidebar in Dark Matte Charcoal (#1A1A1A) -->
+    <aside class="ehb-admin-sidebar @(isMobileSidebarOpen ? "open" : "")">
+        
+        <!-- Brand / Logo Area -->
+        <div class="ehb-sidebar-logo">
+            <a href="/admin/dashboard" class="ehb-sidebar-brand">
+                <div class="ehb-sidebar-brand-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5m-4 0h4"></path>
+                    </svg>
+                </div>
+                <div>
+                    <div class="ehb-sidebar-brand-title">
+                        <span>Safari</span> Vents
+                    </div>
+                    <div class="ehb-sidebar-brand-sub">Admin Portal</div>
+                </div>
+            </a>
+            <button @onclick="() => isMobileSidebarOpen = false" class="d-md-none btn btn-sm text-secondary" style="border:none;background:transparent;color:#9CA3AF;">
+                <i class="bi bi-x-lg" style="font-size:18px;"></i>
+            </button>
+        </div>
+
+        <!-- Navigation Links -->
+        <div class="ehb-sidebar-nav">
+            
+            <!-- OVERVIEW -->
+            <div class="ehb-nav-section-title">Overview</div>
+            <NavLink class="ehb-nav-item" ActiveClass="active-nav-item" href="admin/dashboard" Match="NavLinkMatch.All">
+                <i class="bi bi-grid-1x2-fill"></i>
+                <span>Dashboard</span>
+            </NavLink>
+
+            <!-- ACCOMMODATIONS -->
+            <div class="ehb-nav-section-title">Accommodations</div>
+            <NavLink class="ehb-nav-item" ActiveClass="active-nav-item" href="admin/hotels">
+                <i class="bi bi-building"></i>
+                <span>Hotels &amp; Venues</span>
+            </NavLink>
+            <NavLink class="ehb-nav-item" ActiveClass="active-nav-item" href="admin/hotel-categories">
+                <i class="bi bi-tags"></i>
+                <span>Hotel Categories</span>
+            </NavLink>
+            <NavLink class="ehb-nav-item" ActiveClass="active-nav-item" href="admin/bookings">
+                <i class="bi bi-calendar-check"></i>
+                <span>Hotel Bookings</span>
+            </NavLink>
+
+            <!-- EVENTS & SERVICES -->
+            <div class="ehb-nav-section-title">Events &amp; Services</div>
+            <NavLink class="ehb-nav-item" ActiveClass="active-nav-item" href="admin/event-packages">
+                <i class="bi bi-gift"></i>
+                <span>Event Packages</span>
+            </NavLink>
+            <NavLink class="ehb-nav-item" ActiveClass="active-nav-item" href="admin/event-equipments">
+                <i class="bi bi-box-seam"></i>
+                <span>Event Equipment</span>
+            </NavLink>
+            <NavLink class="ehb-nav-item" ActiveClass="active-nav-item" href="admin/event-bookings">
+                <i class="bi bi-calendar-event"></i>
+                <span>Event Bookings</span>
+            </NavLink>
+
+            <!-- MANAGEMENT -->
+            <div class="ehb-nav-section-title">Management</div>
+            <NavLink class="ehb-nav-item" ActiveClass="active-nav-item" href="admin/users">
+                <i class="bi bi-people"></i>
+                <span>Users &amp; Accounts</span>
+            </NavLink>
+            <NavLink class="ehb-nav-item" ActiveClass="active-nav-item" href="admin/add-admin">
+                <i class="bi bi-person-plus"></i>
+                <span>Add Administrator</span>
+            </NavLink>
+            <NavLink class="ehb-nav-item" ActiveClass="active-nav-item" href="admin/advertisement">
+                <i class="bi bi-megaphone"></i>
+                <span>Advertisements</span>
+            </NavLink>
+            <NavLink class="ehb-nav-item" ActiveClass="active-nav-item" href="admin/audit-logs">
+                <i class="bi bi-journal-text"></i>
+                <span>Audit Logs</span>
+            </NavLink>
+            <NavLink class="ehb-nav-item" ActiveClass="active-nav-item" href="admin/database-status">
+                <i class="bi bi-database"></i>
+                <span>Database Status</span>
+            </NavLink>
+        </div>
+
+        <!-- Sidebar Footer -->
+        <div class="ehb-sidebar-footer">
+            <a href="/" target="_blank" class="ehb-btn-sidebar-view">
+                <i class="bi bi-box-arrow-up-right"></i>
+                <span>View Public Site</span>
+            </a>
+            <a href="/logout" class="ehb-btn-sidebar-logout">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Sign out</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="ehb-admin-main">
+        
+        <!-- Top App Bar -->
+        <header class="ehb-admin-header">
+            <div class="ehb-header-left">
+                <button @onclick="() => isMobileSidebarOpen = !isMobileSidebarOpen" class="d-md-none btn btn-sm p-1 text-secondary" style="border:none;background:transparent;">
+                    <i class="bi bi-list" style="font-size:22px;"></i>
+                </button>
+
+                <!-- Portal Title Badge -->
+                <div class="ehb-header-badge">
+                    <div class="ehb-header-badge-avatar">EH</div>
+                    <div>
+                        <div class="ehb-header-badge-title">Safari Vents Admin</div>
+                        <div class="ehb-header-badge-sub">Operations Center</div>
+                    </div>
+                </div>
+
+                <div class="ehb-live-indicator">
+                    <span class="ehb-live-dot"></span>
+                    <span>Live Platform</span>
+                </div>
+            </div>
+
+            <!-- Header Right Actions -->
+            <div class="ehb-header-right">
+                
+                <!-- Quick Search Bar -->
+                <div class="ehb-search-box">
+                    <i class="bi bi-search ehb-search-icon"></i>
+                    <input type="text" placeholder="Quick search..." />
+                    <span class="ehb-search-kbd">⌘K</span>
+                </div>
+
+                <!-- Notifications Button -->
+                <a href="/admin/audit-logs" class="ehb-header-btn" title="Audit Logs &amp; Alerts">
+                    <i class="bi bi-bell"></i>
+                    <span class="ehb-header-alert-dot"></span>
+                </a>
+
+                <!-- Refresh Button -->
+                <button type="button" onclick="window.location.reload();" title="Refresh Page" class="ehb-header-btn">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+
+                <!-- Profile Dropdown -->
+                <div class="position-relative">
+                    <div class="ehb-user-profile" @onclick="() => showUserMenu = !showUserMenu">
+                        <div class="ehb-user-avatar">
+                            @userName.Substring(0, 1).ToUpper()
+                        </div>
+                        <div class="ehb-user-info d-none d-sm-block">
+                            <div class="ehb-user-name">@userName</div>
+                            <div class="ehb-user-role">@userRole</div>
+                        </div>
+                    </div>
+
+                    @if (showUserMenu)
+                    {
+                        <div class="ehb-sidebar-backdrop" style="background:transparent;" @onclick="() => showUserMenu = false"></div>
+                        <div class="ehb-user-dropdown">
+                            <div class="ehb-user-dropdown-header">
+                                <p style="font-weight:700;font-size:12px;color:#111827;">@userName</p>
+                                <p style="font-size:10px;color:#6B7280;margin-top:2px;">@userEmail</p>
+                            </div>
+                            <div class="ehb-user-dropdown-menu">
+                                <a href="/admin/users" class="ehb-user-dropdown-item" @onclick="() => showUserMenu = false">
+                                    <i class="bi bi-people"></i>
+                                    <span>Manage Users</span>
+                                </a>
+                                <a href="/admin/add-admin" class="ehb-user-dropdown-item" @onclick="() => showUserMenu = false">
+                                    <i class="bi bi-person-plus"></i>
+                                    <span>Add New Admin</span>
+                                </a>
+                                <hr style="margin:4px 0;border-color:#F3F4F6;" />
+                                <a href="/logout" class="ehb-user-dropdown-item danger">
+                                    <i class="bi bi-box-arrow-right"></i>
+                                    <span>Sign out</span>
+                                </a>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </header>
+
+        <!-- Dynamic Body Area with Warm Cream Surface -->
+        <div class="ehb-admin-content">
+            @Body
+        </div>
+
+        <!-- WhatsApp Support Widget -->
+        <WhatsAppSupportWidget />
+    </main>
+</div>
+
+@code {
+    private bool isMobileSidebarOpen = false;
+    private bool showUserMenu = false;
+    private string userName = "Administrator";
+    private string userEmail = "admin@eventhotelbroker.com";
+    private string userRole = "Super Admin";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            if (user?.Identity != null && user.Identity.IsAuthenticated)
+            {
+                var rawName = user.FindFirst(ClaimTypes.GivenName)?.Value 
+                    ?? user.FindFirst("FullName")?.Value 
+                    ?? user.Identity.Name 
+                    ?? "Administrator";
+
+                if (rawName.Contains(",") || (rawName.Contains("-") && rawName.Length > 20))
+                {
+                    var email = user.FindFirst(ClaimTypes.Email)?.Value;
+                    if (!string.IsNullOrEmpty(email) && email.Contains("@"))
+                    {
+                        var prefix = email.Split('@')[0];
+                        rawName = char.ToUpper(prefix[0]) + prefix.Substring(1);
+                    }
+                    else
+                    {
+                        rawName = "Administrator";
+                    }
+                }
+
+                userName = rawName;
+                userEmail = user.FindFirst(ClaimTypes.Email)?.Value ?? "admin@eventhotelbroker.com";
+                userRole = user.FindFirst(ClaimTypes.Role)?.Value ?? "Super Admin";
+            }
+        }
+        catch
+        {
+            // Default fallback
+        }
+    }
+}

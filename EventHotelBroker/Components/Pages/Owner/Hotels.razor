@@ -10,9 +10,9 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IJSRuntime JSRuntime
 
-<PageTitle>My Hotels - EventHotelBroker</PageTitle>
+<PageTitle>My Hotels - Safari Vents</PageTitle>
 
-<link href="/css/owner-hotels.css?v=1" rel="stylesheet" />
+<link href="/css/owner-hotels.css?v=27" rel="stylesheet" />
 
 <div class="oh">
     <Breadcrumb Items="@breadcrumbItems" />
@@ -158,11 +158,15 @@
 
                         <div class="oh-card-details">
                             <span class="oh-detail"><i class="bi bi-people"></i> @hotel.Capacity guests</span>
-                            <span class="oh-detail"><i class="bi bi-currency-exchange"></i> @hotel.Currency</span>
+                            @if (!string.IsNullOrEmpty(hotel.Category))
+                            {
+                                <span class="oh-detail"><i class="bi bi-tag"></i> @hotel.Category</span>
+                            }
                         </div>
 
                         <div class="oh-card-price">
-                            @hotel.Currency @hotel.PricePerNight.ToString("N0") <span class="oh-card-price-sub">/ night</span>
+                            <span class="oh-card-price-val">@hotel.Currency @hotel.PricePerNight.ToString("N0")</span>
+                            <span class="oh-card-price-sub">/ night</span>
                         </div>
 
                         <div class="oh-card-actions">

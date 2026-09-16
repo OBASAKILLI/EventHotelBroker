@@ -1,2 +1,4 @@
-﻿@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Authorization
+@using EventHotelBroker.Components.Layout
 @attribute [Authorize(Roles = "Admin")]
+@layout AdminLayout

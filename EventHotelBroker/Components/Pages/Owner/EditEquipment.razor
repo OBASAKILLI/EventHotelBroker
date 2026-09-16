@@ -13,9 +13,9 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IWebHostEnvironment Environment
 
-<PageTitle>Edit Equipment - Owner</PageTitle>
+<PageTitle>Edit Equipment - Safari Vents</PageTitle>
 
-<link href="/css/create-equipment.css?v=1" rel="stylesheet" />
+<link href="/css/create-equipment.css?v=27" rel="stylesheet" />
 
 <div class="ce">
     <Breadcrumb Items="@breadcrumbItems" />
@@ -24,10 +24,10 @@
     <div class="ce-header">
         <div>
             <h1 class="ce-header-title"><i class="bi bi-pencil-square"></i> Edit Equipment</h1>
-            <p class="ce-header-sub">Update your equipment listing details</p>
+            <p class="ce-header-sub">Update inventory details, pricing, and availability</p>
         </div>
         <button class="ce-btn ce-btn-cancel" @onclick="Cancel">
-            <i class="bi bi-arrow-left"></i> Back
+            <i class="bi bi-arrow-left"></i> Back to Equipment
         </button>
     </div>
 
@@ -51,255 +51,259 @@
     }
     else
     {
-        <div class="row justify-content-center">
-            <div class="col-lg-9">
-                <div class="ce-card">
-                    <div class="ce-card-body">
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <div style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; padding: 10px 14px; margin: 0 auto 14px auto; max-width: 1240px; display: flex; align-items: center; gap: 8px; font-size: 12px; color: #065F46;">
+                <i class="bi bi-check-circle-fill" style="color: #10B981;"></i>
+                <span><strong>Success!</strong> @successMessage</span>
+            </div>
+        }
 
-                        @if (!string.IsNullOrEmpty(successMessage))
-                        {
-                            <div style="background: rgba(72,140,130,0.1); border: 1px solid rgba(72,140,130,0.3); border-radius: 8px; padding: 12px 16px; margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; font-size: 0.8rem; color: #488C82;">
-                                <i class="bi bi-check-circle-fill"></i>
-                                <span><strong>Success!</strong> @successMessage</span>
-                            </div>
-                        }
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div style="background: rgba(220,53,69,0.08); border: 1px solid rgba(220,53,69,0.25); border-radius: 8px; padding: 10px 14px; margin: 0 auto 14px auto; max-width: 1240px; display: flex; align-items: center; gap: 8px; font-size: 12px; color: #991B1B;">
+                <i class="bi bi-exclamation-triangle-fill" style="color: #DC2626;"></i>
+                <span><strong>Error!</strong> @errorMessage</span>
+            </div>
+        }
 
-                        @if (!string.IsNullOrEmpty(errorMessage))
-                        {
-                            <div style="background: rgba(220,53,69,0.08); border: 1px solid rgba(220,53,69,0.25); border-radius: 8px; padding: 12px 16px; margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; font-size: 0.8rem; color: #dc3545;">
-                                <i class="bi bi-exclamation-triangle-fill"></i>
-                                <span><strong>Error!</strong> @errorMessage</span>
-                            </div>
-                        }
+        <EditForm Model="@equipment" OnValidSubmit="@HandleSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="validation-errors" />
 
-                        <!-- Status Badge -->
-                        <div style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                            <span style="font-size: 0.7rem; font-weight: 600; color: #8a8177;">STATUS:</span>
+            <div class="ce-layout">
+                <!-- Left Main Column -->
+                <div class="ce-col-main">
+                    <!-- Status Banner -->
+                    <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 11px; font-weight: 700; color: #6B7280; text-transform: uppercase;">Review Status:</span>
                             @if (equipment.IsApproved)
                             {
-                                <span style="font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 6px; background: rgba(72,140,130,0.1); color: #488C82;">
-                                    <i class="bi bi-check-circle"></i> Approved
+                                <span style="font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: rgba(16,185,129,0.12); color: #065F46;">
+                                    <i class="bi bi-check-circle-fill" style="color: #10B981;"></i> Approved &amp; Live
                                 </span>
                             }
                             else if (equipment.IsAvailable)
                             {
-                                <span style="font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 6px; background: rgba(200,121,65,0.1); color: #C87941;">
-                                    <i class="bi bi-clock-history"></i> Pending Review
+                                <span style="font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: rgba(221,122,40,0.12); color: #9A3412;">
+                                    <i class="bi bi-clock-history" style="color: #DD7A28;"></i> Pending Approval
                                 </span>
                             }
                             else
                             {
-                                <span style="font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 6px; background: rgba(42,42,42,0.06); color: #8a8177;">
-                                    <i class="bi bi-pencil-square"></i> Draft
+                                <span style="font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: #F3F4F6; color: #4B5563;">
+                                    <i class="bi bi-pause-circle"></i> Inactive / Draft
                                 </span>
                             }
                         </div>
+                        <span style="font-size: 11px; color: #9CA3AF;">Equipment ID: #@equipment.Id</span>
+                    </div>
 
-                        <EditForm Model="@equipment" OnValidSubmit="@HandleSubmit">
-                            <DataAnnotationsValidator />
-                            <ValidationSummary class="validation-errors" />
-
-                            <!-- Basic Information -->
-                            <div class="ce-section">
-                                <div class="ce-section-icon ce-icon-terracotta"><i class="bi bi-info-circle"></i></div>
-                                <h5 class="ce-section-title">Basic Information</h5>
+                    <!-- Card 1: Equipment Details & Pricing -->
+                    <div class="ce-card">
+                        <div class="ce-card-header">
+                            <h6 class="ce-card-header-title"><i class="bi bi-box-seam"></i> Equipment Details &amp; Pricing</h6>
+                        </div>
+                        <div class="ce-card-body">
+                            <!-- Row 1: Name & Category -->
+                            <div class="ce-grid-name-cat">
+                                <div class="ce-field">
+                                    <label class="ce-label">Equipment Name <span class="req">*</span></label>
+                                    <InputText @bind-Value="equipment.Name" class="ce-input" placeholder="e.g., White Wedding Tent 20x30" />
+                                    <ValidationMessage For="@(() => equipment.Name)" />
+                                </div>
+                                <div class="ce-field">
+                                    <label class="ce-label">Category <span class="req">*</span></label>
+                                    <InputSelect @bind-Value="equipment.Category" class="ce-select">
+                                        <option value="">Select Category</option>
+                                        <option value="Tents">Tents</option>
+                                        <option value="Chairs">Chairs</option>
+                                        <option value="Sound System">Sound System</option>
+                                        <option value="Lighting">Lighting</option>
+                                        <option value="Catering">Catering</option>
+                                        <option value="Decoration">Decoration</option>
+                                        <option value="Tables">Tables</option>
+                                        <option value="Stage">Stage & Platform</option>
+                                        <option value="Audio Visual">Audio Visual</option>
+                                        <option value="Other">Other</option>
+                                    </InputSelect>
+                                    <ValidationMessage For="@(() => equipment.Category)" />
+                                </div>
                             </div>
 
-                            <div class="ce-field">
-                                <label class="ce-label">Equipment Name <span class="req">*</span></label>
-                                <InputText @bind-Value="equipment.Name" class="ce-input" placeholder="e.g., White Wedding Tent 20x30" />
-                                <ValidationMessage For="@(() => equipment.Name)" />
+                            <!-- Row 2: Price, Unit & Quantity -->
+                            <div class="ce-grid-3">
+                                <div class="ce-field">
+                                    <label class="ce-label">Price Per Unit (KES) <span class="req">*</span></label>
+                                    <div class="ce-input-group">
+                                        <span class="ce-input-prefix">KES</span>
+                                        <InputNumber @bind-Value="equipment.PricePerUnit" class="ce-input" placeholder="0.00" step="0.01" />
+                                    </div>
+                                    <ValidationMessage For="@(() => equipment.PricePerUnit)" />
+                                </div>
+                                <div class="ce-field">
+                                    <label class="ce-label">Unit Type <span class="req">*</span></label>
+                                    <InputSelect @bind-Value="equipment.Unit" class="ce-select">
+                                        <option value="">Select Unit</option>
+                                        <option value="piece">Piece</option>
+                                        <option value="set">Set</option>
+                                        <option value="hour">Hour</option>
+                                        <option value="day">Day</option>
+                                        <option value="package">Package</option>
+                                    </InputSelect>
+                                    <ValidationMessage For="@(() => equipment.Unit)" />
+                                </div>
+                                <div class="ce-field">
+                                    <label class="ce-label">Available Quantity <span class="req">*</span></label>
+                                    <InputNumber @bind-Value="equipment.AvailableQuantity" class="ce-input" placeholder="0" min="0" />
+                                    <ValidationMessage For="@(() => equipment.AvailableQuantity)" />
+                                </div>
                             </div>
 
-                            <div class="ce-field">
-                                <label class="ce-label">Category <span class="req">*</span></label>
-                                <InputSelect @bind-Value="equipment.Category" class="ce-select">
-                                    <option value="">-- Select Category --</option>
-                                    <option value="Tents">Tents</option>
-                                    <option value="Chairs">Chairs</option>
-                                    <option value="Sound System">Sound System</option>
-                                    <option value="Lighting">Lighting</option>
-                                    <option value="Catering">Catering</option>
-                                    <option value="Decoration">Decoration</option>
-                                    <option value="Tables">Tables</option>
-                                    <option value="Stage">Stage & Platform</option>
-                                    <option value="Audio Visual">Audio Visual</option>
-                                    <option value="Other">Other</option>
-                                </InputSelect>
-                                <ValidationMessage For="@(() => equipment.Category)" />
-                            </div>
-
+                            <!-- Row 3: Description -->
                             <div class="ce-field">
                                 <label class="ce-label">Description <span class="req">*</span></label>
-                                <InputTextArea @bind-Value="equipment.Description" class="ce-input" rows="3"
-                                    placeholder="Provide detailed description of the equipment, its features, and condition..." />
+                                <InputTextArea @bind-Value="equipment.Description" class="ce-input" rows="2"
+                                    placeholder="Provide detailed description of the equipment, its condition, and included accessories..." />
                                 <ValidationMessage For="@(() => equipment.Description)" />
                             </div>
 
+                            <!-- Row 4: Specifications -->
                             <div class="ce-field">
-                                <label class="ce-label">Specifications</label>
+                                <label class="ce-label">Specifications (Optional)</label>
                                 <InputTextArea @bind-Value="equipment.Specifications" class="ce-input" rows="2"
-                                    placeholder="e.g., Dimensions: 20x30 feet, Material: Canvas, Capacity: 150 guests" />
-                                <span class="ce-hint">Optional: Add technical specifications, dimensions, capacity, etc.</span>
+                                    placeholder="e.g., Dimensions: 20x30 ft, Material: Heavy-duty PVC, Power: 240V / 1500W..." />
+                                <span class="ce-hint">Technical details, size, dimensions, power requirements, or setup constraints.</span>
                             </div>
+                        </div>
+                    </div>
+                </div>
 
-                            <hr class="ce-divider" />
-
-                            <!-- Pricing & Availability -->
-                            <div class="ce-section">
-                                <div class="ce-section-icon ce-icon-teal"><i class="bi bi-currency-dollar"></i></div>
-                                <h5 class="ce-section-title">Pricing & Availability</h5>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="ce-field">
-                                        <label class="ce-label">Price Per Unit <span class="req">*</span></label>
-                                        <div class="ce-input-group">
-                                            <span class="ce-input-prefix">$</span>
-                                            <InputNumber @bind-Value="equipment.PricePerUnit" class="ce-input" placeholder="0.00" step="0.01" />
-                                        </div>
-                                        <ValidationMessage For="@(() => equipment.PricePerUnit)" />
-                                    </div>
+                <!-- Right Sidebar Column (Sticky) -->
+                <div class="ce-col-side">
+                    <!-- Actions & Settings Card -->
+                    <div class="ce-card">
+                        <div class="ce-card-header">
+                            <h6 class="ce-card-header-title"><i class="bi bi-sliders"></i> Availability &amp; Actions</h6>
+                        </div>
+                        <div class="ce-card-body">
+                            <!-- Toggle -->
+                            <label class="ce-toggle-box">
+                                <div>
+                                    <span class="ce-toggle-label">Available for Booking</span>
+                                    <span class="ce-toggle-hint">Allow customers to rent this item</span>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="ce-field">
-                                        <label class="ce-label">Unit Type <span class="req">*</span></label>
-                                        <InputSelect @bind-Value="equipment.Unit" class="ce-select">
-                                            <option value="">-- Select Unit --</option>
-                                            <option value="piece">Piece</option>
-                                            <option value="set">Set</option>
-                                            <option value="hour">Hour</option>
-                                            <option value="day">Day</option>
-                                            <option value="package">Package</option>
-                                        </InputSelect>
-                                        <ValidationMessage For="@(() => equipment.Unit)" />
-                                    </div>
-                                </div>
-                            </div>
+                                <InputCheckbox @bind-Value="equipment.IsAvailable" id="isAvailable" style="width: 18px; height: 18px; cursor: pointer; accent-color: #DD7A28;" />
+                            </label>
 
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="ce-field">
-                                        <label class="ce-label">Available Quantity <span class="req">*</span></label>
-                                        <InputNumber @bind-Value="equipment.AvailableQuantity" class="ce-input" placeholder="0" min="0" />
-                                        <ValidationMessage For="@(() => equipment.AvailableQuantity)" />
-                                    </div>
-                                </div>
-                            </div>
+                            <button type="submit" class="ce-btn ce-btn-submit-block" disabled="@isSubmitting">
+                                @if (isSubmitting)
+                                {
+                                    <span class="ce-spinner me-1"></span>
+                                    <span>Saving Changes...</span>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-check-lg"></i>
+                                    <span>Save Changes</span>
+                                }
+                            </button>
+                            <button type="button" class="ce-btn ce-btn-cancel-block" @onclick="Cancel">
+                                <i class="bi bi-x-lg"></i> Cancel
+                            </button>
+                            <button type="button" class="ce-btn ce-btn-cancel-block" style="color: #DC2626; border-color: rgba(220,53,69,0.25); background: #FEF2F2;" @onclick="() => showDeleteConfirm = true">
+                                <i class="bi bi-trash"></i> Delete Equipment
+                            </button>
+                        </div>
+                    </div>
 
-                            <hr class="ce-divider" />
-
-                            <!-- Equipment Images -->
-                            <div class="ce-section">
-                                <div class="ce-section-icon ce-icon-bronze"><i class="bi bi-images"></i></div>
-                                <h5 class="ce-section-title">Equipment Images</h5>
-                            </div>
-
-                            <!-- Existing Images -->
+                    <!-- Equipment Images Card -->
+                    <div class="ce-card">
+                        <div class="ce-card-header">
+                            <h6 class="ce-card-header-title"><i class="bi bi-images"></i> Equipment Images</h6>
+                        </div>
+                        <div class="ce-card-body">
+                            <!-- Current Images -->
                             @if (existingImages.Any())
                             {
-                                <div class="ce-field">
-                                    <label class="ce-label">Current Images</label>
-                                    <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 4px;">
+                                <div style="margin-bottom: 12px;">
+                                    <div style="font-size: 11px; font-weight: 700; color: #6B7280; text-transform: uppercase; margin-bottom: 6px;">Current Photos (@existingImages.Count)</div>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                                         @foreach (var img in existingImages)
                                         {
-                                            <div style="position: relative; border: 1px solid @(img.IsPrimary ? "#488C82" : "#dee2e6"); border-radius: 8px; overflow: hidden; width: 120px; border-width: @(img.IsPrimary ? "2px" : "1px");">
-                                                <img src="@img.ImageUrl" style="width: 120px; height: 90px; object-fit: cover;" />
-                                                <div style="padding: 0 6px 4px; display: flex; align-items: center; gap: 4px;">
-                                                    <input type="radio" name="primaryExistingImage" checked="@img.IsPrimary"
-                                                        @onchange="() => SetExistingPrimary(img.Id)" />
-                                                    <span style="font-size: 0.65rem; color: @(img.IsPrimary ? "#488C82" : "#8a8177"); font-weight: @(img.IsPrimary ? "700" : "400");">Primary</span>
+                                            <div style="position: relative; border: 1px solid @(img.IsPrimary ? "#DD7A28" : "#E5E7EB"); border-radius: 8px; overflow: hidden; background: #FAFAFA;">
+                                                <img src="@img.ImageUrl" style="width: 100%; height: 75px; object-fit: cover;" />
+                                                <div style="padding: 4px 6px; display: flex; align-items: center; justify-content: space-between; font-size: 10px;">
+                                                    <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; margin: 0;">
+                                                        <input type="radio" name="primaryExistingImage" checked="@img.IsPrimary"
+                                                            @onchange="() => SetExistingPrimary(img.Id)" style="accent-color: #DD7A28; width: 12px; height: 12px;" />
+                                                        <span style="color: @(img.IsPrimary ? "#DD7A28" : "#6B7280"); font-weight: @(img.IsPrimary ? "700" : "500");">Cover</span>
+                                                    </label>
+                                                    <button type="button" @onclick="() => RemoveExistingImage(img.Id)"
+                                                        style="background: none; border: none; color: #DC2626; cursor: pointer; padding: 0; font-size: 11px;">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
                                                 </div>
-                                                <button type="button" @onclick="() => RemoveExistingImage(img.Id)"
-                                                    style="position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 0.7rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                                                    <i class="bi bi-x"></i>
-                                                </button>
                                             </div>
                                         }
                                     </div>
                                 </div>
                             }
 
-                            <!-- Upload New Images -->
-                            <div class="ce-field">
-                                <label class="ce-label">Add New Images (Max 5 total, up to 5MB each)</label>
-                                <div style="border: 2px dashed #c4b5a0; border-radius: 8px; padding: 24px; text-align: center; background: #faf8f5; cursor: pointer; position: relative;">
-                                    <InputFile OnChange="OnImagesSelected" multiple accept="image/*"
-                                        style="position: absolute; inset: 0; opacity: 0; cursor: pointer;" />
-                                    <i class="bi bi-cloud-arrow-up" style="font-size: 2rem; color: #8a8177;"></i>
-                                    <div style="color: #5c5550; margin-top: 8px; font-size: 0.85rem;">Click or drag images here to upload</div>
-                                    <div style="color: #8a8177; font-size: 0.75rem; margin-top: 4px;">Supported: JPG, PNG, WebP</div>
-                                </div>
+                            <!-- Add New Images Dropzone -->
+                            <div class="ce-dropzone-compact">
+                                <InputFile OnChange="OnImagesSelected" multiple accept="image/*"
+                                    style="position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;" />
+                                <i class="bi bi-cloud-arrow-up"></i>
+                                <div class="ce-dropzone-text">Upload new photos</div>
+                                <div class="ce-dropzone-sub">Max 5 total · Up to 5MB each</div>
+                            </div>
 
-                                @if (newImages.Any())
-                                {
-                                    <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px;">
-                                        @foreach (var img in newImages)
-                                        {
-                                            <div style="position: relative; border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden; width: 120px;">
-                                                @if (newImagePreviews.ContainsKey(img.Name))
-                                                {
-                                                    <img src="@newImagePreviews[img.Name]" style="width: 120px; height: 90px; object-fit: cover;" />
-                                                }
-                                                else
-                                                {
-                                                    <div style="width: 120px; height: 90px; display: flex; align-items: center; justify-content: center; background: #f0ebe4;">
-                                                        <i class="bi bi-image" style="font-size: 1.5rem; color: #8a8177;"></i>
-                                                    </div>
-                                                }
-                                                <div style="padding: 4px 6px; font-size: 0.7rem; color: #5c5550; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">@img.Name</div>
-                                                <div style="padding: 0 6px 4px; display: flex; align-items: center; justify-content: center;">
-                                                    <span style="font-size: 0.6rem; color: #488C82; font-weight: 600;">NEW</span>
+                            @if (newImages.Any())
+                            {
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;">
+                                    @foreach (var img in newImages)
+                                    {
+                                        <div style="position: relative; border: 1px solid #10B981; border-radius: 8px; overflow: hidden; background: #FAFAFA;">
+                                            @if (newImagePreviews.ContainsKey(img.Name))
+                                            {
+                                                <img src="@newImagePreviews[img.Name]" style="width: 100%; height: 75px; object-fit: cover;" />
+                                            }
+                                            else
+                                            {
+                                                <div style="width: 100%; height: 75px; display: flex; align-items: center; justify-content: center; background: #F3F4F6;">
+                                                    <i class="bi bi-image" style="font-size: 1.2rem; color: #9CA3AF;"></i>
                                                 </div>
+                                            }
+                                            <div style="padding: 4px 6px; display: flex; align-items: center; justify-content: space-between; font-size: 10px;">
+                                                <span style="color: #10B981; font-weight: 700;">NEW</span>
                                                 <button type="button" @onclick="() => RemoveNewImage(img.Name)"
-                                                    style="position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 0.7rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                                                    <i class="bi bi-x"></i>
+                                                    style="background: none; border: none; color: #DC2626; cursor: pointer; padding: 0; font-size: 11px;">
+                                                    <i class="bi bi-trash"></i>
                                                 </button>
                                             </div>
-                                        }
-                                    </div>
-                                }
-                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
 
-                            <hr class="ce-divider" />
-
-                            <!-- Info Box -->
-                            <div style="background: rgba(72,140,130,0.06); border: 1px solid rgba(72,140,130,0.15); border-radius: 10px; padding: 0.75rem 1rem; display: flex; gap: 0.75rem; align-items: flex-start;">
-                                <i class="bi bi-info-circle" style="color: #488C82; font-size: 1rem; margin-top: 2px;"></i>
-                                <div>
-                                    <div style="font-size: 0.75rem; font-weight: 700; color: #488C82;">Note</div>
-                                    <div style="font-size: 0.7rem; color: #5c5550;">Changes to approved equipment will keep its current status. Major changes may trigger a re-review by admin.</div>
+                    <!-- Info Note Card -->
+                    <div class="ce-card">
+                        <div class="ce-card-body" style="padding: 12px 14px;">
+                            <div style="display: flex; gap: 8px; align-items: flex-start;">
+                                <i class="bi bi-info-circle-fill" style="color: #DD7A28; font-size: 14px; margin-top: 1px;"></i>
+                                <div style="font-size: 11.5px; color: #4B5563; line-height: 1.45;">
+                                    <strong>Listing Note:</strong> Approved items remain active during routine price or quantity updates. Major structural changes may trigger a re-review.
                                 </div>
                             </div>
-
-                            <!-- Footer -->
-                            <div class="ce-footer">
-                                <button type="button" class="ce-btn ce-btn-muted" @onclick="Cancel">
-                                    <i class="bi bi-x-lg"></i> Cancel
-                                </button>
-                                <button type="button" class="ce-btn ce-btn-muted" style="color: #dc3545;" @onclick="() => showDeleteConfirm = true">
-                                    <i class="bi bi-trash"></i> Delete
-                                </button>
-                                <button type="submit" class="ce-btn ce-btn-submit" disabled="@isSubmitting">
-                                    @if (isSubmitting)
-                                    {
-                                        <span class="ce-spinner"></span>
-                                        <span>Saving...</span>
-                                    }
-                                    else
-                                    {
-                                        <i class="bi bi-check-lg"></i>
-                                        <span>Save Changes</span>
-                                    }
-                                </button>
-                            </div>
-                        </EditForm>
-
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </EditForm>
     }
 </div>
 
@@ -541,7 +545,7 @@
 
             successMessage = "Equipment updated successfully! Redirecting...";
             StateHasChanged();
-            await Task.Delay(2000);
+            await Task.Delay(1500);
             Navigation.NavigateTo("/owner/event-equipments");
         }
         catch (Exception ex)

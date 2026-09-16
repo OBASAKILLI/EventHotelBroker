@@ -5,7 +5,7 @@
 
 :root {
     /* ===== TYPOGRAPHY ===== */
-    --font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
     /* ===== CHARCOAL & MATTE DARK ===== */
     --primary-charcoal: #18181b;
@@ -13,34 +13,34 @@
     --primary-dark: #121214;
     --primary-surface: #222225;
 
-    /* ===== WARM COPPER / CARAMEL ACCENTS ===== */
-    --accent-copper: #b86d26;
-    --accent-copper-hover: #a25c1a;
-    --accent-copper-active: #8f4d12;
-    --accent-copper-light: rgba(184, 109, 38, 0.15);
-    --accent-copper-glow: rgba(184, 109, 38, 0.35);
+    /* ===== HONEY AMBER ACCENTS (Digital Storm) ===== */
+    --accent-copper: #DD7A28;
+    --accent-copper-hover: #c56820;
+    --accent-copper-active: #b55c18;
+    --accent-copper-light: rgba(221, 122, 40, 0.15);
+    --accent-copper-glow: rgba(221, 122, 40, 0.25);
 
-    /* ===== SAND / LINEN BACKGROUNDS ===== */
-    --bg-sand: #f5eee6;
-    --bg-sand-light: #faf6f1;
+    /* ===== WARM CREAM CANVAS BACKGROUNDS ===== */
+    --bg-sand: #F5EFE6;
+    --bg-sand-light: #FAF8F5;
     --card-surface: #ffffff;
 
     /* ===== LEGACY BLUE & GOLD MAPPINGS ===== */
     --primary-navy: #18181b;
     --primary-blue: #18181b;
-    --primary-light: #242428;
+    --primary-light: #27272a;
     --primary-lighter: #3f3f46;
-    --primary-lightest: #f5eee6;
+    --primary-lightest: #F5EFE6;
     --primary-dark: #121214;
     --primary-darker: #09090b;
     
-    /* ===== ACCENT COLORS (Copper) ===== */
-    --accent-gold: #b86d26;
-    --accent-amber: #c07429;
-    --accent-light: #f5eee6;
-    --accent-lighter: #faf6f1;
-    --accent-dark: #a25c1a;
-    --accent-darker: #8f4d12;
+    /* ===== ACCENT COLORS (Honey Amber) ===== */
+    --accent-gold: #DD7A28;
+    --accent-amber: #DD7A28;
+    --accent-light: #FFF7ED;
+    --accent-lighter: #FFFAF5;
+    --accent-dark: #c56820;
+    --accent-darker: #b55c18;
     
     /* ===== NEUTRAL COLORS ===== */
     --text-primary: #18181b;
@@ -49,72 +49,73 @@
     --text-light: #9ca3af;
     
     --background-white: #ffffff;
-    --background-light: #faf6f1;
-    --background-gray: #f5eee6;
-    --background-dark: #e5e7eb;
+    --background-light: #faf7f2;
+    --background-gray: #f4efe6;
+    --background-dark: #e8e2d8;
     
-    --border-light: #e5e7eb;
-    --border-medium: #d1d5db;
-    --border-dark: #9ca3af;
+    --border-light: #e8e2d8;
+    --border-medium: #d6cebf;
+    --border-dark: #a89f8d;
     
     /* ===== STATUS COLORS ===== */
-    --success: #10b981;
-    --success-light: #34d399;
-    --success-lighter: #d1fae5;
-    --success-dark: #059669;
+    --success: #16a34a;
+    --success-light: #22c55e;
+    --success-lighter: #dcfce7;
+    --success-dark: #15803d;
     
     --warning: #f59e0b;
     --warning-light: #fbbf24;
     --warning-lighter: #fef3c7;
     --warning-dark: #d97706;
     
-    --danger: #ef4444;
-    --danger-light: #f87171;
+    --danger: #dc2626;
+    --danger-light: #ef4444;
     --danger-lighter: #fee2e2;
-    --danger-dark: #dc2626;
+    --danger-dark: #b91c1c;
     
-    --info: #3b82f6;
-    --info-light: #60a5fa;
-    --info-lighter: #dbeafe;
-    --info-dark: #2563eb;
+    --info: #0284c7;
+    --info-light: #38bdf8;
+    --info-lighter: #e0f2fe;
+    --info-dark: #0369a1;
     
     /* ===== GRADIENTS ===== */
-    --gradient-primary: linear-gradient(135deg, #1a365d 0%, #2563eb 100%);
-    --gradient-primary-hover: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
-    --gradient-accent: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
-    --gradient-accent-hover: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
-    --gradient-success: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-    --gradient-info: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
-    --gradient-subtle: linear-gradient(135deg, #dbeafe 0%, #f3f4f6 100%);
-    --gradient-gold-shine: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #fbbf24 100%);
+    --gradient-primary: linear-gradient(135deg, #18181b 0%, #27272a 100%);
+    --gradient-primary-hover: linear-gradient(135deg, #09090b 0%, #18181b 100%);
+    --gradient-accent: linear-gradient(135deg, #b86d26 0%, #d97706 100%);
+    --gradient-accent-hover: linear-gradient(135deg, #a25c1a 0%, #b86d26 100%);
+    --gradient-success: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+    --gradient-info: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
+    --gradient-subtle: linear-gradient(135deg, #f4efe6 0%, #ffffff 100%);
+    --gradient-gold-shine: linear-gradient(135deg, #d8893d 0%, #b86d26 50%, #d8893d 100%);
     
     /* ===== MODULE-SPECIFIC COLORS ===== */
     /* Hotels */
-    --hotel-primary: #2563eb;
-    --hotel-accent: #f59e0b;
-    --hotel-gradient: linear-gradient(135deg, #1a365d 0%, #2563eb 100%);
+    --hotel-primary: #b86d26;
+    --hotel-accent: #18181b;
+    --hotel-gradient: linear-gradient(135deg, #18181b 0%, #b86d26 100%);
     
     /* Events */
-    --event-equipment: #6366f1;
-    --event-package: #f59e0b;
-    --event-gradient: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+    --event-equipment: #7c3aed;
+    --event-package: #b86d26;
+    --event-gradient: linear-gradient(135deg, #b86d26 0%, #a25c1a 100%);
     
     /* Admin */
-    --admin-primary: #1a365d;
-    --admin-accent: #f59e0b;
+    --admin-primary: #18181b;
+    --admin-accent: #b86d26;
     
     /* Owner */
-    --owner-primary: #2563eb;
-    --owner-accent: #10b981;
+    --owner-primary: #18181b;
+    --owner-accent: #b86d26;
     
     /* ===== SHADOWS ===== */
-    --shadow-sm: 0 1px 2px 0 rgba(26, 54, 93, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(26, 54, 93, 0.1), 0 2px 4px -1px rgba(26, 54, 93, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(26, 54, 93, 0.1), 0 4px 6px -2px rgba(26, 54, 93, 0.05);
-    --shadow-xl: 0 20px 25px -5px rgba(26, 54, 93, 0.1), 0 10px 10px -5px rgba(26, 54, 93, 0.04);
-    --shadow-2xl: 0 25px 50px -12px rgba(26, 54, 93, 0.25);
-    --shadow-gold: 0 10px 30px -5px rgba(245, 158, 11, 0.3);
-    --shadow-blue: 0 10px 30px -5px rgba(37, 99, 235, 0.3);
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 12px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 24px -3px rgba(0, 0, 0, 0.08);
+    --shadow-xl: 0 20px 32px -5px rgba(0, 0, 0, 0.1);
+    --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+    --shadow-copper: 0 8px 24px -4px rgba(184, 109, 38, 0.3);
+    --shadow-gold: 0 8px 24px -4px rgba(184, 109, 38, 0.3);
+    --shadow-blue: 0 8px 24px -4px rgba(24, 24, 27, 0.2);
     
     /* ===== TRANSITIONS ===== */
     --transition-fast: 150ms ease-in-out;

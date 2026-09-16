@@ -1,7 +1,8 @@
 /* ========================================
-   HOME PAGE TABS & CARDS STYLING
-   Safari Vents Corporate Palette
-   Charcoal #18181b · Warm Copper #b86d26 · Sand #f5eee6
+   HOME PAGE TABS & CARDS STYLING — LIGHT THEME
+   Safari Vents Luxury Light Palette
+   Inspiration: Warm Sand #f4efe6 · Pure White #ffffff
+   Obsidian Charcoal #18181b · Warm Copper #b86d26
    ======================================== */
 
 /* ── Modern Tabs (pill style) ── */
@@ -15,8 +16,8 @@
     background: #ffffff;
     padding: 0.35rem;
     border-radius: 14px;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.04);
-    border: 1px solid rgba(184, 109, 38, 0.12);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e8e2d8;
     display: inline-flex;
     gap: 0.35rem;
     flex-wrap: wrap;
@@ -44,14 +45,14 @@
 }
 
 .modern-tabs .nav-link:hover {
-    color: #b86d26;
-    background: rgba(184, 109, 38, 0.08);
+    color: #18181b;
+    background: rgba(0, 0, 0, 0.03);
 }
 
 .modern-tabs .nav-link.active {
-    background: #18181b;
+    background: #b86d26;
     color: #ffffff;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 14px rgba(184, 109, 38, 0.35);
 }
 
 .modern-tabs .nav-link i {
@@ -59,8 +60,8 @@
 }
 
 .modern-tabs .tab-count {
-    background: rgba(184, 109, 38, 0.12);
-    color: #b86d26;
+    background: #f4efe6;
+    color: #78716c;
     padding: 0.125rem 0.5rem;
     border-radius: 20px;
     font-size: 0.72rem;
@@ -69,7 +70,7 @@
 }
 
 .modern-tabs .nav-link.active .tab-count {
-    background: #b86d26;
+    background: rgba(255, 255, 255, 0.25);
     color: #ffffff;
 }
 
@@ -88,8 +89,8 @@
     background: #ffffff;
     border-radius: 18px;
     overflow: hidden;
-    border: 1px solid rgba(184, 109, 38, 0.08);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.03);
+    border: 1px solid #e8e2d8;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
     transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
     cursor: pointer;
     height: 100%;
@@ -99,8 +100,8 @@
 
 .package-card-home:hover {
     transform: translateY(-6px);
-    box-shadow: 0 16px 36px rgba(184, 109, 38, 0.12);
-    border-color: rgba(184, 109, 38, 0.25);
+    box-shadow: 0 16px 36px rgba(184, 109, 38, 0.14);
+    border-color: #b86d26;
 }
 
 .package-image {
@@ -126,20 +127,21 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #18181b 0%, #242428 100%);
+    background: linear-gradient(135deg, #fcfbfa 0%, #f4efe6 100%);
 }
 
 .package-placeholder i {
     font-size: 3rem;
-    color: rgba(184, 109, 38, 0.4);
+    color: rgba(184, 109, 38, 0.35);
 }
 
 .package-badge {
     position: absolute;
     top: 0.75rem;
     left: 0.75rem;
-    background: #18181b;
-    border: 1px solid rgba(184, 109, 38, 0.3);
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(6px);
+    border: 1px solid #e8e2d8;
     padding: 0.3rem 0.75rem;
     border-radius: 20px;
     display: flex;
@@ -148,6 +150,7 @@
     font-size: 0.72rem;
     font-weight: 700;
     color: #b86d26;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .package-badge i {
@@ -164,6 +167,7 @@
     border-radius: 20px;
     font-size: 0.7rem;
     font-weight: 800;
+    box-shadow: 0 2px 8px rgba(184, 109, 38, 0.35);
 }
 
 .package-content {
@@ -176,7 +180,7 @@
 .package-type-badge {
     display: inline-flex;
     align-items: center;
-    background: rgba(184, 109, 38, 0.12);
+    background: rgba(184, 109, 38, 0.1);
     color: #b86d26;
     padding: 0.25rem 0.65rem;
     border-radius: 20px;
@@ -208,15 +212,16 @@
     gap: 0.875rem;
     margin-bottom: 0.875rem;
     padding-bottom: 0.875rem;
-    border-bottom: 1px solid rgba(184, 109, 38, 0.1);
+    border-bottom: 1px solid #f0ebe1;
 }
 
 .package-meta .meta-item {
     display: flex;
     align-items: center;
     gap: 0.35rem;
-    color: #6b7280;
+    color: #4b5563;
     font-size: 0.82rem;
+    font-weight: 500;
 }
 
 .package-meta .meta-item i {
@@ -263,13 +268,19 @@
     font-weight: 800;
 }
 
+.price-amount {
+    color: #b86d26;
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+
 /* ── Equipment Cards (Home) ── */
 .equip-card-home {
     background: #ffffff;
     border-radius: 18px;
     overflow: hidden;
-    border: 1px solid rgba(184, 109, 38, 0.08);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.03);
+    border: 1px solid #e8e2d8;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
     transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
     cursor: pointer;
     height: 100%;
@@ -279,8 +290,8 @@
 
 .equip-card-home:hover {
     transform: translateY(-6px);
-    box-shadow: 0 16px 36px rgba(184, 109, 38, 0.12);
-    border-color: rgba(184, 109, 38, 0.25);
+    box-shadow: 0 16px 36px rgba(184, 109, 38, 0.14);
+    border-color: #b86d26;
 }
 
 .equip-card-img-home {
@@ -306,12 +317,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #18181b 0%, #242428 100%);
+    background: linear-gradient(135deg, #fcfbfa 0%, #f4efe6 100%);
 }
 
 .equip-placeholder-home i {
     font-size: 3rem;
-    color: rgba(184, 109, 38, 0.4);
+    color: rgba(184, 109, 38, 0.35);
 }
 
 .equip-category-badge {
@@ -321,14 +332,14 @@
     width: 36px;
     height: 36px;
     border-radius: 10px;
-    background: #18181b;
-    border: 1px solid rgba(184, 109, 38, 0.3);
+    background: #ffffff;
+    border: 1px solid #e8e2d8;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1rem;
     color: #b86d26;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .equip-card-body-home {
@@ -359,7 +370,7 @@
     justify-content: space-between;
     align-items: center;
     padding-top: 0.75rem;
-    border-top: 1px solid rgba(184, 109, 38, 0.1);
+    border-top: 1px solid #f0ebe1;
 }
 
 .equip-price-home {
@@ -383,14 +394,14 @@
     font-size: 0.75rem;
     font-weight: 700;
     color: #b86d26;
-    background: rgba(184, 109, 38, 0.12);
+    background: rgba(184, 109, 38, 0.1);
     padding: 0.25rem 0.6rem;
     border-radius: 6px;
 }
 
 /* ── Explore Section ── */
 .explore-section {
-    background: #f5eee6;
+    background: #f4efe6;
 }
 
 /* ── Buttons ── */
@@ -399,20 +410,20 @@
     align-items: center;
     gap: 0.5rem;
     background: #18181b;
-    color: #ffffff;
+    color: #ffffff !important;
     border: none;
     padding: 0.75rem 1.75rem;
-    border-radius: 10px;
+    border-radius: 12px;
     font-weight: 700;
     font-size: 0.92rem;
     text-decoration: none;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
 }
 
 .btn-gradient-primary:hover {
     background: #b86d26;
-    color: #ffffff;
+    color: #ffffff !important;
     transform: translateY(-2px);
     box-shadow: 0 6px 18px rgba(184, 109, 38, 0.35);
     text-decoration: none;
@@ -423,10 +434,10 @@
     align-items: center;
     gap: 0.5rem;
     background: #b86d26;
-    color: #ffffff;
+    color: #ffffff !important;
     border: none;
     padding: 0.75rem 1.75rem;
-    border-radius: 10px;
+    border-radius: 12px;
     font-weight: 700;
     font-size: 0.92rem;
     text-decoration: none;
@@ -436,9 +447,10 @@
 
 .btn-gradient-accent:hover {
     background: #a25c1a;
-    color: #ffffff;
+    color: #ffffff !important;
     transform: translateY(-2px);
     text-decoration: none;
+    box-shadow: 0 6px 18px rgba(184, 109, 38, 0.45);
 }
 
 .btn-gradient-success {
@@ -446,7 +458,7 @@
     align-items: center;
     gap: 0.5rem;
     background: #b86d26;
-    color: #ffffff;
+    color: #ffffff !important;
     border: none;
     border-radius: 12px;
     font-weight: 700;
@@ -457,7 +469,7 @@
 
 .btn-gradient-success:hover {
     background: #a25c1a;
-    color: #ffffff;
+    color: #ffffff !important;
     transform: translateY(-2px);
 }
 
@@ -475,8 +487,8 @@
     background: #ffffff;
     border-radius: 18px;
     overflow: hidden;
-    border: 1px solid rgba(184, 109, 38, 0.08);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.03);
+    border: 1px solid #e8e2d8;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
     transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
     cursor: pointer;
     height: 100%;
@@ -486,8 +498,8 @@
 
 .hotel-card:hover {
     transform: translateY(-6px);
-    box-shadow: 0 16px 36px rgba(184, 109, 38, 0.12);
-    border-color: rgba(184, 109, 38, 0.25);
+    box-shadow: 0 16px 36px rgba(184, 109, 38, 0.14);
+    border-color: #b86d26;
 }
 
 .hotel-image {
@@ -513,20 +525,21 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #18181b 0%, #242428 100%);
+    background: linear-gradient(135deg, #fcfbfa 0%, #f4efe6 100%);
 }
 
 .hotel-placeholder i {
     font-size: 3rem;
-    color: rgba(184, 109, 38, 0.4);
+    color: rgba(184, 109, 38, 0.35);
 }
 
 .hotel-badge {
     position: absolute;
     top: 0.75rem;
     right: 0.75rem;
-    background: #18181b;
-    border: 1px solid rgba(184, 109, 38, 0.3);
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(6px);
+    border: 1px solid #e8e2d8;
     padding: 0.3rem 0.75rem;
     border-radius: 20px;
     display: flex;
@@ -535,7 +548,7 @@
     font-size: 0.72rem;
     font-weight: 700;
     color: #b86d26;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .hotel-badge i {
@@ -546,8 +559,9 @@
     position: absolute;
     bottom: 0.75rem;
     left: 0.75rem;
-    background: #ffffff;
-    border: 1px solid rgba(184, 109, 38, 0.12);
+    background: rgba(24, 24, 27, 0.85);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     padding: 0.3rem 0.75rem;
     border-radius: 20px;
     display: flex;
@@ -555,18 +569,18 @@
     gap: 0.35rem;
     font-size: 0.72rem;
     font-weight: 700;
-    color: #18181b;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .hotel-category-badge i {
-    color: #b86d26;
+    color: #d8893d;
 }
 
 .hotel-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(24, 24, 27, 0.75);
+    background: rgba(24, 24, 27, 0.65);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -631,7 +645,7 @@
 }
 
 .hotel-rating i {
-    color: #b86d26;
+    color: #f59e0b;
     font-size: 0.88rem;
 }
 
@@ -677,7 +691,7 @@
 .hotel-footer {
     margin-top: auto;
     padding-top: 0.75rem;
-    border-top: 1px solid rgba(184, 109, 38, 0.08);
+    border-top: 1px solid #f0ebe1;
 }
 
 .hotel-book-btn {

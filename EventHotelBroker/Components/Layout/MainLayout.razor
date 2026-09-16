@@ -35,9 +35,13 @@
                 </button>
             }
             <div class="app-bar-brand">
-                <a href="/" class="brand-link">
-                    <img src="/Images/LOGO.png" alt="Safari Vents" class="app-bar-logo" />
-                    <span class="brand-text">Safari Vents</span>
+                <a href="/" class="brand-link" style="text-decoration:none; display:flex; align-items:center; gap:10px;">
+                    <div style="width:34px; height:34px; border-radius:9px; background:linear-gradient(135deg, #DD7A28 0%, #c56820 100%); display:flex; align-items:center; justify-content:center; color:white; flex-shrink:0;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5m-4 0h4"></path>
+                        </svg>
+                    </div>
+                    <span class="brand-text" style="font-family:'Inter', sans-serif; font-weight:800; font-size:1.1rem; color:#111827;">Safari <span style="color:#DD7A28;">Vents</span></span>
                 </a>
             </div>
             <div class="app-bar-actions">
@@ -65,25 +69,25 @@
                         <i class="bi bi-gear"></i>
                     </button>
                     <div class="user-profile" style="cursor: pointer; position: relative;" @onclick="ToggleUserMenu">
-                        <div class="user-avatar" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
-                            <span style="font-size: 0.85rem; font-weight: 600;">@userInitials</span>
+                        <div class="user-avatar" style="background: #DD7A28; color: white;">
+                            <span style="font-size: 0.85rem; font-weight: 700;">@userInitials</span>
                         </div>
                         <span class="user-name">@userName</span>
-                        <i class="bi bi-chevron-down" style="font-size: 0.7rem; margin-left: 4px; color: #6c757d;"></i>
+                        <i class="bi bi-chevron-down" style="font-size: 0.7rem; margin-left: 4px; color: #6b7280;"></i>
                     </div>
                     @if (showUserMenu)
                     {
-                        <div style="position: absolute; top: 50px; right: 16px; background: white; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); min-width: 220px; z-index: 2000; overflow: hidden;">
-                            <div style="padding: 16px; border-bottom: 1px solid #f0f0f0;">
-                                <div style="font-weight: 600; color: #2A2A2A; font-size: 0.9rem;">@userName</div>
-                                <div style="color: #6c757d; font-size: 0.78rem;">@userEmail</div>
-                                <span style="display: inline-block; margin-top: 6px; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; background: rgba(102,126,234,0.1); color: #667eea;">@userRole</span>
+                        <div style="position: absolute; top: 56px; right: 16px; background: #ffffff; border-radius: 16px; box-shadow: 0 16px 40px rgba(0,0,0,0.14); min-width: 240px; z-index: 2000; overflow: hidden; border: 1px solid #e8e2d8;">
+                            <div style="padding: 16px; border-bottom: 1px solid #f4efe6;">
+                                <div style="font-weight: 700; color: #18181b; font-size: 0.95rem;">@userName</div>
+                                <div style="color: #6b7280; font-size: 0.8rem; margin-top: 2px;">@userEmail</div>
+                                <span style="display: inline-block; margin-top: 8px; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; background: rgba(221,122,40,0.12); color: #DD7A28;">@userRole</span>
                             </div>
-                            <a href="/profile" style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; color: #333; text-decoration: none; font-size: 0.85rem; transition: background 0.15s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='transparent'">
+                            <a href="/profile" style="display: flex; align-items: center; gap: 10px; padding: 12px 18px; color: #374151; text-decoration: none; font-size: 0.88rem; font-weight: 500; transition: background 0.15s;" onmouseover="this.style.background='#faf7f2'" onmouseout="this.style.background='transparent'">
                                 <i class="bi bi-person"></i> Profile
                             </a>
-                            <div style="border-top: 1px solid #f0f0f0;">
-                                <button onclick="document.getElementById('logoutModal').style.display='flex'" style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; color: #dc3545; background: none; border: none; width: 100%; text-align: left; font-size: 0.85rem; cursor: pointer; transition: background 0.15s;" onmouseover="this.style.background='#fff5f5'" onmouseout="this.style.background='transparent'">
+                            <div style="border-top: 1px solid #f4efe6;">
+                                <button onclick="document.getElementById('logoutModal').style.display='flex'" style="display: flex; align-items: center; gap: 10px; padding: 12px 18px; color: #dc2626; background: none; border: none; width: 100%; text-align: left; font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: background 0.15s;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">
                                     <i class="bi bi-box-arrow-right"></i> Log out
                                 </button>
                             </div>
@@ -92,9 +96,9 @@
                 }
                 else
                 {
-                    <div style="display: flex; gap: 10px; margin-left: 10px;">
-                        <a href="/login" style="padding: 8px 16px; border-radius: 8px; color: #2A2A2A; text-decoration: none; font-weight: 600; font-size: 0.85rem; transition: background 0.2s;" onmouseover="this.style.background='rgba(158,139,99,0.1)'" onmouseout="this.style.background='transparent'">Log in</a>
-                        <a href="/register" style="padding: 8px 16px; border-radius: 8px; background: #2A2A2A; color: white; text-decoration: none; font-weight: 600; font-size: 0.85rem; transition: background 0.2s;" onmouseover="this.style.background='#444'" onmouseout="this.style.background='#2A2A2A'">Sign up</a>
+                    <div style="display: flex; gap: 10px; margin-left: 10px; align-items: center;">
+                        <a href="/login" style="padding: 8px 18px; border-radius: 10px; border: 1px solid #e8e2d8; color: #374151; text-decoration: none; font-weight: 600; font-size: 0.88rem; transition: all 0.2s;" onmouseover="this.style.background='rgba(221,122,40,0.08)';this.style.borderColor='#DD7A28';this.style.color='#DD7A28';" onmouseout="this.style.background='transparent';this.style.borderColor='#e8e2d8';this.style.color='#374151';">Log in</a>
+                        <a href="/register" style="padding: 8px 20px; border-radius: 10px; background: #DD7A28; color: white; text-decoration: none; font-weight: 700; font-size: 0.88rem; box-shadow: 0 4px 14px rgba(221,122,40,0.35); transition: all 0.2s;" onmouseover="this.style.background='#c56820'" onmouseout="this.style.background='#DD7A28'">Sign up</a>
                     </div>
                 }
             </div>
@@ -117,16 +121,16 @@
 </div>
 
 <!-- Logout Confirmation Modal (JS-driven, works in static + interactive) -->
-<div id="logoutModal" onclick="if(event.target===this)this.style.display='none'" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:9999; align-items:center; justify-content:center;">
-    <div style="background:white; border-radius:16px; padding:32px; max-width:380px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.2); text-align:center;">
-        <div style="width:56px; height:56px; border-radius:50%; background:#fff5f5; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
-            <i class="bi bi-box-arrow-right" style="font-size:1.5rem; color:#dc3545;"></i>
+<div id="logoutModal" onclick="if(event.target===this)this.style.display='none'" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); backdrop-filter:blur(4px); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:#ffffff; border-radius:20px; padding:32px; max-width:400px; width:90%; box-shadow:0 24px 64px rgba(0,0,0,0.25); text-align:center; border:1px solid #e8e2d8;">
+        <div style="width:60px; height:60px; border-radius:50%; background:#fef2f2; display:flex; align-items:center; justify-content:center; margin:0 auto 18px;">
+            <i class="bi bi-box-arrow-right" style="font-size:1.6rem; color:#dc2626;"></i>
         </div>
-        <h3 style="margin:0 0 8px; color:#2A2A2A; font-size:1.15rem;">Log out</h3>
-        <p style="color:#6c757d; font-size:0.9rem; margin:0 0 24px;">Are you sure you want to log out of your account?</p>
+        <h3 style="margin:0 0 8px; color:#18181b; font-size:1.25rem; font-weight:700;">Log out</h3>
+        <p style="color:#6b7280; font-size:0.92rem; margin:0 0 24px; line-height:1.5;">Are you sure you want to log out of your Safari Vents account?</p>
         <div style="display:flex; gap:12px; justify-content:center;">
-            <button onclick="document.getElementById('logoutModal').style.display='none'" style="padding:10px 24px; border-radius:8px; border:1px solid #dee2e6; background:white; color:#333; font-size:0.9rem; cursor:pointer; font-weight:500;">Cancel</button>
-            <button onclick="window.location.href='/logout'" style="padding:10px 24px; border-radius:8px; border:none; background:#dc3545; color:white; font-size:0.9rem; cursor:pointer; font-weight:500;">Log out</button>
+            <button onclick="document.getElementById('logoutModal').style.display='none'" style="padding:10px 24px; border-radius:10px; border:1px solid #e8e2d8; background:#f4efe6; color:#18181b; font-size:0.9rem; cursor:pointer; font-weight:600;">Cancel</button>
+            <button onclick="window.location.href='/logout'" style="padding:10px 24px; border-radius:10px; border:none; background:#dc2626; color:white; font-size:0.9rem; cursor:pointer; font-weight:600;">Log out</button>
         </div>
     </div>
 </div>
@@ -136,33 +140,34 @@
         position: fixed;
         bottom: 2rem;
         right: 2rem;
-        width: 52px;
-        height: 52px;
+        width: 54px;
+        height: 54px;
         border-radius: 50%;
-        background: #2A2A2A;
-        color: white;
+        background: #18181b;
+        color: #ffffff;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.25rem;
-        box-shadow: 0 4px 16px rgba(42, 42, 42, 0.3);
+        font-size: 1.35rem;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        border: 2px solid rgba(221, 122, 40, 0.4);
         z-index: 1000;
-        transition: all 0.2s;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         text-decoration: none;
     }
 
     .floating-chat-btn:hover {
-        transform: scale(1.08);
-        box-shadow: 0 6px 20px rgba(42, 42, 42, 0.4);
-        background: #9E8B63;
-        color: white;
+        transform: scale(1.1);
+        box-shadow: 0 12px 32px rgba(221, 122, 40, 0.4);
+        background: #DD7A28;
+        color: #ffffff;
     }
 
     .chat-badge {
         position: absolute;
         top: -4px;
         right: -4px;
-        background: #9E8B63;
+        background: #DD7A28;
         color: white;
         width: 20px;
         height: 20px;
@@ -171,8 +176,8 @@
         align-items: center;
         justify-content: center;
         font-size: 0.65rem;
-        font-weight: 600;
-        border: 2px solid white;
+        font-weight: 700;
+        border: 2px solid #18181b;
     }
 </style>
 

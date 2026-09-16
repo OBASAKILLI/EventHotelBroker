@@ -10,85 +10,102 @@
 
 <PageTitle>Add Admin - Safari Vents</PageTitle>
 
-<link href="/css/auth-register.css?v=2" rel="stylesheet" />
+<div style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #F5EFE6; min-height: 100%; padding: 24px; box-sizing: border-box;">
+    <div style="max-width: 800px; margin: 0 auto;">
+        <Breadcrumb Items="@breadcrumbItems" />
 
-<div style="max-width:640px;margin:40px auto;padding:0 16px;">
-    <div style="margin-bottom:28px;">
-        <h1 style="font-size:1.6rem;font-weight:800;color:#1a1a1a;margin-bottom:4px;">Add New Administrator</h1>
-        <p style="color:#6c757d;font-size:0.9rem;">Create an admin account. Login credentials will be sent to the new admin's email.</p>
-    </div>
-
-    @if (!isAdmin)
-    {
-        <div style="background:#fff5f5;border:1px solid #fed7d7;border-radius:14px;padding:32px;text-align:center;">
-            <i class="bi bi-shield-x" style="font-size:3rem;color:#dc3545;display:block;margin-bottom:12px;"></i>
-            <h4 style="color:#c53030;font-weight:700;">Access Denied</h4>
-            <p style="color:#6c757d;">Only administrators can access this page.</p>
+        <!-- Header Card -->
+        <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 14px; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+            <div>
+                <h1 style="font-size: 18px; font-weight: 800; color: #111827; letter-spacing: -0.02em; margin: 0 0 2px 0; display: flex; align-items: center; gap: 8px;">
+                    <i class="bi bi-person-plus-fill" style="color: #DD7A28; font-size: 18px;"></i> Add New Administrator
+                </h1>
+                <p style="font-size: 12px; color: #6B7280; margin: 0;">Create an admin account. Login credentials will be sent to the new admin's email.</p>
+            </div>
+            <a href="/admin/users" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 7px 14px; border-radius: 8px; border: 1px solid #E5E7EB; background: #FFFFFF; color: #374151; text-decoration: none; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+                <i class="bi bi-arrow-left"></i> Back to Users
+            </a>
         </div>
-    }
-    else
-    {
-        <div style="background:white;border-radius:16px;padding:36px;box-shadow:0 4px 24px rgba(0,0,0,0.07);">
 
-            @if (!string.IsNullOrEmpty(successMessage))
-            {
-                <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px 18px;margin-bottom:24px;color:#166534;font-size:0.9rem;">
-                    <i class="bi bi-check-circle me-2"></i>@successMessage
-                </div>
-            }
-            @if (!string.IsNullOrEmpty(errorMessage))
-            {
-                <div style="background:#fff5f5;border:1px solid #fed7d7;border-radius:10px;padding:14px 18px;margin-bottom:24px;color:#c53030;font-size:0.9rem;">
-                    <i class="bi bi-exclamation-circle me-2"></i>@errorMessage
-                </div>
-            }
-
-            <div style="margin-bottom:20px;">
-                <label style="display:block;font-weight:600;color:#374151;font-size:0.88rem;margin-bottom:6px;">Full Name <span style="color:#dc3545;">*</span></label>
-                <input type="text" @bind="fullName" placeholder="e.g. John Doe"
-                    style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:0.9rem;outline:none;box-sizing:border-box;" />
+        @if (!isAdmin)
+        {
+            <div style="background: #FFFFFF; border: 1px solid #FEE2E2; border-left: 4px solid #EF4444; border-radius: 14px; padding: 32px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                <i class="bi bi-shield-x" style="font-size: 2.5rem; color: #EF4444; display: block; margin-bottom: 12px;"></i>
+                <h3 style="color: #991B1B; font-weight: 800; font-size: 16px; margin-bottom: 4px;">Access Denied</h3>
+                <p style="color: #6B7280; font-size: 13px; margin: 0;">Only administrators can access this creation portal.</p>
             </div>
+        }
+        else
+        {
+            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 14px; padding: 28px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
 
-            <div style="margin-bottom:20px;">
-                <label style="display:block;font-weight:600;color:#374151;font-size:0.88rem;margin-bottom:6px;">Email Address <span style="color:#dc3545;">*</span></label>
-                <input type="email" @bind="email" placeholder="admin@safarivents.com"
-                    style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:0.9rem;outline:none;box-sizing:border-box;" />
-            </div>
-
-            <div style="margin-bottom:20px;">
-                <label style="display:block;font-weight:600;color:#374151;font-size:0.88rem;margin-bottom:6px;">Phone Number</label>
-                <input type="tel" @bind="phone" placeholder="+254 712 345 678"
-                    style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:0.9rem;outline:none;box-sizing:border-box;" />
-            </div>
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px;">
-                <div>
-                    <label style="display:block;font-weight:600;color:#374151;font-size:0.88rem;margin-bottom:6px;">Password <span style="color:#dc3545;">*</span></label>
-                    <input type="password" @bind="password" placeholder="Strong password"
-                        style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:0.9rem;outline:none;box-sizing:border-box;" />
-                </div>
-                <div>
-                    <label style="display:block;font-weight:600;color:#374151;font-size:0.88rem;margin-bottom:6px;">Confirm Password <span style="color:#dc3545;">*</span></label>
-                    <input type="password" @bind="confirmPassword" placeholder="Repeat password"
-                        style="width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:0.9rem;outline:none;box-sizing:border-box;" />
-                </div>
-            </div>
-
-            <div style="background:#fefce8;border:1px solid #fde68a;border-radius:10px;padding:14px 18px;margin-bottom:28px;font-size:0.85rem;color:#92400e;">
-                <i class="bi bi-info-circle me-2"></i>
-                An email with these credentials will be sent automatically to the new administrator. They should change their password after first login.
-            </div>
-
-            <button @onclick="HandleCreateAdmin" disabled="@isSubmitting"
-                style="width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#dc3545,#b02a37);color:white;font-weight:700;font-size:1rem;cursor:pointer;transition:opacity 0.2s;">
-                @if (isSubmitting)
+                @if (!string.IsNullOrEmpty(successMessage))
                 {
-                    <span class="spinner-border spinner-border-sm me-2"></span>
+                    <div style="background: #ECFDF5; border: 1px solid #A7F3D0; border-left: 4px solid #10B981; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; color: #065F46; font-size: 13px; display: flex; align-items: center; gap: 8px;">
+                        <i class="bi bi-check-circle-fill" style="color: #10B981;"></i>
+                        <span>@successMessage</span>
+                    </div>
                 }
-                <i class="bi bi-person-plus me-2"></i>Create Admin Account
-            </button>
-        </div>
-    }
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div style="background: #FEF2F2; border: 1px solid #FECACA; border-left: 4px solid #EF4444; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; color: #991B1B; font-size: 13px; display: flex; align-items: center; gap: 8px;">
+                        <i class="bi bi-exclamation-circle-fill" style="color: #EF4444;"></i>
+                        <span>@errorMessage</span>
+                    </div>
+                }
+
+                <div style="margin-bottom: 18px;">
+                    <label style="display: block; font-weight: 700; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">Full Name <span style="color: #EF4444;">*</span></label>
+                    <input type="text" @bind="fullName" placeholder="e.g. John Doe"
+                        style="width: 100%; padding: 10px 14px; border: 1px solid #E5E7EB; border-radius: 8px; font-size: 13px; outline: none; box-sizing: border-box; font-family: inherit;" />
+                </div>
+
+                <div style="margin-bottom: 18px;">
+                    <label style="display: block; font-weight: 700; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">Email Address <span style="color: #EF4444;">*</span></label>
+                    <input type="email" @bind="email" placeholder="admin@eventhotelbroker.com"
+                        style="width: 100%; padding: 10px 14px; border: 1px solid #E5E7EB; border-radius: 8px; font-size: 13px; outline: none; box-sizing: border-box; font-family: inherit;" />
+                </div>
+
+                <div style="margin-bottom: 18px;">
+                    <label style="display: block; font-weight: 700; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">Phone Number</label>
+                    <input type="tel" @bind="phone" placeholder="+254 712 345 678"
+                        style="width: 100%; padding: 10px 14px; border: 1px solid #E5E7EB; border-radius: 8px; font-size: 13px; outline: none; box-sizing: border-box; font-family: inherit;" />
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                    <div>
+                        <label style="display: block; font-weight: 700; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">Password <span style="color: #EF4444;">*</span></label>
+                        <input type="password" @bind="password" placeholder="Minimum 8 characters"
+                            style="width: 100%; padding: 10px 14px; border: 1px solid #E5E7EB; border-radius: 8px; font-size: 13px; outline: none; box-sizing: border-box; font-family: inherit;" />
+                    </div>
+                    <div>
+                        <label style="display: block; font-weight: 700; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">Confirm Password <span style="color: #EF4444;">*</span></label>
+                        <input type="password" @bind="confirmPassword" placeholder="Repeat password"
+                            style="width: 100%; padding: 10px 14px; border: 1px solid #E5E7EB; border-radius: 8px; font-size: 13px; outline: none; box-sizing: border-box; font-family: inherit;" />
+                    </div>
+                </div>
+
+                <div style="background: #FFF7ED; border: 1px solid #FED7AA; border-left: 4px solid #DD7A28; border-radius: 8px; padding: 12px 16px; margin-bottom: 24px; font-size: 12px; color: #9A3412; display: flex; align-items: flex-start; gap: 8px;">
+                    <i class="bi bi-info-circle-fill" style="color: #DD7A28; margin-top: 1px;"></i>
+                    <span>An email with these credentials will be sent automatically to the new administrator. They should change their password after first login.</span>
+                </div>
+
+                <button @onclick="HandleCreateAdmin" disabled="@isSubmitting"
+                    style="width: 100%; padding: 12px 20px; border: none; border-radius: 8px; background: #DD7A28; color: #FFFFFF; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.15s ease; box-shadow: 0 1px 3px rgba(221, 122, 40, 0.2); display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    @if (isSubmitting)
+                    {
+                        <span class="spinner-border spinner-border-sm"></span>
+                        <span>Creating Account...</span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-person-plus-fill"></i>
+                        <span>Create Admin Account</span>
+                    }
+                </button>
+            </div>
+        }
+    </div>
 </div>
 
 @code {
@@ -104,6 +121,14 @@
     private bool isSubmitting = false;
     private string successMessage = "";
     private string errorMessage = "";
+
+    private List<BreadcrumbItem> breadcrumbItems = new()
+    {
+        new BreadcrumbItem { Text = "Home", Url = "/" },
+        new BreadcrumbItem { Text = "Admin Dashboard", Url = "/admin/dashboard" },
+        new BreadcrumbItem { Text = "Users", Url = "/admin/users" },
+        new BreadcrumbItem { Text = "Add Administrator", IsActive = true }
+    };
 
     protected override async Task OnInitializedAsync()
     {
