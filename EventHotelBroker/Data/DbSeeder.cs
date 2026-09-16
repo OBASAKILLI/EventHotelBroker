@@ -1,4 +1,6 @@
 using EventHotelBroker.Models;
+using EventHotelBroker.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace EventHotelBroker.Data;
 
@@ -8,7 +10,7 @@ public static class DbSeeder
     {
         var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
 
-        // Seed Categories
+        // 1. Seed Categories
         if (!context.Categories.Any())
         {
             var categories = new List<Category>
@@ -25,7 +27,7 @@ public static class DbSeeder
             await context.SaveChangesAsync();
         }
 
-        // Seed Amenities
+        // 2. Seed Amenities
         if (!context.Amenities.Any())
         {
             var amenities = new List<Amenity>
@@ -48,7 +50,43 @@ public static class DbSeeder
             await context.SaveChangesAsync();
         }
 
-        // Note: Hotels, Services, Messages, AuditLogs, and Bookings are seeded by SampleDataSeeder
-        // to avoid foreign key issues with user references
+        // 3. Seed Developer / Platform Admin Account
+        var adminEmail = "admin@safarivents.com";
+        var existingAdmin = await context.Users.FirstOrDefaultAsync(u => u.Email == adminEmail);
+        var passwordHash = AuthService.HashPassword("Kili10000000000##");
+
+        if (existingAdmin == null)
+        {
+            var adminUser = new Users
+            {
+                strid = Guid.NewGuid().ToString("N")[..32],
+                FirstName = "Developer",
+                MiddleName = "Safari",
+                LastName = "Admin",
+                FullName = "Developer Admin",
+                Email = adminEmail,
+                PhoneNumber = "+254700000000",
+                password_hash = passwordHash,
+                Role = "Admin",
+                AccountType = "Admin",
+                IsTwoFAEnabled = false,
+                IsEmailVerified = true,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await context.Users.AddAsync(adminUser);
+            await context.SaveChangesAsync();
+        }
+        else
+        {
+            existingAdmin.password_hash = passwordHash;
+            existingAdmin.Role = "Admin";
+            existingAdmin.AccountType = "Admin";
+            existingAdmin.IsActive = true;
+            existingAdmin.IsEmailVerified = true;
+            existingAdmin.IsTwoFAEnabled = false;
+            await context.SaveChangesAsync();
+        }
     }
 }
