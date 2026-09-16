@@ -12,7 +12,8 @@
     <!-- Auth App Bar -->
     <header class="auth-app-bar">
         <div class="app-bar-content">
-            <a href="/" class="app-bar-brand" style="text-decoration:none;">
+            <a href="/" class="app-bar-brand" style="text-decoration:none; display: flex; align-items: center; gap: 0.6rem;">
+                <img src="/Images/LOGO.png" alt="Safari Vents" style="height: 32px; width: auto; border-radius: 4px; mix-blend-mode: darken;" />
                 <span class="brand-text">Safari Vents</span>
             </a>
             <div class="app-bar-actions">
@@ -51,6 +52,9 @@
     .auth-layout {
         min-height: 100vh;
         background: linear-gradient(135deg, #f5f3ef 0%, #ebe6dd 50%, #e2ddd3 100%);
+        display: flex;
+        flex-direction: column;
+        width: 100%;
     }
 
     .auth-app-bar {
@@ -122,11 +126,14 @@
     }
 
     .auth-content {
-        padding-top: 56px;
-        min-height: 100vh;
+        padding-top: 76px;
+        padding-bottom: 2rem;
+        flex: 1;
         display: flex;
         align-items: center;
         justify-content: center;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     /* Hide error UI on auth pages */
