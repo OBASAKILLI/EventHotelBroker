@@ -1,4 +1,4 @@
-@page "/"
+﻿@page "/"
 @layout EventHotelBroker.Components.Layout.HomeLayout
 @rendermode InteractiveServer
 @using EventHotelBroker.Services
@@ -103,7 +103,7 @@
                         </div>
                         <div class="trust-divider"></div>
                         <div class="trust-item">
-                            <div class="trust-num">4.9★</div>
+                            <div class="trust-num">4.9â˜…</div>
                             <div class="trust-lbl">Host Rating</div>
                         </div>
                         <div class="trust-divider"></div>
@@ -289,7 +289,7 @@
             <h2 class="section-title">How It Works</h2>
             <p class="section-subtitle">Book your perfect venue in three easy steps</p>
         </div>
-        <div class="row g-4">
+        <div class="row g-2 g-md-3 g-lg-4">
             <div class="col-md-4">
                 <div class="feature-card">
                     <div class="feature-number">01</div>
@@ -400,10 +400,10 @@
                 }
                 else
                 {
-                    <div class="row g-4">
+                    <div class="row g-2 g-md-3 g-lg-4">
                         @foreach (var hotel in featuredHotels.Take(6))
                         {
-                            <div class="col-md-6 col-lg-3">
+                            <div class="col-6 col-md-6 col-lg-3">
                                 <a href="/hotels/@hotel.Id" class="hotel-card" style="text-decoration:none;color:inherit;display:block;">
                                     <div class="hotel-image">
                                         @if (hotel.Images?.Any() == true)
@@ -495,10 +495,10 @@
                 }
                 else
                 {
-                    <div class="row g-4">
+                    <div class="row g-2 g-md-3 g-lg-4">
                         @foreach (var hotel in filteredHotels.Take(6))
                         {
-                            <div class="col-md-6 col-lg-3">
+                            <div class="col-6 col-md-6 col-lg-3">
                                 <a href="/hotels/@hotel.Id" class="hotel-card" style="text-decoration:none;color:inherit;display:block;">
                                     <div class="hotel-image">
                                         @if (hotel.Images?.Any() == true)
@@ -590,10 +590,10 @@
                 }
                 else
                 {
-                    <div class="row g-4">
+                    <div class="row g-2 g-md-3 g-lg-4">
                         @foreach (var hotel in filteredHotels.Take(6))
                         {
-                            <div class="col-md-6 col-lg-3">
+                            <div class="col-6 col-md-6 col-lg-3">
                                 <a href="/hotels/@hotel.Id" class="hotel-card" style="text-decoration:none;color:inherit;display:block;">
                                     <div class="hotel-image">
                                         @if (hotel.Images?.Any() == true)
@@ -685,10 +685,10 @@
                 }
                 else
                 {
-                    <div class="row g-4">
+                    <div class="row g-2 g-md-3 g-lg-4">
                         @foreach (var hotel in filteredHotels.Take(6))
                         {
-                            <div class="col-md-6 col-lg-3">
+                            <div class="col-6 col-md-6 col-lg-3">
                                 <a href="/hotels/@hotel.Id" class="hotel-card" style="text-decoration:none;color:inherit;display:block;">
                                     <div class="hotel-image">
                                         @if (hotel.Images?.Any() == true)
@@ -780,10 +780,10 @@
                 }
                 else
                 {
-                    <div class="row g-4">
+                    <div class="row g-2 g-md-3 g-lg-4">
                         @foreach (var package in featuredPackages.Take(6))
                         {
-                            <div class="col-md-6 col-lg-3">
+                            <div class="col-6 col-md-6 col-lg-3">
                                 <a href="/events/package/@package.Id" class="package-card-home" style="text-decoration:none;color:inherit;display:block;">
                                     <div class="package-image">
                                         @if (!string.IsNullOrEmpty(package.ImageUrl))
@@ -886,10 +886,10 @@
                 }
                 else
                 {
-                    <div class="row g-4">
+                    <div class="row g-2 g-md-3 g-lg-4">
                         @foreach (var equipment in featuredEquipments.Take(8))
                         {
-                            <div class="col-md-6 col-lg-3">
+                            <div class="col-6 col-md-6 col-lg-3">
                                 <a href="/events?tab=equipment" class="equip-card-home" style="text-decoration:none;color:inherit;display:block;">
                                     <div class="equip-card-img-home">
                                         @{ var eqImg = equipment.Images?.OrderBy(i => i.DisplayOrder).FirstOrDefault(); }
@@ -943,8 +943,8 @@
             <h2 class="section-title">Built For Seamless Event Success</h2>
             <p class="section-subtitle">We remove the friction from discovering, booking, and managing venues across Kenya</p>
         </div>
-        <div class="row g-4">
-            <div class="col-md-6 col-lg-3">
+        <div class="row g-2 g-md-3 g-lg-4">
+            <div class="col-6 col-md-6 col-lg-3">
                 <div class="why-card">
                     <div class="why-icon-box">
                         <i class="bi bi-shield-check"></i>
@@ -953,7 +953,7 @@
                     <p class="why-desc">Every hotel, lodge, and rental company is vetted for authentic photos, safety standards, and service excellence.</p>
                 </div>
             </div>
-            <div class="col-md-6 col-lg-3">
+            <div class="col-6 col-md-6 col-lg-3">
                 <div class="why-card">
                     <div class="why-icon-box">
                         <i class="bi bi-phone"></i>
@@ -962,7 +962,7 @@
                     <p class="why-desc">Pay securely with Lipa na M-PESA, Visa, or Mastercard with instant automated receipts and booking confirmation.</p>
                 </div>
             </div>
-            <div class="col-md-6 col-lg-3">
+            <div class="col-6 col-md-6 col-lg-3">
                 <div class="why-card">
                     <div class="why-icon-box">
                         <i class="bi bi-chat-heart"></i>
@@ -971,7 +971,7 @@
                     <p class="why-desc">Chat directly with venue managers, schedule on-site tours, and request customized catering and setup packages.</p>
                 </div>
             </div>
-            <div class="col-md-6 col-lg-3">
+            <div class="col-6 col-md-6 col-lg-3">
                 <div class="why-card">
                     <div class="why-icon-box">
                         <i class="bi bi-layers"></i>

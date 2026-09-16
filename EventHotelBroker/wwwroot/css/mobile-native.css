@@ -23,105 +23,406 @@
     body {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
         -webkit-font-smoothing: antialiased;
-        padding-bottom: 64px !important; /* Space for bottom nav */
+        padding-bottom: 64px !important;
     }
 
     h1, .h1, .page-title, .ud-title, .od-title, .bookings-header-left h1, .evt-bookings-header-left h1 {
-        font-size: 1.35rem !important;
+        font-size: 1.3rem !important;
         line-height: 1.25 !important;
         letter-spacing: -0.02em !important;
         font-weight: 800 !important;
     }
 
     h2, .h2, .section-title {
-        font-size: 1.18rem !important;
+        font-size: 1.15rem !important;
         line-height: 1.25 !important;
         letter-spacing: -0.015em !important;
         font-weight: 700 !important;
     }
 
     h3, .h3 {
-        font-size: 1.05rem !important;
+        font-size: 1.02rem !important;
         line-height: 1.3 !important;
         font-weight: 700 !important;
     }
 
     h4, .h4 {
-        font-size: 0.95rem !important;
+        font-size: 0.92rem !important;
         font-weight: 700 !important;
     }
 
-    p, .text-muted, .ud-subtitle, .od-subtitle, .bookings-header-left p, .evt-bookings-header-left p {
-        font-size: 0.85rem !important;
-        line-height: 1.4 !important;
+    p, .text-muted, .ud-subtitle, .od-subtitle, .bookings-header-left p, .evt-bookings-header-left p, .section-subtitle {
+        font-size: 0.82rem !important;
+        line-height: 1.35 !important;
     }
 
-    /* â”€â”€ 2. Native Mobile Spacing Scale â”€â”€ */
-    .ud-shell,
-    .bookings-page,
-    .evt-bookings-page,
-    .od,
-    .content-wrapper,
+    /* â”€â”€ 2. Top App Bar Cleanups (Fixes Image 4 & Image 5) â”€â”€ */
+    /* Hide oversized List Your Venue button on mobile (Image 4) */
+    .nav-btn-list-venue {
+        display: none !important;
+    }
+
+    /* Navbar brand logo sizing */
+    .navbar-brand-logo {
+        height: 32px !important;
+        max-width: 130px !important;
+        object-fit: contain !important;
+    }
+
+    /* Hide cluttered action buttons in MainLayout header (Image 5) */
+    .modern-app-bar .app-bar-btn[title="Settings"],
+    .modern-app-bar .app-bar-btn[title="Notifications"] {
+        display: none !important;
+    }
+
+    .app-bar-content {
+        padding: 0 10px !important;
+        height: 54px !important;
+    }
+
+    .modern-app-bar {
+        height: 54px !important;
+    }
+
     .modern-main-content {
-        padding: 10px 12px !important;
-        max-width: 100% !important;
-        box-sizing: border-box !important;
+        margin-top: 54px !important;
+        padding-bottom: 72px !important;
     }
 
-    .content-wrapper > .container-fluid {
-        padding: 10px 12px !important;
+    /* Hide floating chat button on mobile (prevents card overlap - Image 3 & 5) */
+    .floating-chat-btn {
+        display: none !important;
     }
 
-    /* Cards: tighter native padding & soft radius */
-    .card,
-    .ud-welcome,
-    .od-welcome,
-    .bookings-header,
-    .evt-bookings-header,
-    .ud-card,
-    .bookings-table-card,
-    .evt-card {
-        padding: 12px 14px !important;
-        border-radius: 14px !important;
-        margin-bottom: 12px !important;
+    /* â”€â”€ 3. TWO COLUMNS FOR HOTELS & EVENTS (User Request) â”€â”€ */
+    /* Homepage hotel & package grids */
+    .tab-content .row {
+        --bs-gutter-x: 8px !important;
+        --bs-gutter-y: 10px !important;
+    }
+
+    /* Force 2 columns on search page and events page */
+    .hotel-grid,
+    .packages-grid,
+    .equipment-grid,
+    .events-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+    }
+
+    /* 2-Column Hotel Card Styling */
+    .hotel-card,
+    .package-card,
+    .package-card-home,
+    .equipment-card-home {
+        border-radius: 12px !important;
+        margin-bottom: 0 !important;
+        overflow: hidden !important;
+        background: #FFFFFF !important;
+        border: 1px solid #E5E7EB !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100% !important;
+    }
+
+    .hotel-image,
+    .package-image,
+    .package-card-img {
+        height: 115px !important;
+        position: relative !important;
+        overflow: hidden !important;
+    }
+
+    .hotel-image img,
+    .package-image img,
+    .package-card-img img {
+        height: 100% !important;
+        width: 100% !important;
+        object-fit: cover !important;
+    }
+
+    .hotel-badge,
+    .package-featured-badge {
+        font-size: 8.5px !important;
+        padding: 2px 5px !important;
+        border-radius: 4px !important;
+        top: 6px !important;
+        right: 6px !important;
+    }
+
+    .hotel-category-badge,
+    .package-type-badge {
+        font-size: 8.5px !important;
+        padding: 2px 5px !important;
+        border-radius: 4px !important;
+        bottom: 6px !important;
+        left: 6px !important;
+    }
+
+    .hotel-content,
+    .package-card-body {
+        padding: 8px 10px !important;
+        flex: 1 !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    .hotel-name,
+    .package-card-body h4 {
+        font-size: 12px !important;
+        font-weight: 700 !important;
+        color: #111827 !important;
+        margin: 0 0 2px 0 !important;
+        line-height: 1.3 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    .hotel-location {
+        font-size: 10.5px !important;
+        color: #6B7280 !important;
+        margin-bottom: 4px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        display: block !important;
+    }
+
+    .hotel-meta-row,
+    .package-meta {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        margin-top: auto !important;
+        padding-top: 4px !important;
+        border-top: 1px solid #F3F4F6 !important;
+    }
+
+    .hotel-rating {
+        font-size: 10px !important;
+        color: #D97706 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 2px !important;
+    }
+
+    .hotel-price-inline .price-amount,
+    .package-price .current {
+        font-size: 12px !important;
+        font-weight: 800 !important;
+        color: #DD7A28 !important;
+    }
+
+    .hotel-price-inline .price-period {
+        font-size: 9.5px !important;
+        color: #6B7280 !important;
+    }
+
+    /* Hide long descriptions in 2-column cards on mobile (avoids error text clutter - Image 3) */
+    .hotel-description,
+    .package-desc {
+        display: none !important;
+    }
+
+    .hotel-footer {
+        display: none !important; /* redundant on mobile cards */
+    }
+
+    /* â”€â”€ 4. CATEGORY TABS HORIZONTAL SWIPE (Fixes Image 2) â”€â”€ */
+    .modern-tabs-container {
+        display: flex !important;
+        justify-content: flex-start !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding: 4px 2px 10px 2px !important;
+        margin-bottom: 14px !important;
+        scrollbar-width: none !important;
+    }
+
+    .modern-tabs-container::-webkit-scrollbar {
+        display: none !important;
+    }
+
+    .modern-tabs {
+        display: inline-flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        width: max-content !important;
+        gap: 6px !important;
+        padding: 3px 6px !important;
+        border-radius: 999px !important;
+        background: #FFFFFF !important;
+        border: 1px solid #E5E7EB !important;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
     }
 
-    /* â”€â”€ 3. Touch-Optimized Form Controls (Prevent iOS zoom) â”€â”€ */
-    input[type="text"],
-    input[type="email"],
-    input[type="password"],
-    input[type="number"],
-    input[type="tel"],
-    input[type="date"],
-    select,
-    textarea,
-    .form-control,
-    .filter-select,
-    .evt-filter-select {
-        font-size: 16px !important; /* Prevents auto-zoom on iOS */
-        min-height: 44px !important;
-        border-radius: 10px !important;
-        box-sizing: border-box !important;
-    }
-
-    /* Native touch button heights */
-    .btn,
-    .ud-btn,
-    .od-btn,
-    .bookings-new-btn,
-    .evt-new-btn,
-    .nav-btn-list-venue {
-        min-height: 42px !important;
-        padding: 8px 16px !important;
-        font-size: 13px !important;
-        border-radius: 10px !important;
+    .modern-tabs .nav-link {
         display: inline-flex !important;
         align-items: center !important;
-        justify-content: center !important;
+        gap: 5px !important;
+        padding: 6px 12px !important;
+        font-size: 11.5px !important;
+        font-weight: 600 !important;
+        border-radius: 999px !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        border: none !important;
+        background: transparent !important;
+        color: #4B5563 !important;
     }
 
-    /* â”€â”€ 4. Mobile Bottom Navigation Bar (Native App Style) â”€â”€ */
+    .modern-tabs .nav-link.active {
+        background: #DD7A28 !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 2px 6px rgba(221, 122, 40, 0.25) !important;
+    }
+
+    .modern-tabs .tab-count {
+        font-size: 9px !important;
+        padding: 1px 5px !important;
+        border-radius: 999px !important;
+        margin-left: 3px !important;
+        background: #F3F4F6 !important;
+        color: #6B7280 !important;
+    }
+
+    .modern-tabs .nav-link.active .tab-count {
+        background: rgba(255, 255, 255, 0.25) !important;
+        color: #FFFFFF !important;
+    }
+
+    /* â”€â”€ 5. HERO SEARCH CARD & STATS (Fixes Image 1) â”€â”€ */
+    .hero-search-card {
+        padding: 12px 14px !important;
+        border-radius: 16px !important;
+        background: #FFFFFF !important;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05) !important;
+        border: 1px solid #E5E7EB !important;
+        margin-bottom: 12px !important;
+    }
+
+    .hero-search-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+
+    .search-field {
+        padding: 6px 10px !important;
+        background: #F9FAFB !important;
+        border: 1px solid #E5E7EB !important;
+        border-radius: 10px !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    .field-label {
+        font-size: 9.5px !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        margin-bottom: 2px !important;
+        color: #6B7280 !important;
+    }
+
+    .field-control {
+        font-size: 13.5px !important;
+        min-height: 28px !important;
+        border: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+        font-weight: 600 !important;
+        color: #111827 !important;
+        width: 100% !important;
+    }
+
+    .field-divider {
+        display: none !important;
+    }
+
+    .btn-hero-search {
+        min-height: 42px !important;
+        width: 100% !important;
+        border-radius: 10px !important;
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        justify-content: center !important;
+        background: #DD7A28 !important;
+        color: #FFFFFF !important;
+        margin-top: 4px !important;
+        border: none !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+    }
+
+    .hero-quick-tags {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+        scrollbar-width: none !important;
+        padding: 6px 0 !important;
+        margin-bottom: 8px !important;
+    }
+
+    .hero-quick-tags::-webkit-scrollbar {
+        display: none !important;
+    }
+
+    .quick-tags-label {
+        font-size: 11px !important;
+        font-weight: 600 !important;
+        color: #6B7280 !important;
+    }
+
+    .quick-tag-pill {
+        padding: 4px 10px !important;
+        font-size: 11px !important;
+        border-radius: 999px !important;
+        background: #FFFFFF !important;
+        border: 1px solid #E5E7EB !important;
+        color: #374151 !important;
+        flex-shrink: 0 !important;
+    }
+
+    .hero-trust-bar {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 4px !important;
+        padding: 10px 6px !important;
+        background: #FFFFFF !important;
+        border: 1px solid #E5E7EB !important;
+        border-radius: 12px !important;
+        margin-top: 10px !important;
+    }
+
+    .trust-divider {
+        display: none !important;
+    }
+
+    .trust-item {
+        text-align: center !important;
+    }
+
+    .trust-num {
+        font-size: 12px !important;
+        font-weight: 800 !important;
+        color: #111827 !important;
+    }
+
+    .trust-lbl {
+        font-size: 8px !important;
+        color: #6B7280 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.02em !important;
+        margin-top: 2px !important;
+    }
+
+    /* â”€â”€ 6. Mobile Bottom Navigation Bar (Airbnb/Uber Style) â”€â”€ */
     .mobile-bottom-nav {
         display: flex !important;
         position: fixed !important;
@@ -177,42 +478,31 @@
         border-radius: 999px !important;
     }
 
-    /* â”€â”€ 5. Floating Action Buttons (Avoid bottom nav collision) â”€â”€ */
-    .floating-chat-btn {
-        bottom: 68px !important;
-        right: 14px !important;
-        width: 44px !important;
-        height: 44px !important;
-        font-size: 1.15rem !important;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2) !important;
+    /* â”€â”€ 7. Spacing & Touch Inputs â”€â”€ */
+    .ud-shell,
+    .bookings-page,
+    .evt-bookings-page,
+    .od,
+    .content-wrapper {
+        padding: 10px 12px !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
     }
 
-    .whatsapp-support-widget,
-    .whatsapp-widget-btn {
-        bottom: 120px !important;
-        right: 14px !important;
+    .card,
+    .ud-welcome,
+    .od-welcome,
+    .bookings-header,
+    .evt-bookings-header {
+        padding: 12px 14px !important;
+        border-radius: 14px !important;
+        margin-bottom: 12px !important;
     }
 
-    /* â”€â”€ 6. Mobile App Bar â”€â”€ */
-    .modern-app-bar {
-        height: 54px !important;
-    }
-
-    .app-bar-content {
-        padding: 0 12px !important;
-        height: 54px !important;
-    }
-
-    .modern-main-content {
-        margin-top: 54px !important;
-        padding-bottom: 72px !important;
-    }
-
-    /* â”€â”€ 7. Statistics Cards on Mobile: 2x2 Grid â”€â”€ */
+    /* 2x2 Stats Grid on Mobile */
     .bookings-stats,
     .evt-stats,
-    .od-stats,
-    .row.g-3.mb-3 {
+    .od-stats {
         display: grid !important;
         grid-template-columns: repeat(2, 1fr) !important;
         gap: 8px !important;
@@ -225,10 +515,6 @@
     .ud-stat {
         padding: 10px 12px !important;
         border-radius: 12px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: space-between !important;
-        gap: 8px !important;
     }
 
     .stat-value,
@@ -236,20 +522,6 @@
     .od-stat-value,
     .ud-stat-value {
         font-size: 17px !important;
-        font-weight: 800 !important;
-        line-height: 1.1 !important;
-        margin-bottom: 2px !important;
-    }
-
-    .stat-label,
-    .evt-stat-label,
-    .od-stat-label,
-    .ud-stat-label {
-        font-size: 9.5px !important;
-        font-weight: 600 !important;
-        text-transform: uppercase !important;
-        letter-spacing: 0.02em !important;
-        color: #6B7280 !important;
     }
 
     .stat-icon,
@@ -259,261 +531,5 @@
         width: 32px !important;
         height: 32px !important;
         font-size: 14px !important;
-        border-radius: 8px !important;
-        flex-shrink: 0 !important;
-    }
-
-    /* â”€â”€ 8. Search & Filter Bar on Mobile â”€â”€ */
-    .bookings-search-bar,
-    .evt-search-bar {
-        flex-direction: column !important;
-        gap: 8px !important;
-        padding: 10px 12px !important;
-        margin-bottom: 12px !important;
-    }
-
-    .search-input-wrap,
-    .evt-search-wrap {
-        width: 100% !important;
-    }
-
-    .search-filters,
-    .evt-filters {
-        width: 100% !important;
-        justify-content: space-between !important;
-    }
-
-    .filter-select,
-    .evt-filter-select {
-        flex: 1 !important;
-    }
-
-    /* â”€â”€ 9. Table-to-Card Transformation for My Bookings â”€â”€ */
-    .bookings-table-card {
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-    }
-
-    .table-responsive-wrap {
-        overflow: visible !important;
-    }
-
-    .bookings-table {
-        display: block !important;
-        width: 100% !important;
-    }
-
-    .bookings-table thead {
-        display: none !important; /* Hide rigid table headers */
-    }
-
-    .bookings-table tbody {
-        display: block !important;
-        width: 100% !important;
-    }
-
-    .bookings-table tbody tr {
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 6px !important;
-        background: #FFFFFF !important;
-        border: 1px solid #E5E7EB !important;
-        border-radius: 12px !important;
-        margin-bottom: 10px !important;
-        padding: 12px 14px !important;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
-    }
-
-    .bookings-table tbody td {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: space-between !important;
-        padding: 3px 0 !important;
-        border: none !important;
-        font-size: 12px !important;
-    }
-
-    .bookings-table tbody td:nth-child(1) { /* ID pill */
-        order: 1 !important;
-    }
-
-    .bookings-table tbody td:nth-child(8) { /* Status */
-        order: 2 !important;
-    }
-
-    .bookings-table tbody td:nth-child(2) { /* Hotel name */
-        order: 3 !important;
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        border-bottom: 1px solid #F3F4F6 !important;
-        padding-bottom: 6px !important;
-        margin-bottom: 4px !important;
-    }
-
-    .bookings-table tbody td:nth-child(3), /* Location */
-    .bookings-table tbody td:nth-child(4), /* Checkin */
-    .bookings-table tbody td:nth-child(5), /* Checkout */
-    .bookings-table tbody td:nth-child(6) { /* Guests */
-        order: 4 !important;
-    }
-
-    .bookings-table tbody td:nth-child(7) { /* Price */
-        order: 5 !important;
-        border-top: 1px solid #F3F4F6 !important;
-        padding-top: 6px !important;
-        margin-top: 4px !important;
-        font-size: 14px !important;
-    }
-
-    .bookings-table tbody td:nth-child(9) { /* Actions */
-        order: 6 !important;
-    }
-
-    /* â”€â”€ 10. Event Bookings: 1-Column Responsive Cards â”€â”€ */
-    .evt-cards-grid {
-        grid-template-columns: 1fr !important;
-        gap: 10px !important;
-    }
-
-    .evt-card {
-        padding: 12px 14px !important;
-    }
-
-    /* â”€â”€ 11. User Dashboard Layout on Mobile â”€â”€ */
-    .ud-welcome {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 10px !important;
-    }
-
-    .ud-welcome-right {
-        width: 100% !important;
-        display: flex !important;
-        gap: 8px !important;
-    }
-
-    .ud-welcome-right .ud-btn {
-        flex: 1 !important;
-        justify-content: center !important;
-    }
-
-    .ud-tab-bar {
-        padding: 4px !important;
-        overflow-x: auto !important;
-        flex-wrap: nowrap !important;
-        gap: 6px !important;
-    }
-
-    .ud-tab {
-        font-size: 11.5px !important;
-        padding: 6px 10px !important;
-        white-space: nowrap !important;
-    }
-
-    .ud-qaction-stack {
-        display: grid !important;
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 8px !important;
-    }
-
-    .ud-qaction {
-        padding: 10px 12px !important;
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 6px !important;
-    }
-
-    .ud-qaction-arrow {
-        display: none !important;
-    }
-
-    /* â”€â”€ 12. Owner Creation Forms on Mobile (No Wasted Space) â”€â”€ */
-    .create-hotel-grid,
-    .create-package-grid,
-    .create-equipment-grid,
-    .form-grid-2col {
-        grid-template-columns: 1fr !important;
-        gap: 10px !important;
-    }
-
-    .photo-dropzone,
-    .file-upload-zone {
-        padding: 16px !important;
-        min-height: 90px !important;
-    }
-
-    /* â”€â”€ 13. Homepage & Search Adjustments on Mobile â”€â”€ */
-    .hero-title,
-    .hp-hero-title {
-        font-size: 1.45rem !important;
-        line-height: 1.25 !important;
-    }
-
-    .hero-subtitle,
-    .hp-hero-sub {
-        font-size: 0.88rem !important;
-    }
-
-    .search-widget,
-    .hp-search-box {
-        padding: 12px !important;
-        border-radius: 14px !important;
-    }
-
-    .category-pills-row,
-    .hp-categories {
-        overflow-x: auto !important;
-        display: flex !important;
-        flex-wrap: nowrap !important;
-        gap: 8px !important;
-        padding-bottom: 6px !important;
-        -webkit-overflow-scrolling: touch !important;
-    }
-
-    .category-pill,
-    .hp-cat-item {
-        flex-shrink: 0 !important;
-    }
-
-    .hotels-grid,
-    .venue-grid {
-        grid-template-columns: 1fr !important;
-        gap: 12px !important;
-    }
-}
-
-/* ==========================================================================
-   EXTRA COMPACT PHONE RULES (max-width: 480px)
-   ========================================================================== */
-@media (max-width: 480px) {
-    .bookings-stats,
-    .evt-stats,
-    .od-stats {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 6px !important;
-    }
-
-    .stat-value,
-    .evt-stat-value,
-    .od-stat-value,
-    .ud-stat-value {
-        font-size: 15px !important;
-    }
-
-    .stat-icon,
-    .evt-stat-icon,
-    .od-stat-icon,
-    .ud-stat-icon {
-        width: 28px !important;
-        height: 28px !important;
-        font-size: 12px !important;
-    }
-
-    .stat-label,
-    .evt-stat-label,
-    .od-stat-label,
-    .ud-stat-label {
-        font-size: 9px !important;
     }
 }

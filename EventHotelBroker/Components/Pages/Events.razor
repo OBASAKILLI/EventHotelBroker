@@ -19,23 +19,23 @@
 
     <div class="events-type-selector">
         <div class="events-type-card @(selectedEventType == "Wedding" ? "active" : "")" @onclick='() => SelectEventType("Wedding")'>
-            <div class="icon">💒</div>
+            <div class="icon">ðŸ’’</div>
             <div class="label">Wedding</div>
         </div>
         <div class="events-type-card @(selectedEventType == "Corporate" ? "active" : "")" @onclick='() => SelectEventType("Corporate")'>
-            <div class="icon">💼</div>
+            <div class="icon">ðŸ’¼</div>
             <div class="label">Corporate</div>
         </div>
         <div class="events-type-card @(selectedEventType == "Birthday" ? "active" : "")" @onclick='() => SelectEventType("Birthday")'>
-            <div class="icon">🎂</div>
+            <div class="icon">ðŸŽ‚</div>
             <div class="label">Birthday</div>
         </div>
         <div class="events-type-card @(selectedEventType == "Conference" ? "active" : "")" @onclick='() => SelectEventType("Conference")'>
-            <div class="icon">🎤</div>
+            <div class="icon">ðŸŽ¤</div>
             <div class="label">Conference</div>
         </div>
         <div class="events-type-card @(selectedEventType == "Party" ? "active" : "")" @onclick='() => SelectEventType("Party")'>
-            <div class="icon">🎉</div>
+            <div class="icon">ðŸŽ‰</div>
             <div class="label">Party</div>
         </div>
     </div>
@@ -95,7 +95,7 @@
                                         }
                                         <span class="current">KES @((package.DiscountedPrice ?? package.TotalPrice).ToString("N0"))</span>
                                     </div>
-                                    <span class="package-guests"><i class="bi bi-people"></i> @package.MinGuests–@package.MaxGuests</span>
+                                    <span class="package-guests"><i class="bi bi-people"></i> @package.MinGuests - @package.MaxGuests</span>
                                 </div>
 
                                 <div class="package-actions">

@@ -1,11 +1,11 @@
-/* ========================================
-   HOME PAGE TABS & CARDS STYLING — LIGHT THEME
+﻿/* ========================================
+   HOME PAGE TABS & CARDS STYLING â€” LIGHT THEME
    Safari Vents Luxury Light Palette
-   Inspiration: Warm Sand #f4efe6 · Pure White #ffffff
-   Obsidian Charcoal #18181b · Warm Copper #b86d26
+   Inspiration: Warm Sand #f4efe6 Â· Pure White #ffffff
+   Obsidian Charcoal #18181b Â· Warm Copper #b86d26
    ======================================== */
 
-/* ── Modern Tabs (pill style) ── */
+/* â”€â”€ Modern Tabs (pill style) â”€â”€ */
 .modern-tabs-container {
     display: flex;
     justify-content: center;
@@ -74,7 +74,7 @@
     color: #ffffff;
 }
 
-/* ── Tab Content Animation ── */
+/* â”€â”€ Tab Content Animation â”€â”€ */
 .tab-pane-content {
     animation: fadeIn 0.3s ease;
 }
@@ -84,7 +84,7 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Package Cards ── */
+/* â”€â”€ Package Cards â”€â”€ */
 .package-card-home {
     background: #ffffff;
     border-radius: 18px;
@@ -274,7 +274,7 @@
     font-weight: 800;
 }
 
-/* ── Equipment Cards (Home) ── */
+/* â”€â”€ Equipment Cards (Home) â”€â”€ */
 .equip-card-home {
     background: #ffffff;
     border-radius: 18px;
@@ -399,12 +399,12 @@
     border-radius: 6px;
 }
 
-/* ── Explore Section ── */
+/* â”€â”€ Explore Section â”€â”€ */
 .explore-section {
     background: #f4efe6;
 }
 
-/* ── Buttons ── */
+/* â”€â”€ Buttons â”€â”€ */
 .btn-gradient-primary {
     display: inline-flex;
     align-items: center;
@@ -473,7 +473,7 @@
     transform: translateY(-2px);
 }
 
-/* ── Loading ── */
+/* â”€â”€ Loading â”€â”€ */
 .spinner-modern {
     width: 2.5rem;
     height: 2.5rem;
@@ -482,7 +482,7 @@
     border-top-color: #b86d26;
 }
 
-/* ── Hotel Cards (Home) ── */
+/* â”€â”€ Hotel Cards (Home) â”€â”€ */
 .hotel-card {
     background: #ffffff;
     border-radius: 18px;
@@ -708,20 +708,57 @@
     color: #a25c1a;
 }
 
-/* ── Responsive ── */
+/* â”€â”€ Responsive â”€â”€ */
 @media (max-width: 768px) {
+    .modern-tabs-container {
+        display: flex !important;
+        justify-content: flex-start !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding-bottom: 8px !important;
+        margin-bottom: 1.25rem !important;
+        scrollbar-width: none !important;
+    }
+    .modern-tabs-container::-webkit-scrollbar {
+        display: none !important;
+    }
     .modern-tabs {
-        flex-direction: column;
-        border-radius: 12px;
-        width: 100%;
+        display: inline-flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        width: max-content !important;
+        gap: 6px !important;
+        padding: 4px 6px !important;
+        border-radius: 999px !important;
+        background: #FFFFFF !important;
+        border: 1px solid #E5E7EB !important;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04) !important;
     }
     .modern-tabs .nav-link {
-        justify-content: center;
-        padding: 0.75rem;
-        border-radius: 10px;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        padding: 6px 13px !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        border-radius: 999px !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        border: none !important;
     }
-    .package-image { height: 180px; }
-    .package-title { font-size: 1rem; }
+    .modern-tabs .nav-link.active {
+        background: #DD7A28 !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 2px 8px rgba(221, 122, 40, 0.3) !important;
+    }
+    .modern-tabs .tab-count {
+        font-size: 9.5px !important;
+        padding: 1px 5px !important;
+        border-radius: 999px !important;
+        margin-left: 4px !important;
+    }
+    .package-image { height: 130px !important; }
+    .package-title { font-size: 0.88rem !important; }
 }
 
 @media (max-width: 576px) {

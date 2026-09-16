@@ -1,7 +1,7 @@
-/* ============================================
-   Search Page Styles — Safari Vents Luxury Light Theme
-   Inspiration: Warm Sand #f4efe6 · Pure White #ffffff
-   Obsidian Charcoal #18181b · Warm Copper #b86d26
+﻿/* ============================================
+   Search Page Styles â€” Safari Vents Luxury Light Theme
+   Inspiration: Warm Sand #f4efe6 Â· Pure White #ffffff
+   Obsidian Charcoal #18181b Â· Warm Copper #b86d26
    ============================================ */
 
 .search-page {
@@ -11,7 +11,7 @@
     padding-bottom: 3.5rem;
 }
 
-/* ── Search Header ── */
+/* â”€â”€ Search Header â”€â”€ */
 .search-header {
     background: #f4efe6;
     padding: 1.75rem 0 1.25rem;
@@ -99,14 +99,14 @@
     line-height: 1.5;
 }
 
-/* ── Main Container ── */
+/* â”€â”€ Main Container â”€â”€ */
 .search-container {
     width: 100%;
     max-width: 100%;
     padding: 0 clamp(1.25rem, 2.5vw, 2.5rem);
 }
 
-/* ── Filter Sidebar Panel ── */
+/* â”€â”€ Filter Sidebar Panel â”€â”€ */
 .filter-panel {
     background: #ffffff;
     border-radius: 18px;
@@ -285,7 +285,7 @@
     border-radius: 20px;
 }
 
-/* ── Results Header ── */
+/* â”€â”€ Results Header â”€â”€ */
 .results-header {
     background: #ffffff;
     border: 1px solid #e8e2d8;
@@ -396,7 +396,7 @@
     color: #18181b;
 }
 
-/* ── Hotel Grid & List Layouts ── */
+/* â”€â”€ Hotel Grid & List Layouts â”€â”€ */
 .hotel-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -417,7 +417,8 @@
 
 @media (max-width: 640px) {
     .hotel-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
     }
 }
 
@@ -427,7 +428,7 @@
     gap: 1.5rem;
 }
 
-/* ── Hotel Card ── */
+/* â”€â”€ Hotel Card â”€â”€ */
 .hotel-card {
     background: #ffffff;
     border-radius: 18px;
@@ -714,7 +715,7 @@
     transform: translateX(2px);
 }
 
-/* ── List View Specifics ── */
+/* â”€â”€ List View Specifics â”€â”€ */
 .hotel-card.list-view {
     display: flex;
     flex-direction: row;
@@ -737,7 +738,7 @@
     }
 }
 
-/* ── Empty State ── */
+/* â”€â”€ Empty State â”€â”€ */
 .empty-state {
     background: #ffffff;
     border: 1px solid #e8e2d8;
@@ -770,7 +771,7 @@
     margin-right: auto;
 }
 
-/* ── Skeleton Loading ── */
+/* â”€â”€ Skeleton Loading â”€â”€ */
 .skeleton-card {
     background: #ffffff;
     border: 1px solid #e8e2d8;
