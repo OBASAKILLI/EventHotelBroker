@@ -1,5 +1,7 @@
 ﻿@page "/user/dashboard"
 @rendermode InteractiveServer
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
 @using EventHotelBroker.Models
 @using EventHotelBroker.Services
 @using Microsoft.AspNetCore.Components.Authorization
