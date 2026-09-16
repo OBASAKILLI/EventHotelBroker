@@ -41,7 +41,7 @@ public class HotelService : IHotelService
 
     public async Task<Hotel> CreateHotelAsync(Hotel hotel)
     {
-        hotel.Slug = GenerateSlug(hotel.Name);
+        hotel.Slug = await GenerateUniqueSlugAsync(hotel.Name);
         hotel.CreatedAt = DateTime.UtcNow;
         
         await _unitOfWork.Hotels.AddAsync(hotel);
@@ -55,6 +55,10 @@ public class HotelService : IHotelService
 
     public async Task<Hotel> UpdateHotelAsync(Hotel hotel)
     {
+        if (string.IsNullOrWhiteSpace(hotel.Slug))
+        {
+            hotel.Slug = await GenerateUniqueSlugAsync(hotel.Name);
+        }
         hotel.UpdatedAt = DateTime.UtcNow;
         
         _unitOfWork.Hotels.Update(hotel);
@@ -120,12 +124,29 @@ public class HotelService : IHotelService
         return await _unitOfWork.Hotels.SearchHotelsAsync(keyword, city, minCapacity, maxPrice, category);
     }
 
-    private string GenerateSlug(string name)
+    private async Task<string> GenerateUniqueSlugAsync(string name)
     {
-        return name.ToLower()
+        var cleanName = (name ?? "hotel").ToLower().Trim()
             .Replace(" ", "-")
             .Replace("&", "and")
             .Replace("'", "")
             .Replace("\"", "");
+
+        cleanName = System.Text.RegularExpressions.Regex.Replace(cleanName, @"[^a-z0-9\-]", "");
+        cleanName = System.Text.RegularExpressions.Regex.Replace(cleanName, @"-+", "-").Trim('-');
+        if (string.IsNullOrWhiteSpace(cleanName)) cleanName = "hotel";
+        if (cleanName.Length > 180) cleanName = cleanName[..180];
+
+        // Append a GUID string (8 hex chars) to ensure uniqueness
+        var guidStr = Guid.NewGuid().ToString("N")[..8];
+        var slug = $"{cleanName}-{guidStr}";
+
+        // Guarantee uniqueness against existing database records
+        while (await _unitOfWork.Hotels.AnyAsync(h => h.Slug == slug))
+        {
+            slug = $"{cleanName}-{Guid.NewGuid():N}";
+        }
+
+        return slug;
     }
 }

@@ -51,6 +51,42 @@
             </nav>
         </div>
 
+        @if (isAdmin && !hotel.IsApproved)
+        {
+            <div class="alert alert-warning d-flex align-items-center justify-content-between p-3 mb-3" style="border-radius: 12px; background: rgba(200,121,65,0.1); border: 1px solid #C87941; color: #2A2A2A;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-shield-exclamation text-warning" style="font-size: 1.5rem;"></i>
+                    <div>
+                        <strong style="font-size: 0.875rem;">Admin Review Mode</strong>
+                        <div style="font-size: 0.75rem; color: #666;">This property is pending approval and is not yet visible to public customers.</div>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm" style="background: #488C82; color: #fff; font-weight: 600;" @onclick="ApproveThisHotel" disabled="@isProcessingAdminAction">
+                        <i class="bi bi-check-lg me-1"></i> Approve
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" @onclick="RejectThisHotel" disabled="@isProcessingAdminAction">
+                        <i class="bi bi-x-lg me-1"></i> Reject
+                    </button>
+                </div>
+            </div>
+        }
+        else if (isOwner && !hotel.IsApproved)
+        {
+            <div class="alert alert-info d-flex align-items-center justify-content-between p-3 mb-3" style="border-radius: 12px; background: rgba(72,140,130,0.08); border: 1px solid #488C82; color: #2A2A2A;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-info-circle text-info" style="font-size: 1.5rem;"></i>
+                    <div>
+                        <strong style="font-size: 0.875rem;">Owner Preview Mode</strong>
+                        <div style="font-size: 0.75rem; color: #666;">This listing is awaiting admin review. Only you and administrators can view this page.</div>
+                    </div>
+                </div>
+                <a href="/owner/hotels/@hotel.Id/edit" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-pencil me-1"></i> Edit Hotel
+                </a>
+            </div>
+        }
+
         <!-- Hotel Header -->
         <div class="hotel-header">
             <div class="hotel-header-content">
@@ -64,6 +100,18 @@
                 <div class="verified-badge">
                     <i class="bi bi-patch-check-fill"></i>
                     <span>Verified</span>
+                </div>
+            }
+            else if (hotel.IsPublished)
+            {
+                <div class="badge bg-warning text-dark p-2" style="border-radius: 8px; font-size: 0.75rem;">
+                    <i class="bi bi-clock-history me-1"></i> Pending Approval
+                </div>
+            }
+            else
+            {
+                <div class="badge bg-secondary p-2" style="border-radius: 8px; font-size: 0.75rem;">
+                    <i class="bi bi-file-earmark me-1"></i> Draft
                 </div>
             }
         </div>
@@ -520,6 +568,9 @@
     private bool bookingSuccess = false;
     private string? currentUserId;
     private bool isAuthenticated = false;
+    private bool isAdmin = false;
+    private bool isOwner = false;
+    private bool isProcessingAdminAction = false;
 
     // Review properties
     private List<Review> hotelReviews = new();
@@ -533,16 +584,46 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadAuthStateAndHotelAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !isAuthenticated)
+        {
+            try
+            {
+                var token = await JSRuntime.InvokeAsync<string>("authHelpers.getCookie", "JWToken");
+                if (!string.IsNullOrEmpty(token))
+                {
+                    var customAuth = (CustomAuthenticationStateProvider)AuthStateProvider;
+                    await customAuth.MarkUserAsAuthenticated(token);
+                    await LoadAuthStateAndHotelAsync();
+                    StateHasChanged();
+                }
+            }
+            catch { }
+        }
+    }
+
+    private async Task LoadAuthStateAndHotelAsync()
+    {
         try
         {
-            // Resolve authentication state
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-            isAuthenticated = authState.User.Identity?.IsAuthenticated == true;
+            var user = authState?.User;
+            isAuthenticated = user?.Identity?.IsAuthenticated == true;
 
-            if (isAuthenticated)
+            if (isAuthenticated && user != null)
             {
-                var nameClaim = authState.User.FindFirst(ClaimTypes.Name)?.Value ?? "";
+                var nameClaim = user.FindFirst(ClaimTypes.Name)?.Value ?? "";
                 currentUserId = nameClaim.Split(',').FirstOrDefault();
+                isAdmin = user.IsInRole("Admin") || user.HasClaim(ClaimTypes.Role, "Admin") || user.HasClaim("role", "Admin");
+            }
+            else
+            {
+                currentUserId = null;
+                isAdmin = false;
             }
         }
         catch (Exception ex)
@@ -552,17 +633,27 @@
 
         try
         {
-            hotel = await HotelService.GetHotelWithDetailsAsync(HotelId);
-            
-            // Visibility check: unapproved hotels are only visible to their owner or admin
-            if (hotel != null && !(hotel.IsPublished && hotel.IsApproved))
+            var fetchedHotel = await HotelService.GetHotelWithDetailsAsync(HotelId);
+            if (fetchedHotel != null)
+            {
+                isOwner = !string.IsNullOrEmpty(currentUserId) && fetchedHotel.OwnerId == currentUserId;
+
+                // Visibility check: unapproved/unpublished hotels are only visible to their owner or admin
+                if (!fetchedHotel.IsApproved || !fetchedHotel.IsPublished)
+                {
+                    if (!isAdmin && !isOwner)
+                    {
+                        hotel = null;
+                        return;
+                    }
+                }
+
+                hotel = fetchedHotel;
+                await LoadReviews();
+            }
+            else
             {
                 hotel = null;
-            }
-
-            if (hotel != null)
-            {
-                await LoadReviews();
             }
         }
         catch (Exception)
@@ -572,6 +663,48 @@
         finally
         {
             isLoading = false;
+        }
+    }
+
+    private async Task ApproveThisHotel()
+    {
+        if (hotel == null || isProcessingAdminAction) return;
+        isProcessingAdminAction = true;
+        try
+        {
+            var success = await HotelService.ApproveHotelAsync(hotel.Id);
+            if (success)
+            {
+                hotel.IsApproved = true;
+                hotel.IsPublished = true;
+                StateHasChanged();
+            }
+        }
+        catch { }
+        finally
+        {
+            isProcessingAdminAction = false;
+        }
+    }
+
+    private async Task RejectThisHotel()
+    {
+        if (hotel == null || isProcessingAdminAction) return;
+        isProcessingAdminAction = true;
+        try
+        {
+            var success = await HotelService.RejectHotelAsync(hotel.Id);
+            if (success)
+            {
+                hotel.IsApproved = false;
+                hotel.IsPublished = false;
+                StateHasChanged();
+            }
+        }
+        catch { }
+        finally
+        {
+            isProcessingAdminAction = false;
         }
     }
 
