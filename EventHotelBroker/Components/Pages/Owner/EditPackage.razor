@@ -383,7 +383,7 @@
     private string? successMessage;
 
     private bool removeExistingImage = false;
-    private IBrowserFile? selectedNewImage;
+    private UploadedFileData? selectedNewImage;
     private string? newImagePreviewUrl;
     private string? originalImageUrl;
     private const long MaxFileSize = 5 * 1024 * 1024;
@@ -479,15 +479,19 @@
         if (file.Size > MaxFileSize) { errorMessage = "File exceeds 5MB limit."; return; }
         if (!file.ContentType.StartsWith("image/")) { errorMessage = "Only image files are allowed."; return; }
 
-        selectedNewImage = file;
         try
         {
-            var resized = await file.RequestImageFileAsync(file.ContentType, 200, 150);
-            var buffer = new byte[resized.Size];
-            await resized.OpenReadStream(MaxFileSize).ReadAsync(buffer);
-            newImagePreviewUrl = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
+            var uploaded = await UploadedFileData.FromBrowserFileAsync(file, MaxFileSize);
+            if (uploaded != null)
+            {
+                selectedNewImage = uploaded;
+                newImagePreviewUrl = uploaded.PreviewUrl;
+            }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error processing image: {ex.Message}";
+        }
         StateHasChanged();
     }
 
@@ -533,14 +537,15 @@
                 }
 
                 // Save new image
-                var uploadsPath = Path.Combine(Environment.WebRootPath, "uploads", "packages");
+                var webRoot = Environment.WebRootPath ?? Path.Combine(Environment.ContentRootPath, "wwwroot");
+                var uploadsPath = Path.Combine(webRoot, "uploads", "packages");
                 Directory.CreateDirectory(uploadsPath);
                 var ext = Path.GetExtension(selectedNewImage.Name);
+                if (string.IsNullOrEmpty(ext)) ext = ".jpg";
                 var fileName = $"{package.Id}_{Guid.NewGuid():N}{ext}";
                 var filePath = Path.Combine(uploadsPath, fileName);
 
-                await using var stream = new FileStream(filePath, FileMode.Create);
-                await selectedNewImage.OpenReadStream(MaxFileSize).CopyToAsync(stream);
+                await File.WriteAllBytesAsync(filePath, selectedNewImage.Data);
 
                 package.ImageUrl = $"/uploads/packages/{fileName}";
             }

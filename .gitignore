@@ -96,3 +96,8 @@ node_modules/
 **/appsettings.Development.json
 **/appsettings.*.json
 !**/appsettings.json
+
+# User uploads
+**/wwwroot/uploads/*
+!**/wwwroot/uploads/.gitkeep
+

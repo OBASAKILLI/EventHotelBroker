@@ -347,7 +347,7 @@
     private List<EventEquipmentImage> existingImages = new();
     private List<int> imagesToRemove = new();
 
-    private List<IBrowserFile> newImages = new();
+    private List<UploadedFileData> newImages = new();
     private Dictionary<string, string> newImagePreviews = new();
     private const long MaxFileSize = 5 * 1024 * 1024;
 
@@ -442,23 +442,27 @@
 
     private async Task OnImagesSelected(InputFileChangeEventArgs e)
     {
-        var totalCount = existingImages.Count + newImages.Count;
-        var files = e.GetMultipleFiles(5);
-        foreach (var file in files)
+        try
         {
-            if (totalCount + newImages.Count >= 5) break;
-            if (file.Size > MaxFileSize) { errorMessage = $"File '{file.Name}' exceeds 5MB limit."; continue; }
-            if (!file.ContentType.StartsWith("image/")) continue;
-
-            newImages.Add(file);
-            try
+            var totalCount = existingImages.Count + newImages.Count;
+            var files = e.GetMultipleFiles(5);
+            foreach (var file in files)
             {
-                var resized = await file.RequestImageFileAsync(file.ContentType, 200, 150);
-                var buffer = new byte[resized.Size];
-                await resized.OpenReadStream(MaxFileSize).ReadAsync(buffer);
-                newImagePreviews[file.Name] = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
+                if (totalCount + newImages.Count >= 5) break;
+                if (file.Size > MaxFileSize) { errorMessage = $"File '{file.Name}' exceeds 5MB limit."; continue; }
+                if (!file.ContentType.StartsWith("image/")) continue;
+
+                var uploaded = await UploadedFileData.FromBrowserFileAsync(file, MaxFileSize);
+                if (uploaded != null)
+                {
+                    newImages.Add(uploaded);
+                    newImagePreviews[uploaded.Name] = uploaded.PreviewUrl;
+                }
             }
-            catch { }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error processing image: {ex.Message}";
         }
         StateHasChanged();
     }
@@ -508,18 +512,19 @@
             // Save new images
             if (newImages.Any())
             {
-                var uploadsPath = Path.Combine(Environment.WebRootPath, "uploads", "equipment");
+                var webRoot = Environment.WebRootPath ?? Path.Combine(Environment.ContentRootPath, "wwwroot");
+                var uploadsPath = Path.Combine(webRoot, "uploads", "equipment");
                 Directory.CreateDirectory(uploadsPath);
 
                 int order = existingImages.Count + 1;
                 foreach (var file in newImages)
                 {
                     var ext = Path.GetExtension(file.Name);
+                    if (string.IsNullOrEmpty(ext)) ext = ".jpg";
                     var fileName = $"{equipment.Id}_{Guid.NewGuid():N}{ext}";
                     var filePath = Path.Combine(uploadsPath, fileName);
 
-                    await using var stream = new FileStream(filePath, FileMode.Create);
-                    await file.OpenReadStream(MaxFileSize).CopyToAsync(stream);
+                    await File.WriteAllBytesAsync(filePath, file.Data);
 
                     await UnitOfWork.EventEquipmentImages.AddAsync(new EventEquipmentImage
                     {

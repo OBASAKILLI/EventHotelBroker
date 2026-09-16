@@ -334,7 +334,7 @@
     private string? successMessage;
     private bool isSubmitting = false;
     private string? currentUserId;
-    private List<IBrowserFile> selectedImages = new();
+    private List<UploadedFileData> selectedImages = new();
     private Dictionary<string, string> imagePreviewUrls = new();
     private string? primaryImageName;
     private const long MaxFileSize = 5 * 1024 * 1024; // 5MB
@@ -459,34 +459,36 @@
 
     private async Task OnImagesSelected(InputFileChangeEventArgs e)
     {
-        var files = e.GetMultipleFiles(5);
-        foreach (var file in files)
+        try
         {
-            if (selectedImages.Count >= 5) break;
-            if (file.Size > MaxFileSize)
+            var files = e.GetMultipleFiles(5);
+            foreach (var file in files)
             {
-                errorMessage = $"File '{file.Name}' exceeds 5MB limit.";
-                continue;
-            }
-            if (!file.ContentType.StartsWith("image/"))
-            {
-                continue;
-            }
-            selectedImages.Add(file);
+                if (selectedImages.Count >= 5) break;
+                if (file.Size > MaxFileSize)
+                {
+                    errorMessage = $"File '{file.Name}' exceeds 5MB limit.";
+                    continue;
+                }
+                if (!file.ContentType.StartsWith("image/"))
+                {
+                    continue;
+                }
 
-            // Generate preview
-            try
-            {
-                var resized = await file.RequestImageFileAsync(file.ContentType, 200, 150);
-                var buffer = new byte[resized.Size];
-                await resized.OpenReadStream(MaxFileSize).ReadAsync(buffer);
-                var base64 = Convert.ToBase64String(buffer);
-                imagePreviewUrls[file.Name] = $"data:{file.ContentType};base64,{base64}";
-            }
-            catch { }
+                var uploaded = await UploadedFileData.FromBrowserFileAsync(file, MaxFileSize);
+                if (uploaded != null)
+                {
+                    selectedImages.Add(uploaded);
+                    imagePreviewUrls[uploaded.Name] = uploaded.PreviewUrl;
 
-            if (primaryImageName == null)
-                primaryImageName = file.Name;
+                    if (primaryImageName == null)
+                        primaryImageName = uploaded.Name;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error processing image: {ex.Message}";
         }
         StateHasChanged();
     }
@@ -502,17 +504,18 @@
 
     private async Task SaveHotelImages(int hotelId)
     {
-        var uploadsPath = Path.Combine(Environment.WebRootPath, "uploads", "hotels");
+        var webRoot = Environment.WebRootPath ?? Path.Combine(Environment.ContentRootPath, "wwwroot");
+        var uploadsPath = Path.Combine(webRoot, "uploads", "hotels");
         Directory.CreateDirectory(uploadsPath);
 
         foreach (var file in selectedImages)
         {
             var ext = Path.GetExtension(file.Name);
+            if (string.IsNullOrEmpty(ext)) ext = ".jpg";
             var fileName = $"{hotelId}_{Guid.NewGuid():N}{ext}";
             var filePath = Path.Combine(uploadsPath, fileName);
 
-            await using var stream = new FileStream(filePath, FileMode.Create);
-            await file.OpenReadStream(MaxFileSize).CopyToAsync(stream);
+            await File.WriteAllBytesAsync(filePath, file.Data);
 
             await UnitOfWork.HotelImages.AddAsync(new HotelImage
             {
