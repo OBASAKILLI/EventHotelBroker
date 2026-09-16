@@ -1,4 +1,4 @@
-@using Microsoft.AspNetCore.Components.Authorization
+﻿@using Microsoft.AspNetCore.Components.Authorization
 @using EventHotelBroker.Utils
 @using System.Security.Claims
 @inject AuthenticationStateProvider AuthStateProvider
@@ -17,15 +17,15 @@
                 <div class="ehb-sidebar-brand-title">
                     <span>Safari</span> Vents
                 </div>
-                <div class="ehb-sidebar-brand-sub">Client Portal</div>
+                <div class="ehb-sidebar-brand-sub">@(isOwner ? "Host & Client Hub" : "Client Portal")</div>
             </div>
         </a>
     </div>
 
     <!-- Navigation Scroll Area -->
-    <div class="ehb-sidebar-nav">
-        <!-- DISCOVER -->
-        <div class="ehb-nav-section-title">Discover</div>
+    <div class="ehb-sidebar-nav" style="flex: 1; overflow-y: auto; padding: 10px 0;">
+        <!-- EXPLORE & BOOK -->
+        <div class="ehb-nav-section-title">Explore</div>
         <NavLink class="ehb-nav-item" href="" Match="NavLinkMatch.All" ActiveClass="active-nav-item">
             <i class="bi bi-house-door"></i>
             <span>Home</span>
@@ -39,19 +39,19 @@
             <span>Event Services</span>
         </NavLink>
 
-        <!-- MY ACCOUNT -->
-        <div class="ehb-nav-section-title">My Account</div>
+        <!-- MY PERSONAL TRAVEL -->
+        <div class="ehb-nav-section-title">My Travel &amp; Account</div>
         <NavLink class="ehb-nav-item" href="user/dashboard" ActiveClass="active-nav-item">
             <i class="bi bi-grid-1x2"></i>
-            <span>Dashboard</span>
+            <span>Personal Dashboard</span>
         </NavLink>
         <NavLink class="ehb-nav-item" href="my-bookings" ActiveClass="active-nav-item">
             <i class="bi bi-calendar-check"></i>
-            <span>Hotel Bookings</span>
+            <span>My Hotel Bookings</span>
         </NavLink>
         <NavLink class="ehb-nav-item" href="my-event-bookings" ActiveClass="active-nav-item">
             <i class="bi bi-calendar2-event"></i>
-            <span>Event Bookings</span>
+            <span>My Event Bookings</span>
         </NavLink>
         <NavLink class="ehb-nav-item" href="chat" ActiveClass="active-nav-item">
             <i class="bi bi-chat-dots"></i>
@@ -60,43 +60,61 @@
 
         @if (isOwner)
         {
-            <!-- MY BUSINESS -->
-            <div class="ehb-nav-section-title">My Business</div>
+            <!-- MY BUSINESS / VENUE HOST -->
+            <div class="ehb-nav-section-title" style="color: #DD7A28; font-weight: 700; margin-top: 14px;">
+                <i class="bi bi-briefcase-fill me-1" style="font-size: 10px;"></i> My Business &amp; Venues
+            </div>
             <NavLink class="ehb-nav-item" href="owner/dashboard" ActiveClass="active-nav-item">
-                <i class="bi bi-briefcase"></i>
-                <span>Owner Portal</span>
+                <i class="bi bi-speedometer2"></i>
+                <span>Business Overview</span>
             </NavLink>
             <NavLink class="ehb-nav-item" href="owner/hotels" ActiveClass="active-nav-item">
                 <i class="bi bi-building"></i>
                 <span>My Hotels</span>
             </NavLink>
+            <NavLink class="ehb-nav-item" href="owner/create-hotel" ActiveClass="active-nav-item">
+                <i class="bi bi-plus-circle"></i>
+                <span>Add New Hotel</span>
+            </NavLink>
+            <NavLink class="ehb-nav-item" href="owner/event-packages" ActiveClass="active-nav-item">
+                <i class="bi bi-gift"></i>
+                <span>Event Packages</span>
+            </NavLink>
+            <NavLink class="ehb-nav-item" href="owner/event-equipments" ActiveClass="active-nav-item">
+                <i class="bi bi-box-seam"></i>
+                <span>Event Equipment</span>
+            </NavLink>
             <NavLink class="ehb-nav-item" href="owner/bookings" ActiveClass="active-nav-item">
-                <i class="bi bi-calendar-check"></i>
-                <span>Booking Requests</span>
+                <i class="bi bi-inbox-fill"></i>
+                <span>Guest Requests</span>
+            </NavLink>
+            <NavLink class="ehb-nav-item" href="owner/analytics" ActiveClass="active-nav-item">
+                <i class="bi bi-graph-up"></i>
+                <span>Business Analytics</span>
             </NavLink>
         }
         else if (!isAdmin)
         {
             <!-- PARTNER WITH US -->
             <div class="ehb-nav-section-title">Partner With Us</div>
-            <div class="nav-enroll-cta" @onclick="EnrollAsOwner" style="margin: 8px 0; cursor: pointer;">
-                <div class="nav-enroll-icon"><i class="bi bi-shop"></i></div>
-                <div class="nav-enroll-text">
-                    <span class="nav-enroll-title">Add My Business</span>
-                    <span class="nav-enroll-subtitle">List your venues &amp; gear</span>
+            <div class="nav-enroll-cta" @onclick="EnrollAsOwner" style="margin: 8px 12px; cursor: pointer; background: rgba(221, 122, 40, 0.12); border: 1px solid rgba(221, 122, 40, 0.3); border-radius: 10px; padding: 10px; display: flex; align-items: center; gap: 10px;">
+                <div class="nav-enroll-icon" style="width: 32px; height: 32px; border-radius: 8px; background: #DD7A28; color: white; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0;"><i class="bi bi-shop"></i></div>
+                <div class="nav-enroll-text" style="flex: 1;">
+                    <span class="nav-enroll-title" style="display: block; font-size: 12px; font-weight: 700; color: #FFFFFF;">Add My Business</span>
+                    <span class="nav-enroll-subtitle" style="display: block; font-size: 10.5px; color: #D1D5DB;">List venues &amp; gear</span>
                 </div>
-                <i class="bi bi-chevron-right nav-enroll-arrow"></i>
+                <i class="bi bi-chevron-right nav-enroll-arrow" style="color: #DD7A28; font-size: 12px;"></i>
             </div>
         }
     </div>
 
     <!-- Sidebar Footer -->
-    <div class="ehb-sidebar-footer">
-        <a href="/" class="ehb-btn-sidebar-view">
+    <div class="ehb-sidebar-footer" style="padding: 12px 14px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+        <a href="/" class="ehb-btn-sidebar-view" style="display: flex; align-items: center; gap: 8px; color: #9CA3AF; text-decoration: none; font-size: 12px; padding: 6px 8px; border-radius: 6px; transition: color 0.15s;">
             <i class="bi bi-box-arrow-up-right"></i>
             <span>View Public Site</span>
         </a>
-        <a href="/logout" class="ehb-btn-sidebar-logout">
+        <a href="/logout" class="ehb-btn-sidebar-logout" style="display: flex; align-items: center; gap: 8px; color: #EF4444; text-decoration: none; font-size: 12px; padding: 6px 8px; border-radius: 6px; margin-top: 4px; transition: color 0.15s;">
             <i class="bi bi-box-arrow-right"></i>
             <span>Sign out</span>
         </a>

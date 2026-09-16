@@ -1,4 +1,4 @@
-@inherits LayoutComponentBase
+﻿@inherits LayoutComponentBase
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Components.Authorization
 @inject IHttpContextAccessor HttpContextAccessor
@@ -14,7 +14,7 @@
 <ToastContainer />
 
 <div class="modern-layout">
-    <!-- Modern Sidebar — only shown when logged in -->
+    <!-- Modern Sidebar â€” only shown when logged in -->
     @if (isLoggedIn)
     {
         <aside class="modern-sidebar @(sidebarCollapsed ? "collapsed" : "")">
@@ -112,6 +112,8 @@
             @Body
         </div>
     </main>
+
+    <WhatsAppSupportWidget />
 
     <!-- Floating Chat Button -->
     <a href="/chat" class="floating-chat-btn" title="Open Messages">
@@ -365,6 +367,6 @@
         <i class="bi bi-exclamation-triangle-fill"></i>
         <span>An unhandled error has occurred.</span>
         <a href="" class="reload">Reload</a>
-        <a class="dismiss">×</a>
+        <a class="dismiss">Ã—</a>
     </div>
 </div>

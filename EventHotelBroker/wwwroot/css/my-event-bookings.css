@@ -1,445 +1,520 @@
-/* ============================================
-   My Event Bookings — Safari Vents
-   Luxury Light Theme
-   Canvas: #f4efe6 · Surfaces: #ffffff · Accent: #b86d26
-   ============================================ */
+﻿/* ==========================================================================
+   Safari Vents â€” My Event Bookings
+   Theme: Digital Storm Honey Amber (#DD7A28) & Warm Cream Canvas (#F5EFE6)
+   Typography: Inter
+   ========================================================================== */
 
 .evt-bookings-page {
-    max-width: 100%;
-    padding: 1.5rem clamp(1.25rem, 2.5vw, 2.5rem);
-    min-height: calc(100vh - 80px);
-    background: #f4efe6;
-    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    animation: evtFadeIn 0.3s ease;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    -webkit-font-smoothing: antialiased;
+    color: #111827;
+    background-color: #F5EFE6;
+    min-height: calc(100vh - 64px);
+    padding: 16px 24px;
+    box-sizing: border-box;
+    max-width: 1240px;
+    margin: 0 auto;
 }
 
-@keyframes evtFadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Header */
+/* â”€â”€ Header â”€â”€ */
 .evt-bookings-header {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 14px 20px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
-    background: #ffffff;
-    border: 1px solid #e8e2d8;
-    border-radius: 16px;
-    padding: 1.25rem 1.75rem;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    justify-content: space-between;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    flex-wrap: wrap;
+    gap: 12px;
 }
 
 .evt-bookings-header-left h1 {
-    font-size: 1.35rem;
+    font-size: 17px;
     font-weight: 800;
-    color: #18181b;
-    letter-spacing: -0.025em;
-    margin: 0 0 0.25rem 0;
+    color: #111827;
+    letter-spacing: -0.02em;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 8px;
+    margin: 0 0 2px 0;
 }
 
 .evt-bookings-header-left h1 i {
-    color: #b86d26;
-    font-size: 1.2rem;
+    color: #DD7A28;
+    font-size: 18px;
 }
 
 .evt-bookings-header-left p {
-    font-size: 0.85rem;
-    color: #6b7280;
+    font-size: 12px;
+    color: #6B7280;
     margin: 0;
+    font-weight: 500;
 }
 
 .evt-new-btn {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.55rem 1.15rem;
-    background: #b86d26;
-    color: #fff;
-    border-radius: 10px;
-    font-size: 0.82rem;
-    font-weight: 700;
+    gap: 6px;
+    padding: 7px 14px;
+    background: #DD7A28;
+    color: #FFFFFF;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
     text-decoration: none;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 12px rgba(184, 109, 38, 0.25);
+    transition: all 0.15s ease;
+    border: 1px solid #DD7A28;
+    box-shadow: 0 1px 3px rgba(221, 122, 40, 0.25);
 }
 
 .evt-new-btn:hover {
-    background: #a25c1a;
-    color: #fff;
-    text-decoration: none;
+    background: #c56820;
+    border-color: #c56820;
+    color: #FFFFFF;
+    transform: translateY(-1px);
 }
 
-/* Stats Row */
+/* â”€â”€ Statistics Cards â”€â”€ */
 .evt-stats {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
-    margin-bottom: 1.5rem;
+    gap: 12px;
+    margin-bottom: 16px;
 }
 
 .evt-stat-card {
-    background: #ffffff;
-    border-radius: 16px;
-    padding: 1.15rem;
-    border: 1px solid #e8e2d8;
+    background: #FFFFFF;
+    border-radius: 12px;
+    padding: 14px 16px;
+    border: 1px solid #E5E7EB;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-    position: relative;
-    overflow: hidden;
-}
-
-.evt-stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    background: #e8e2d8;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    transition: all 0.15s ease;
 }
 
 .evt-stat-card:hover {
-    transform: translateY(-2px);
-    border-color: #b86d26;
-    box-shadow: 0 8px 24px rgba(184, 109, 38, 0.12);
+    border-color: #DD7A28;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(221, 122, 40, 0.08);
 }
 
 .evt-stat-value {
-    font-size: 1.45rem;
+    font-size: 20px;
     font-weight: 800;
-    color: #18181b;
+    color: #111827;
     line-height: 1.1;
-    margin-bottom: 0.35rem;
-    letter-spacing: -0.025em;
+    margin-bottom: 2px;
+    letter-spacing: -0.02em;
 }
 
 .evt-stat-label {
-    font-size: 0.72rem;
-    color: #6b7280;
+    font-size: 11px;
     font-weight: 600;
+    color: #6B7280;
     text-transform: uppercase;
     letter-spacing: 0.04em;
 }
 
 .evt-stat-icon {
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.15rem;
+    font-size: 16px;
     flex-shrink: 0;
 }
 
-.evt-stat-icon.total { background: rgba(24, 24, 27, 0.08); color: #18181b; }
-.evt-stat-icon.pending { background: #fffbeb; color: #b45309; }
-.evt-stat-icon.confirmed { background: #ecfdf5; color: #065f46; }
-.evt-stat-icon.upcoming { background: rgba(184, 109, 38, 0.12); color: #b86d26; }
+.evt-stat-icon.total { background: #F3F4F6; color: #1F2937; }
+.evt-stat-icon.pending { background: #FEF3C7; color: #D97706; }
+.evt-stat-icon.confirmed { background: #D1FAE5; color: #059669; }
+.evt-stat-icon.upcoming { background: #FFEDD5; color: #DD7A28; }
 
-/* Search & Filter */
+/* â”€â”€ Search & Filter Bar â”€â”€ */
 .evt-search-bar {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 1.25rem;
-    background: #ffffff;
-    border-radius: 14px;
-    padding: 0.75rem 1.25rem;
-    border: 1px solid #e8e2d8;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    gap: 12px;
+    margin-bottom: 16px;
+    background: #FFFFFF;
+    border-radius: 10px;
+    padding: 8px 14px;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    flex-wrap: wrap;
 }
 
 .evt-search-wrap {
     display: flex;
     align-items: center;
-    gap: 0.65rem;
+    gap: 8px;
     flex: 1;
+    min-width: 220px;
 }
 
 .evt-search-wrap i {
-    color: #9ca3af;
-    font-size: 0.88rem;
-    flex-shrink: 0;
+    color: #9CA3AF;
+    font-size: 14px;
 }
 
 .evt-search-wrap input {
     border: none;
     outline: none;
     background: transparent;
-    font-size: 0.82rem;
-    color: #18181b;
+    font-size: 12.5px;
+    color: #111827;
     width: 100%;
+    font-family: inherit;
 }
 
 .evt-search-wrap input::placeholder {
-    color: #9ca3af;
+    color: #9CA3AF;
 }
 
 .evt-filters {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 10px;
     flex-shrink: 0;
 }
 
 .evt-filter-select {
-    border: 1px solid #e8e2d8;
-    border-radius: 10px;
-    padding: 0.5rem 0.85rem;
-    font-size: 0.78rem;
-    color: #18181b;
-    background: #faf7f2;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12px;
+    color: #374151;
+    background: #F9FAFB;
     outline: none;
     cursor: pointer;
-    transition: all 0.2s ease;
+    font-weight: 500;
+    font-family: inherit;
+    transition: border-color 0.15s;
 }
 
 .evt-filter-select:focus {
-    border-color: #b86d26;
+    border-color: #DD7A28;
+    background: #FFFFFF;
 }
 
 .evt-filter-count {
-    font-size: 0.75rem;
+    font-size: 11.5px;
     font-weight: 600;
-    color: #6b7280;
+    color: #6B7280;
     white-space: nowrap;
 }
 
-/* Booking Cards Grid */
+/* â”€â”€ Event Cards Grid â”€â”€ */
 .evt-cards-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 1.25rem;
+    gap: 14px;
+    margin-bottom: 16px;
 }
 
 .evt-card {
-    background: #ffffff;
-    border-radius: 16px;
-    border: 1px solid #e8e2d8;
-    padding: 1.25rem;
-    transition: all 0.25s ease;
+    background: #FFFFFF;
+    border-radius: 12px;
+    border: 1px solid #E5E7EB;
+    padding: 16px;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+    justify-content: space-between;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    transition: all 0.15s ease;
 }
 
 .evt-card:hover {
-    box-shadow: 0 8px 24px rgba(184, 109, 38, 0.12);
-    border-color: #b86d26;
-    transform: translateY(-2px);
+    border-color: #DD7A28;
+    box-shadow: 0 4px 16px rgba(221, 122, 40, 0.08);
+    transform: translateY(-1px);
 }
 
-/* Card Header */
 .evt-card-header {
     display: flex;
-    justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 0.85rem;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
 }
 
 .evt-card-header h4 {
-    font-size: 0.95rem;
+    font-size: 14px;
     font-weight: 800;
-    color: #18181b;
-    margin: 0 0 0.35rem 0;
+    color: #111827;
+    margin: 0 0 4px 0;
     line-height: 1.3;
 }
 
 .evt-type-badge {
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
-    padding: 0.2rem 0.5rem;
-    background: rgba(184, 109, 38, 0.12);
-    color: #b86d26;
-    border-radius: 6px;
-    font-size: 0.68rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+    gap: 4px;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #DD7A28;
+    background: #FFF7ED;
+    padding: 2px 7px;
+    border-radius: 5px;
+    border: 1px solid #FED7AA;
 }
 
 .evt-status {
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
-    padding: 0.25rem 0.55rem;
-    border-radius: 8px;
-    font-size: 0.7rem;
-    font-weight: 700;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: capitalize;
     white-space: nowrap;
     flex-shrink: 0;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
 }
 
-.evt-status i { font-size: 0.65rem; }
-.evt-status.pending { background: #fffbeb; color: #b45309; }
-.evt-status.confirmed { background: #ecfdf5; color: #065f46; }
-.evt-status.rejected, .evt-status.cancelled { background: #fef2f2; color: #991b1b; }
-.evt-status.completed { background: rgba(184, 109, 38, 0.12); color: #b86d26; }
+.evt-status.pending {
+    background: #FEF3C7;
+    color: #B45309;
+    border: 1px solid #FDE68A;
+}
 
-/* Card Details */
+.evt-status.confirmed {
+    background: #D1FAE5;
+    color: #065F46;
+    border: 1px solid #A7F3D0;
+}
+
+.evt-status.completed {
+    background: #EFF6FF;
+    color: #1D4ED8;
+    border: 1px solid #BFDBFE;
+}
+
+.evt-status.rejected,
+.evt-status.cancelled {
+    background: #FEE2E2;
+    color: #991B1B;
+    border: 1px solid #FECACA;
+}
+
+.evt-status i {
+    font-size: 9px;
+}
+
+/* â”€â”€ Event Details List â”€â”€ */
 .evt-card-details {
     display: flex;
     flex-direction: column;
-    gap: 0.45rem;
-    margin-bottom: 0.85rem;
+    gap: 6px;
+    padding: 10px 12px;
+    background: #F9FAFB;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    border: 1px solid #F3F4F6;
 }
 
 .evt-detail-row {
     display: flex;
     align-items: center;
-    gap: 0.45rem;
-    font-size: 0.78rem;
-    color: #4b5563;
+    gap: 8px;
+    font-size: 12px;
+    color: #4B5563;
 }
 
 .evt-detail-row i {
-    color: #b86d26;
-    font-size: 0.75rem;
-    width: 16px;
+    color: #DD7A28;
+    font-size: 12px;
+    width: 14px;
     text-align: center;
-    flex-shrink: 0;
 }
 
-/* Special Requests */
 .evt-special-req {
-    background: #faf7f2;
-    border-radius: 8px;
-    padding: 0.6rem 0.85rem;
-    margin-bottom: 0.85rem;
-    font-size: 0.75rem;
-    color: #4b5563;
+    font-size: 11px;
+    color: #4B5563;
+    background: #FFFBEB;
+    border: 1px solid #FDE68A;
+    padding: 8px 10px;
+    border-radius: 6px;
+    margin-bottom: 10px;
     line-height: 1.4;
-    border: 1px solid #e8e2d8;
 }
 
-.evt-special-req strong {
-    color: #18181b;
-}
-
-/* Rejection Reason */
 .evt-rejection {
-    background: #fef2f2;
-    border-radius: 8px;
-    padding: 0.6rem 0.85rem;
-    margin-bottom: 0.85rem;
-    font-size: 0.75rem;
-    color: #991b1b;
+    font-size: 11px;
+    color: #991B1B;
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    padding: 8px 10px;
+    border-radius: 6px;
+    margin-bottom: 10px;
     line-height: 1.4;
-    border: 1px solid #fecaca;
 }
 
-.evt-rejection strong {
-    color: #7f1d1d;
-}
-
-/* Card Footer */
+/* â”€â”€ Card Footer â”€â”€ */
 .evt-card-footer {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1px solid #F3F4F6;
     margin-top: auto;
-    padding-top: 0.85rem;
-    border-top: 1px solid #e8e2d8;
 }
 
-.evt-price-block .evt-total {
-    font-size: 1.05rem;
+.evt-price-block {
+    display: flex;
+    flex-direction: column;
+}
+
+.evt-total {
+    font-size: 14px;
     font-weight: 800;
-    color: #18181b;
+    color: #111827;
+    letter-spacing: -0.01em;
 }
 
-.evt-price-block .evt-deposit {
-    font-size: 0.68rem;
-    color: #6b7280;
-    display: block;
+.evt-deposit {
+    font-size: 10.5px;
+    color: #6B7280;
+    font-weight: 500;
 }
 
 .evt-card-actions {
     display: flex;
-    gap: 0.45rem;
+    align-items: center;
+    gap: 6px;
 }
 
 .evt-action-btn {
-    padding: 0.45rem 0.75rem;
-    border-radius: 8px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 7px;
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
     text-decoration: none;
 }
 
 .evt-action-btn.view {
-    background: rgba(184, 109, 38, 0.12);
-    color: #b86d26;
+    background: #111827;
+    color: #FFFFFF;
+    border-color: #111827;
 }
 
 .evt-action-btn.view:hover {
-    background: #b86d26;
-    color: #fff;
-    text-decoration: none;
+    background: #1F2937;
+    color: #FFFFFF;
+    transform: translateY(-1px);
 }
 
 .evt-action-btn.cancel {
-    background: #fef2f2;
-    color: #dc2626;
+    background: #FEF2F2;
+    color: #EF4444;
+    border-color: #FECACA;
 }
 
 .evt-action-btn.cancel:hover {
-    background: #dc2626;
-    color: #fff;
-    text-decoration: none;
+    background: #EF4444;
+    color: #FFFFFF;
+    border-color: #EF4444;
 }
 
-/* Pagination */
+/* â”€â”€ Empty & Loading â”€â”€ */
+.evt-empty {
+    text-align: center;
+    padding: 48px 20px;
+    background: #FFFFFF;
+    border-radius: 12px;
+    border: 1px solid #E5E7EB;
+}
+
+.evt-empty i {
+    font-size: 32px;
+    color: #D1D5DB;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.evt-empty h4 {
+    font-size: 15px;
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: 4px;
+}
+
+.evt-empty p {
+    font-size: 12px;
+    color: #6B7280;
+    margin-bottom: 14px;
+}
+
+.evt-loading {
+    text-align: center;
+    padding: 48px 20px;
+    background: #FFFFFF;
+    border-radius: 12px;
+    border: 1px solid #E5E7EB;
+}
+
+.evt-loading .spinner-border {
+    width: 28px;
+    height: 28px;
+    border-width: 2.5px;
+    color: #DD7A28 !important;
+}
+
+.evt-loading p {
+    font-size: 12px;
+    color: #6B7280;
+    margin-top: 10px;
+    font-weight: 500;
+}
+
+/* â”€â”€ Pagination â”€â”€ */
 .evt-pagination {
     display: flex;
     align-items: center;
-    gap: 0.45rem;
-    margin-top: 1.25rem;
+    gap: 6px;
+    margin-top: 16px;
     justify-content: center;
 }
 
 .evt-page-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    border: 1px solid #e8e2d8;
-    background: #ffffff;
-    color: #18181b;
-    font-size: 0.78rem;
-    font-weight: 700;
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    border: 1px solid #E5E7EB;
+    background: #FFFFFF;
+    color: #374151;
+    font-size: 11.5px;
+    font-weight: 600;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.15s ease;
 }
 
 .evt-page-btn:hover:not(:disabled) {
-    background: #faf7f2;
-    border-color: #b86d26;
-    color: #b86d26;
+    border-color: #DD7A28;
+    color: #DD7A28;
+    background: #FFF7ED;
 }
 
 .evt-page-btn.active {
-    background: #18181b;
-    color: #fff;
-    border-color: #18181b;
+    background: #111827;
+    color: #FFFFFF;
+    border-color: #111827;
 }
 
 .evt-page-btn:disabled {
@@ -447,65 +522,14 @@
     cursor: not-allowed;
 }
 
-.evt-page-btn i { font-size: 0.72rem; }
-
 .evt-page-info {
-    font-size: 0.75rem;
-    color: #6b7280;
-    font-weight: 600;
-    margin-left: 0.65rem;
+    font-size: 11.5px;
+    color: #6B7280;
+    font-weight: 500;
+    margin-left: 8px;
 }
 
-/* Empty State */
-.evt-empty {
-    text-align: center;
-    padding: 3.5rem 1.5rem;
-    background: #ffffff;
-    border-radius: 16px;
-    border: 1px solid #e8e2d8;
-}
-
-.evt-empty i {
-    font-size: 2.75rem;
-    color: #d1c7b7;
-    margin-bottom: 0.85rem;
-    display: block;
-}
-
-.evt-empty h4 {
-    font-size: 1rem;
-    font-weight: 800;
-    color: #18181b;
-    margin-bottom: 0.35rem;
-}
-
-.evt-empty p {
-    font-size: 0.82rem;
-    color: #6b7280;
-    margin-bottom: 1.25rem;
-}
-
-/* Loading */
-.evt-loading {
-    text-align: center;
-    padding: 3.5rem;
-}
-
-.evt-loading .spinner-border {
-    width: 2.5rem;
-    height: 2.5rem;
-    border-width: 3px;
-    color: #b86d26 !important;
-}
-
-.evt-loading p {
-    font-size: 0.82rem;
-    color: #6b7280;
-    margin-top: 0.75rem;
-    font-weight: 600;
-}
-
-/* Responsive */
+/* â”€â”€ Responsive â”€â”€ */
 @media (max-width: 992px) {
     .evt-stats {
         grid-template-columns: repeat(2, 1fr);
@@ -516,14 +540,18 @@
 }
 
 @media (max-width: 768px) {
+    .evt-bookings-page {
+        padding: 12px 14px;
+    }
+
     .evt-bookings-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 1rem;
+        gap: 10px;
     }
-    .evt-search-bar {
-        flex-direction: column;
-        align-items: stretch;
+
+    .evt-stats {
+        grid-template-columns: 1fr 1fr;
     }
 }
 

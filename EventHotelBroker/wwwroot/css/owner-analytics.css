@@ -1,11 +1,11 @@
-/* ==========================================================================
-   EventHotelBroker — Owner Analytics Dashboard
+﻿/* ==========================================================================
+   EventHotelBroker â€” Owner Analytics Dashboard
    Theme: Digital Storm Honey Amber (#DD7A28) & Warm Cream Canvas (#F5EFE6)
    Typography: Inter
    Prefix: oa-
    ========================================================================== */
 
-/* ── Page Shell ── */
+/* â”€â”€ Page Shell â”€â”€ */
 .oa {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
     -webkit-font-smoothing: antialiased;
@@ -16,7 +16,7 @@
     box-sizing: border-box;
 }
 
-/* ── Page Header ── */
+/* â”€â”€ Page Header â”€â”€ */
 .oa-header {
     background: #FFFFFF !important;
     border: 1px solid #E5E7EB !important;
@@ -53,7 +53,7 @@
 
 .oa-header-actions { display: flex !important; align-items: center !important; gap: 10px !important; }
 
-/* ── Buttons ── */
+/* â”€â”€ Buttons â”€â”€ */
 .oa-btn {
     display: inline-flex !important;
     align-items: center !important;
@@ -111,7 +111,7 @@
     border-color: #DD7A28 !important;
 }
 
-/* ── Period Select ── */
+/* â”€â”€ Period Select â”€â”€ */
 .oa-select {
     padding: 7px 12px !important;
     font-size: 12px !important;
@@ -131,7 +131,7 @@
     box-shadow: 0 0 0 3px rgba(221, 122, 40, 0.15) !important;
 }
 
-/* ── Metric Cards ── */
+/* â”€â”€ Metric Cards â”€â”€ */
 .oa-metrics {
     display: grid !important;
     grid-template-columns: repeat(4, 1fr) !important;
@@ -220,7 +220,7 @@
 .oa-metric-change.up { color: #10B981 !important; }
 .oa-metric-change.down { color: #EF4444 !important; }
 
-/* ── Card Shell ── */
+/* â”€â”€ Card Shell â”€â”€ */
 .oa-card {
     background: #FFFFFF !important;
     border: 1px solid #E5E7EB !important;
@@ -252,11 +252,11 @@
 .oa-card-title i { color: #DD7A28 !important; font-size: 14px !important; }
 .oa-card-body { padding: 20px !important; }
 
-/* ── Chart Toggle ── */
+/* â”€â”€ Chart Toggle â”€â”€ */
 .oa-chart-toggle { display: flex !important; gap: 6px !important; }
 .oa-chart-toggle .oa-btn { font-size: 11px !important; padding: 4px 10px !important; }
 
-/* ── Analytics Grids ── */
+/* â”€â”€ Analytics Grids â”€â”€ */
 .oa-main-grid {
     display: grid !important;
     grid-template-columns: 2fr 1fr !important;
@@ -279,7 +279,7 @@
     }
 }
 
-/* ── Responsive ── */
+/* â”€â”€ Responsive â”€â”€ */
 @media (max-width: 992px) {
     .oa-metrics { grid-template-columns: repeat(2, 1fr) !important; }
 }
@@ -288,4 +288,177 @@
     .oa { padding: 16px !important; }
     .oa-header { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
     .oa-metrics { grid-template-columns: 1fr !important; }
+}
+
+/* -- Top Performing Hotels List (Fix for unstyled performance rows) -- */
+.oa-perf-item {
+    padding: 12px 0 !important;
+    border-bottom: 1px solid #F3F4F6 !important;
+}
+
+.oa-perf-item:first-child {
+    padding-top: 0 !important;
+}
+
+.oa-perf-item:last-child {
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+}
+
+.oa-perf-row {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    margin-bottom: 8px !important;
+}
+
+.oa-perf-rank {
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    background: #F3F4F6 !important;
+    color: #4B5563 !important;
+    flex-shrink: 0 !important;
+}
+
+.oa-perf-item:nth-child(1) .oa-perf-rank {
+    background: #FFF7ED !important;
+    color: #DD7A28 !important;
+    border: 1px solid #FED7AA !important;
+}
+
+.oa-perf-item:nth-child(2) .oa-perf-rank {
+    background: #EFF6FF !important;
+    color: #3B82F6 !important;
+    border: 1px solid #BFDBFE !important;
+}
+
+.oa-perf-item:nth-child(3) .oa-perf-rank {
+    background: #ECFDF5 !important;
+    color: #10B981 !important;
+    border: 1px solid #A7F3D0 !important;
+}
+
+.oa-perf-name {
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    color: #111827 !important;
+    margin: 0 0 2px 0 !important;
+    line-height: 1.3 !important;
+}
+
+.oa-perf-bookings {
+    font-size: 11px !important;
+    color: #6B7280 !important;
+    font-weight: 500 !important;
+    display: block !important;
+}
+
+.oa-perf-right {
+    text-align: right !important;
+    flex-shrink: 0 !important;
+}
+
+.oa-perf-revenue {
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    color: #111827 !important;
+    line-height: 1.2 !important;
+}
+
+.oa-perf-occ {
+    font-size: 10.5px !important;
+    color: #10B981 !important;
+    font-weight: 600 !important;
+    display: block !important;
+    margin-top: 2px !important;
+}
+
+.oa-progress {
+    height: 6px !important;
+    background: #F3F4F6 !important;
+    border-radius: 999px !important;
+    overflow: hidden !important;
+}
+
+.oa-progress-bar {
+    height: 100% !important;
+    background: linear-gradient(90deg, #DD7A28 0%, #F59E0B 100%) !important;
+    border-radius: 999px !important;
+    transition: width 0.3s ease !important;
+}
+
+/* -- Recent Activity Feed -- */
+.oa-activity {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 12px 0 !important;
+    border-bottom: 1px solid #F3F4F6 !important;
+}
+
+.oa-activity:first-child {
+    padding-top: 0 !important;
+}
+
+.oa-activity:last-child {
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+}
+
+.oa-activity-icon {
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 14px !important;
+    flex-shrink: 0 !important;
+    background: #F3F4F6 !important;
+    color: #4B5563 !important;
+}
+
+.oa-activity-icon.booking { background: #FFF7ED !important; color: #DD7A28 !important; }
+.oa-activity-icon.payment { background: #ECFDF5 !important; color: #10B981 !important; }
+.oa-activity-icon.cancellation { background: #FEF2F2 !important; color: #EF4444 !important; }
+.oa-activity-icon.review { background: #EFF6FF !important; color: #3B82F6 !important; }
+
+.oa-activity-msg {
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    color: #111827 !important;
+    margin: 0 0 2px 0 !important;
+}
+
+.oa-activity-time {
+    font-size: 10.5px !important;
+    color: #9CA3AF !important;
+    display: block !important;
+}
+
+/* -- Small Empty States -- */
+.oa-empty-sm {
+    text-align: center !important;
+    padding: 32px 16px !important;
+    color: #6B7280 !important;
+}
+
+.oa-empty-sm i {
+    font-size: 28px !important;
+    color: #D1D5DB !important;
+    margin-bottom: 8px !important;
+    display: block !important;
+}
+
+.oa-empty-sm p {
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    color: #6B7280 !important;
+    margin: 0 !important;
 }

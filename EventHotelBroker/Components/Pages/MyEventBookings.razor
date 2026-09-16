@@ -1,4 +1,4 @@
-@page "/my-event-bookings"
+﻿@page "/my-event-bookings"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using EventHotelBroker.Models
@@ -14,7 +14,7 @@
 
 <PageTitle>My Event Bookings - Safari Vents</PageTitle>
 
-<link href="/css/my-event-bookings.css" rel="stylesheet" />
+<link href="/css/my-event-bookings.css?v=27" rel="stylesheet" />
 
 <div class="evt-bookings-page">
     <div class="evt-bookings-header">
@@ -107,7 +107,7 @@
                         <div class="evt-card-details">
                             <div class="evt-detail-row">
                                 <i class="bi bi-calendar3"></i>
-                                <span>@booking.EventDate.ToString("MMM dd, yyyy")@(booking.EventEndDate.HasValue ? " – " + booking.EventEndDate.Value.ToString("MMM dd, yyyy") : "")</span>
+                                <span>@booking.EventDate.ToString("MMM dd, yyyy")@(booking.EventEndDate.HasValue ? " â€“ " + booking.EventEndDate.Value.ToString("MMM dd, yyyy") : "")</span>
                             </div>
                             <div class="evt-detail-row">
                                 <i class="bi bi-geo-alt-fill"></i>
