@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -74,13 +74,17 @@
         </div>
     </div>
 
-    <!-- Auto-reload Script -->
+    <!-- Auto-reload Script with Loop Guard -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            var isReloading = false;
             var observer = new MutationObserver(function () {
                 var modal = document.getElementById('components-reconnect-modal');
-                if (modal && modal.classList.contains('components-reconnect-show')) {
-                    location.reload();
+                if (modal && modal.classList.contains('components-reconnect-show') && !isReloading) {
+                    isReloading = true;
+                    setTimeout(function () {
+                        location.reload();
+                    }, 3000);
                 }
             });
             observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['class'] });

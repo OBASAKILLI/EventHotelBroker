@@ -179,7 +179,6 @@
             {
                 isDarkMode = darkModeStr.ToLower() == "true";
                 
-                // Apply dark-mode class to body
                 if (isDarkMode)
                 {
                     await JSRuntime.InvokeVoidAsync("document.body.classList.add", "dark-mode");
@@ -187,18 +186,19 @@
                 
                 StateHasChanged();
             }
+            else
+            {
+                isDarkMode = await JSRuntime.InvokeAsync<bool>("window.matchMedia", "(prefers-color-scheme: dark)");
+                if (isDarkMode)
+                {
+                    await JSRuntime.InvokeVoidAsync("document.body.classList.add", "dark-mode");
+                }
+                StateHasChanged();
+            }
         }
         catch
         {
-            // Fallback to system preference if localStorage fails
-            isDarkMode = await JSRuntime.InvokeAsync<bool>("window.matchMedia", "(prefers-color-scheme: dark)");
-            
-            if (isDarkMode)
-            {
-                await JSRuntime.InvokeVoidAsync("document.body.classList.add", "dark-mode");
-            }
-            
-            StateHasChanged();
+            // Circuit may be navigating or disconnecting - safely ignore JS interop failures
         }
     }
 }

@@ -195,40 +195,43 @@
             catch { }
         }
 
-        // If user is already authenticated, redirect them away from the login page
-        try
+        // If user is already authenticated (and not viewing the post-enrollment message), redirect them away from the login page
+        if (!Enrolled)
         {
-            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-            if (authState.User.Identity?.IsAuthenticated == true)
+            try
             {
-                var user = authState.User;
-                if (!string.IsNullOrWhiteSpace(ReturnUrl))
+                var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+                if (authState.User.Identity?.IsAuthenticated == true)
                 {
-                    var decoded = Uri.UnescapeDataString(ReturnUrl);
-                    if (decoded.StartsWith("/") && !decoded.StartsWith("//") &&
-                        !decoded.StartsWith("/login", StringComparison.OrdinalIgnoreCase) &&
-                        !decoded.StartsWith("/register", StringComparison.OrdinalIgnoreCase))
+                    var user = authState.User;
+                    if (!string.IsNullOrWhiteSpace(ReturnUrl))
                     {
-                        Navigation.NavigateTo(decoded, forceLoad: true);
-                        return;
+                        var decoded = Uri.UnescapeDataString(ReturnUrl);
+                        if (decoded.StartsWith("/") && !decoded.StartsWith("//") &&
+                            !decoded.StartsWith("/login", StringComparison.OrdinalIgnoreCase) &&
+                            !decoded.StartsWith("/register", StringComparison.OrdinalIgnoreCase))
+                        {
+                            Navigation.NavigateTo(decoded, forceLoad: false);
+                            return;
+                        }
+                    }
+
+                    if (user.IsInRole("Admin"))
+                    {
+                        Navigation.NavigateTo("/admin/dashboard", forceLoad: false);
+                    }
+                    else if (user.IsInRole("HotelOwner"))
+                    {
+                        Navigation.NavigateTo("/owner/dashboard", forceLoad: false);
+                    }
+                    else
+                    {
+                        Navigation.NavigateTo("/user/dashboard", forceLoad: false);
                     }
                 }
-
-                if (user.IsInRole("Admin"))
-                {
-                    Navigation.NavigateTo("/admin/dashboard", forceLoad: true);
-                }
-                else if (user.IsInRole("HotelOwner"))
-                {
-                    Navigation.NavigateTo("/owner/dashboard", forceLoad: true);
-                }
-                else
-                {
-                    Navigation.NavigateTo("/user/dashboard", forceLoad: true);
-                }
             }
+            catch { }
         }
-        catch { }
     }
 
     private async Task HandleLogin()

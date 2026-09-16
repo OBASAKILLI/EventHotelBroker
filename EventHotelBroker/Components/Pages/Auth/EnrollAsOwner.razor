@@ -9,6 +9,8 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 @inject AuthenticationStateProvider AuthStateProvider
+@inject TokenProvider TokenProvider
+@inject IHttpContextAccessor HttpContextAccessor
 @rendermode InteractiveServer
 
 <PageTitle>Enroll as Business Owner - Safari Vents</PageTitle>
@@ -99,15 +101,30 @@
             var user = await DbContext.Users.FirstOrDefaultAsync(u => u.strid == userId);
             if (user != null)
             {
-                // Regenerate token with updated AccountType
-                // We navigate to the login page to refresh the session cleanly
+                // Generate a fresh JWT with the newly added HotelOwner role
+                var newToken = TokenProvider.GenerateToken(user);
+
+                // Update auth state in memory for the active circuit
+                if (AuthStateProvider is CustomAuthenticationStateProvider customAuth)
+                {
+                    await customAuth.MarkUserAsAuthenticated(newToken);
+                }
+
+                // Update browser cookie with the new token so it persists across reloads
+                await JSRuntime.InvokeVoidAsync("authHelpers.setCookie", "JWToken", newToken, 3600);
+
+                // Update session
+                try
+                {
+                    HttpContextAccessor.HttpContext?.Session?.SetString("JWToken", newToken);
+                }
+                catch { }
+
                 done = true;
                 StateHasChanged();
 
-                // Clear old cookie then re-login by redirecting to login
-                await JSRuntime.InvokeVoidAsync("authHelpers.deleteCookie", "JWToken");
-                await Task.Delay(2500);
-                Navigation.NavigateTo("/login?enrolled=true", forceLoad: true);
+                await Task.Delay(1500);
+                Navigation.NavigateTo("/owner/dashboard", forceLoad: false);
             }
         }
         else
