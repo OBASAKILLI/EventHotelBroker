@@ -1,4 +1,4 @@
-@page "/admin/dashboard"
+﻿@page "/admin/dashboard"
 @layout Layout.AdminLayout
 @rendermode InteractiveServer
 @using EventHotelBroker.Models
@@ -27,7 +27,7 @@
             <div>
                 <p class="ehb-dash-sub mb-1">
                     <span class="ehb-live-dot"></span>
-                    Live Platform • @DateTime.Now.ToString("dddd dd MMMM yyyy")
+                    Live Platform â€¢ @DateTime.Now.ToString("dddd dd MMMM yyyy")
                 </p>
                 <h1 class="ehb-dash-title">Brokerage Performance Center</h1>
             </div>
@@ -63,14 +63,24 @@
                         <option value="12">Dec</option>
                     </select>
                     <select @bind="filterYear" @bind:after="ReloadCharts" class="ehb-select-action">
-                        <option value="2026">2026</option>
-                        <option value="2025">2025</option>
-                        <option value="2024">2024</option>
+                        @for (int y = DateTime.Now.Year; y >= DateTime.Now.Year - 3; y--)
+                        {
+                            <option value="@y">@y</option>
+                        }
                     </select>
+                }
+                else if (dateFilterMode == "Single")
+                {
+                    <input type="date" @bind="singleDate" @bind:after="ReloadCharts" class="ehb-select-action" />
+                }
+                else if (dateFilterMode == "Range")
+                {
+                    <input type="date" @bind="startDateFilter" @bind:after="ReloadCharts" class="ehb-select-action" />
+                    <input type="date" @bind="endDateFilter" @bind:after="ReloadCharts" class="ehb-select-action" />
                 }
 
                 <!-- Refresh Button -->
-                <button @onclick="LoadDashboardData" class="ehb-btn-action">
+                <button @onclick="RefreshDashboardAsync" class="ehb-btn-action">
                     <i class="bi bi-arrow-clockwise" style="color:#6B7280;"></i>
                     <span>Refresh</span>
                 </button>
@@ -91,8 +101,8 @@
                 </div>
                 <div class="ehb-kpi-value">KES @totalRevenue.ToString("N0")</div>
                 <div class="ehb-kpi-growth">
-                    <i class="bi bi-arrow-up-short"></i>
-                    <span>↑ 100% vs prior period</span>
+                    <i class="bi bi-cash-coin"></i>
+                    <span>KES @hotelRevenueTotal.ToString("N0") stays â€¢ KES @eventRevenueTotal.ToString("N0") events</span>
                 </div>
                 <div class="ehb-kpi-sub">Hotels &amp; events combined</div>
             </div>
@@ -109,9 +119,9 @@
                 <div class="ehb-kpi-value">@stats.TotalBookings</div>
                 <div class="ehb-kpi-growth">
                     <i class="bi bi-check-circle"></i>
-                    <span>Active stays</span>
+                    <span>@confirmedHotelBookingsCount confirmed stays</span>
                 </div>
-                <div class="ehb-kpi-sub">Across @stats.TotalHotels hotels</div>
+                <div class="ehb-kpi-sub">Across @stats.TotalHotels properties</div>
             </div>
 
             <!-- 3. Event Bookings Card (Green Stripe) -->
@@ -126,7 +136,7 @@
                 <div class="ehb-kpi-value">@stats.TotalEventBookings</div>
                 <div class="ehb-kpi-growth">
                     <i class="bi bi-gift"></i>
-                    <span>@stats.TotalEventPackages packages</span>
+                    <span>@stats.TotalEventPackages packages listed</span>
                 </div>
                 <div class="ehb-kpi-sub">@stats.TotalEventEquipments equipments listed</div>
             </div>
@@ -172,7 +182,7 @@
             <div class="ehb-card">
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
                     <div>
-                        <h2 class="ehb-card-title">Daily Booking Revenue - Selected Period</h2>
+                        <h2 class="ehb-card-title">Booking Revenue - Selected Period</h2>
                         <p class="ehb-card-sub" style="margin-bottom:0;">Gross revenue from hotel bookings and event service reservations</p>
                     </div>
                     <div style="text-align:right;">
@@ -201,19 +211,19 @@
                         <div style="display:flex;align-items:center;gap:6px;color:#4B5563;">
                             <span style="width:8px;height:8px;border-radius:50%;background:#22C55E;"></span>Hotel Stays
                         </div>
-                        <span style="font-weight:700;color:#111827;">52%</span>
+                        <span style="font-weight:700;color:#111827;">@hotelStayPercent%</span>
                     </div>
                     <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;">
                         <div style="display:flex;align-items:center;gap:6px;color:#4B5563;">
                             <span style="width:8px;height:8px;border-radius:50%;background:#1E3A8A;"></span>Event Packages
                         </div>
-                        <span style="font-weight:700;color:#111827;">30%</span>
+                        <span style="font-weight:700;color:#111827;">@packagePercent%</span>
                     </div>
                     <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;">
                         <div style="display:flex;align-items:center;gap:6px;color:#4B5563;">
                             <span style="width:8px;height:8px;border-radius:50%;background:#3B82F6;"></span>Equipment Rentals
                         </div>
-                        <span style="font-weight:700;color:#111827;">18%</span>
+                        <span style="font-weight:700;color:#111827;">@equipmentPercent%</span>
                     </div>
                 </div>
             </div>
@@ -223,7 +233,7 @@
         <div style="margin-bottom:24px;">
             <div class="ehb-card">
                 <h2 class="ehb-card-title">Revenue By Accommodation &amp; Service Category</h2>
-                <p class="ehb-card-sub">Platform distribution across luxury lodges, wedding packages, conference equipment, and villas</p>
+                <p class="ehb-card-sub">Platform distribution across properties, wedding packages, conference equipment, and villas</p>
                 <div style="height:260px;width:100%;position:relative;">
                     <canvas id="categoryChart"></canvas>
                 </div>
@@ -243,7 +253,7 @@
                     <div style="background:#ECFDF5;border:1px solid #D1FAE5;padding:12px;border-radius:10px;display:flex;gap:10px;">
                         <i class="bi bi-check-circle-fill" style="color:#059669;font-size:16px;margin-top:2px;"></i>
                         <div>
-                            <h4 style="font-size:12px;font-weight:700;color:#065F46;margin:0 0 2px 0;">Booking Momentum High</h4>
+                            <h4 style="font-size:12px;font-weight:700;color:#065F46;margin:0 0 2px 0;">Platform Booking Volume</h4>
                             <p style="font-size:11px;color:#047857;margin:0;">KES @totalRevenue.ToString("N0") platform volume recorded for this period.</p>
                         </div>
                     </div>
@@ -254,6 +264,16 @@
                             <p style="font-size:11px;color:#1D4ED8;margin:0;">@stats.PendingApprovals listings awaiting administrative review.</p>
                         </div>
                     </div>
+                    @if (pendingBookingsCount > 0)
+                    {
+                        <div style="background:#FFFBEB;border:1px solid #FEF3C7;padding:12px;border-radius:10px;display:flex;gap:10px;">
+                            <i class="bi bi-clock-fill" style="color:#D97706;font-size:16px;margin-top:2px;"></i>
+                            <div>
+                                <h4 style="font-size:12px;font-weight:700;color:#92400E;margin:0 0 2px 0;">Pending Reservations</h4>
+                                <p style="font-size:11px;color:#B45309;margin:0;">@pendingBookingsCount reservations pending confirmation.</p>
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
 
@@ -264,36 +284,29 @@
                     <span>Top Venues &amp; Packages</span>
                 </div>
                 <div style="padding:8px 12px;display:flex;flex-direction:column;gap:6px;">
-                    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:8px;background:#FAFAFA;">
-                        <div style="display:flex;align-items:center;gap:10px;">
-                            <div style="width:24px;height:24px;border-radius:6px;background:#DD7A28;color:#FFFFFF;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;">1</div>
-                            <div>
-                                <div style="font-size:12px;font-weight:700;color:#1F2937;">Grand Luxury Safari Lodge</div>
-                                <div style="font-size:10px;color:#6B7280;">28 verified bookings</div>
+                    @if (topPerformers.Any())
+                    {
+                        @foreach (var item in topPerformers)
+                        {
+                            <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:8px;background:#FAFAFA;">
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <div style="width:24px;height:24px;border-radius:6px;background:@item.BadgeBg;color:@item.BadgeColor;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;">@item.Rank</div>
+                                    <div>
+                                        <div style="font-size:12px;font-weight:700;color:#1F2937;">@item.Name</div>
+                                        <div style="font-size:10px;color:#6B7280;">@item.Subtitle</div>
+                                    </div>
+                                </div>
+                                <div style="font-size:12px;font-weight:800;color:#111827;">KES @item.Revenue.ToString("N0")</div>
                             </div>
+                        }
+                    }
+                    else
+                    {
+                        <div style="padding:24px 12px;text-align:center;color:#9CA3AF;font-size:12px;">
+                            <i class="bi bi-trophy" style="font-size:24px;color:#D1D5DB;display:block;margin-bottom:6px;"></i>
+                            <span>No booking data yet to rank top venues &amp; packages.</span>
                         </div>
-                        <div style="font-size:12px;font-weight:800;color:#111827;">KES 185,000</div>
-                    </div>
-                    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:8px;background:#FAFAFA;">
-                        <div style="display:flex;align-items:center;gap:10px;">
-                            <div style="width:24px;height:24px;border-radius:6px;background:#E5E7EB;color:#374151;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;">2</div>
-                            <div>
-                                <div style="font-size:12px;font-weight:700;color:#1F2937;">Deluxe Wedding Gala Package</div>
-                                <div style="font-size:10px;color:#6B7280;">18 verified bookings</div>
-                            </div>
-                        </div>
-                        <div style="font-size:12px;font-weight:800;color:#111827;">KES 107,975</div>
-                    </div>
-                    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:8px;background:#FAFAFA;">
-                        <div style="display:flex;align-items:center;gap:10px;">
-                            <div style="width:24px;height:24px;border-radius:6px;background:#FEF3C7;color:#92400E;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;">3</div>
-                            <div>
-                                <div style="font-size:12px;font-weight:700;color:#1F2937;">Sound, Lighting &amp; Stage</div>
-                                <div style="font-size:10px;color:#6B7280;">12 verified bookings</div>
-                            </div>
-                        </div>
-                        <div style="font-size:12px;font-weight:800;color:#111827;">KES 45,000</div>
-                    </div>
+                    }
                 </div>
             </div>
 
@@ -302,23 +315,26 @@
                 <div style="padding:14px 16px;border-bottom:1px solid #F3F4F6;display:flex;align-items:center;justify-content:space-between;">
                     <div style="display:flex;align-items:center;color:#2563EB;font-weight:700;font-size:13px;gap:8px;">
                         <i class="bi bi-clock-history"></i>
-                        <span>Recent Bookings Feed</span>
+                        <span>Recent Activity Feed</span>
                     </div>
-                    <span style="font-size:10px;font-weight:700;color:#2563EB;background:#EFF6FF;padding:2px 8px;border-radius:12px;">@recentBookings.Count()</span>
+                    <span style="font-size:10px;font-weight:700;color:#2563EB;background:#EFF6FF;padding:2px 8px;border-radius:12px;">@recentActivities.Count</span>
                 </div>
                 <div style="padding:12px 16px;max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;">
-                    @if (recentBookings.Any())
+                    @if (recentActivities.Any())
                     {
-                        @foreach (var booking in recentBookings.Take(6))
+                        @foreach (var activity in recentActivities)
                         {
                             <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #F3F4F6;padding-bottom:8px;">
                                 <div>
-                                    <div style="font-size:12px;font-weight:700;color:#1F2937;">Booking #@booking.Id</div>
-                                    <div style="font-size:10px;color:#9CA3AF;">@booking.StartDate.ToString("MMM dd") - @booking.EndDate.ToString("MMM dd, yyyy")</div>
+                                    <div style="font-size:12px;font-weight:700;color:#1F2937;">@activity.Title</div>
+                                    <div style="font-size:10px;color:#9CA3AF;">@activity.Subtitle</div>
                                 </div>
-                                <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:12px;background:@(booking.Status == BookingStatus.Confirmed ? "#ECFDF5" : "#FFF7ED");color:@(booking.Status == BookingStatus.Confirmed ? "#065F46" : "#C2410C");">
-                                    @booking.Status
-                                </span>
+                                <div style="text-align:right;">
+                                    <div style="font-size:11px;font-weight:800;color:#111827;">KES @activity.Amount.ToString("N0")</div>
+                                    <span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:10px;background:@activity.StatusBg;color:@activity.StatusColor;">
+                                        @activity.Status
+                                    </span>
+                                </div>
                             </div>
                         }
                     }
@@ -335,55 +351,39 @@
 @code {
     private bool isLoading = true;
     private DashboardStats stats = new();
-    private IEnumerable<Booking> recentBookings = new List<Booking>();
+    private List<RecentActivityItem> recentActivities = new();
+    private List<TopPerformer> topPerformers = new();
 
-    private decimal totalRevenue = 356540m;
+    private decimal totalRevenue = 0m;
+    private decimal hotelRevenueTotal = 0m;
+    private decimal eventRevenueTotal = 0m;
+    private decimal packageRevenueTotal = 0m;
+    private decimal equipmentRevenueTotal = 0m;
+
+    private int hotelStayPercent = 0;
+    private int packagePercent = 0;
+    private int equipmentPercent = 0;
+    private int confirmedHotelBookingsCount = 0;
+    private int pendingBookingsCount = 0;
+
     private string dateFilterMode = "Monthly";
-    private int filterMonth = 9; // Sep
-    private int filterYear = 2026;
+    private int filterMonth = DateTime.Now.Month;
+    private int filterYear = DateTime.Now.Year;
+    private DateTime? singleDate = DateTime.Today;
+    private DateTime? startDateFilter = DateTime.Today.AddDays(-30);
+    private DateTime? endDateFilter = DateTime.Today;
+
+    // Chart data arrays
+    private string[] chartRevenueLabels = Array.Empty<string>();
+    private int[] chartRevenueData = Array.Empty<int>();
+    private string[] chartPaymentLabels = Array.Empty<string>();
+    private int[] chartPaymentData = Array.Empty<int>();
+    private string[] chartCategoryLabels = Array.Empty<string>();
+    private int[] chartCategoryData = Array.Empty<int>();
 
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            var allUsers = await DbContext.Users.ToListAsync();
-            stats.TotalUsers = allUsers.Count;
-
-            stats.TotalHotels = await UnitOfWork.Hotels.CountAsync();
-            stats.PendingApprovals = await UnitOfWork.Hotels.CountAsync(h => !h.IsApproved && h.IsPublished);
-            stats.TotalBookings = await UnitOfWork.Bookings.CountAsync();
-            
-            stats.TotalEventEquipments = await EventService.GetTotalEquipmentsCountAsync();
-            stats.TotalEventPackages = await EventService.GetTotalPackagesCountAsync();
-            stats.TotalEventBookings = await EventService.GetTotalBookingsCountAsync();
-
-            var allBookings = await UnitOfWork.Bookings.GetAllAsync();
-            recentBookings = allBookings.OrderByDescending(b => b.CreatedAt).Take(10).ToList();
-
-            var eventBookings = await EventService.GetAllBookingsAsync();
-            var eventRevenue = eventBookings?.Sum(b => b.TotalAmount) ?? 0;
-            
-            decimal hotelRevenue = 0;
-            foreach (var b in allBookings)
-            {
-                var days = Math.Max(1, (b.EndDate - b.StartDate).Days);
-                hotelRevenue += (b.Hotel?.PricePerNight ?? 5000m) * days;
-            }
-
-            var sum = eventRevenue + hotelRevenue;
-            if (sum > 0)
-            {
-                totalRevenue = sum;
-            }
-        }
-        catch (Exception)
-        {
-            // Retain default stats
-        }
-        finally
-        {
-            isLoading = false;
-        }
+        await LoadDashboardDataAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -394,39 +394,349 @@
         }
     }
 
-    private async Task ReloadCharts()
+    private async Task RefreshDashboardAsync()
     {
+        isLoading = true;
+        StateHasChanged();
+        await LoadDashboardDataAsync();
         await RenderChartsAsync();
     }
 
-    private async Task LoadDashboardData()
+    private async Task ReloadCharts()
     {
+        await ComputeFilteredMetricsAsync();
+        StateHasChanged();
         await RenderChartsAsync();
+    }
+
+    private List<Booking> cachedHotelBookings = new();
+    private List<EventBooking> cachedEventBookings = new();
+
+    private async Task LoadDashboardDataAsync()
+    {
+        try
+        {
+            isLoading = true;
+
+            stats.TotalUsers = await DbContext.Users.CountAsync();
+            stats.TotalHotels = await UnitOfWork.Hotels.CountAsync();
+            stats.PendingApprovals = await UnitOfWork.Hotels.CountAsync(h => !h.IsApproved && h.IsPublished);
+            stats.TotalBookings = await UnitOfWork.Bookings.CountAsync();
+            
+            stats.TotalEventEquipments = await EventService.GetTotalEquipmentsCountAsync();
+            stats.TotalEventPackages = await EventService.GetTotalPackagesCountAsync();
+            stats.TotalEventBookings = await EventService.GetTotalBookingsCountAsync();
+
+            cachedHotelBookings = await DbContext.Bookings
+                .Include(b => b.Hotel)
+                .Include(b => b.User)
+                .AsNoTracking()
+                .ToListAsync();
+
+            cachedEventBookings = await DbContext.EventBookings
+                .Include(eb => eb.Package)
+                .Include(eb => eb.User)
+                .AsNoTracking()
+                .ToListAsync();
+
+            confirmedHotelBookingsCount = cachedHotelBookings.Count(b => b.Status == BookingStatus.Confirmed);
+            var pendingHotelCount = cachedHotelBookings.Count(b => b.Status == BookingStatus.Pending);
+            var pendingEventCount = cachedEventBookings.Count(eb => eb.Status == EventBookingStatus.Pending);
+            pendingBookingsCount = pendingHotelCount + pendingEventCount;
+
+            ComputeTopPerformers();
+            BuildRecentActivities();
+            await ComputeFilteredMetricsAsync();
+        }
+        catch (Exception)
+        {
+            // Fail safely
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private Task ComputeFilteredMetricsAsync()
+    {
+        IEnumerable<Booking> filteredHotel = cachedHotelBookings;
+        IEnumerable<EventBooking> filteredEvent = cachedEventBookings;
+
+        if (dateFilterMode == "Monthly")
+        {
+            if (filterYear > 0)
+            {
+                filteredHotel = filteredHotel.Where(b => b.CreatedAt.Year == filterYear);
+                filteredEvent = filteredEvent.Where(eb => eb.CreatedAt.Year == filterYear);
+            }
+            if (filterMonth > 0)
+            {
+                filteredHotel = filteredHotel.Where(b => b.CreatedAt.Month == filterMonth);
+                filteredEvent = filteredEvent.Where(eb => eb.CreatedAt.Month == filterMonth);
+            }
+        }
+        else if (dateFilterMode == "Single" && singleDate.HasValue)
+        {
+            filteredHotel = filteredHotel.Where(b => b.CreatedAt.Date == singleDate.Value.Date);
+            filteredEvent = filteredEvent.Where(eb => eb.CreatedAt.Date == singleDate.Value.Date);
+        }
+        else if (dateFilterMode == "Range")
+        {
+            if (startDateFilter.HasValue)
+            {
+                filteredHotel = filteredHotel.Where(b => b.CreatedAt.Date >= startDateFilter.Value.Date);
+                filteredEvent = filteredEvent.Where(eb => eb.CreatedAt.Date >= startDateFilter.Value.Date);
+            }
+            if (endDateFilter.HasValue)
+            {
+                filteredHotel = filteredHotel.Where(b => b.CreatedAt.Date <= endDateFilter.Value.Date);
+                filteredEvent = filteredEvent.Where(eb => eb.CreatedAt.Date <= endDateFilter.Value.Date);
+            }
+        }
+
+        var hotelList = filteredHotel.ToList();
+        var eventList = filteredEvent.ToList();
+
+        hotelRevenueTotal = hotelList.Sum(b => {
+            var days = Math.Max(1, (b.EndDate - b.StartDate).Days);
+            return (b.Hotel?.PricePerNight ?? 0m) * days;
+        });
+
+        eventRevenueTotal = eventList.Sum(eb => eb.TotalAmount);
+        packageRevenueTotal = eventList.Where(eb => eb.PackageId != null).Sum(eb => eb.TotalAmount);
+        equipmentRevenueTotal = eventList.Where(eb => eb.PackageId == null).Sum(eb => eb.TotalAmount);
+        totalRevenue = hotelRevenueTotal + eventRevenueTotal;
+
+        if (totalRevenue > 0)
+        {
+            hotelStayPercent = (int)Math.Round((double)(hotelRevenueTotal / totalRevenue) * 100);
+            packagePercent = (int)Math.Round((double)(packageRevenueTotal / totalRevenue) * 100);
+            equipmentPercent = Math.Max(0, 100 - hotelStayPercent - packagePercent);
+        }
+        else
+        {
+            hotelStayPercent = 0;
+            packagePercent = 0;
+            equipmentPercent = 0;
+        }
+
+        // Build Chart Data
+        BuildRevenueChartData(hotelList, eventList);
+        BuildCategoryChartData(hotelList, eventList);
+
+        chartPaymentLabels = new[] { "Hotel Stays", "Event Packages", "Equipment Rentals" };
+        chartPaymentData = new[] { (int)hotelRevenueTotal, (int)packageRevenueTotal, (int)equipmentRevenueTotal };
+
+        return Task.CompletedTask;
+    }
+
+    private void BuildRevenueChartData(List<Booking> hotelList, List<EventBooking> eventList)
+    {
+        if (dateFilterMode == "Monthly" && filterMonth == 0)
+        {
+            // Full year: 12 months
+            var months = new[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+            var monthlyData = new int[12];
+            for (int i = 1; i <= 12; i++)
+            {
+                var hRev = hotelList.Where(b => b.CreatedAt.Month == i).Sum(b => {
+                    var days = Math.Max(1, (b.EndDate - b.StartDate).Days);
+                    return (b.Hotel?.PricePerNight ?? 0m) * days;
+                });
+                var eRev = eventList.Where(eb => eb.CreatedAt.Month == i).Sum(eb => eb.TotalAmount);
+                monthlyData[i - 1] = (int)(hRev + eRev);
+            }
+            chartRevenueLabels = months;
+            chartRevenueData = monthlyData;
+        }
+        else
+        {
+            // Daily / Last 7 days or points in month
+            var labels = new List<string>();
+            var values = new List<int>();
+
+            int daysToShow = 7;
+            DateTime baseDate = DateTime.Today;
+            if (dateFilterMode == "Monthly" && filterMonth > 0)
+            {
+                int maxDay = DateTime.DaysInMonth(filterYear, filterMonth);
+                baseDate = new DateTime(filterYear, filterMonth, maxDay);
+                daysToShow = Math.Min(maxDay, 10);
+            }
+
+            for (int i = daysToShow - 1; i >= 0; i--)
+            {
+                var targetDate = baseDate.AddDays(-i);
+                var hRev = hotelList.Where(b => b.CreatedAt.Date == targetDate.Date).Sum(b => {
+                    var days = Math.Max(1, (b.EndDate - b.StartDate).Days);
+                    return (b.Hotel?.PricePerNight ?? 0m) * days;
+                });
+                var eRev = eventList.Where(eb => eb.CreatedAt.Date == targetDate.Date).Sum(eb => eb.TotalAmount);
+
+                labels.Add(targetDate.ToString("MMM dd"));
+                values.Add((int)(hRev + eRev));
+            }
+
+            chartRevenueLabels = labels.ToArray();
+            chartRevenueData = values.ToArray();
+        }
+    }
+
+    private void BuildCategoryChartData(List<Booking> hotelList, List<EventBooking> eventList)
+    {
+        var categoryTotals = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var b in hotelList)
+        {
+            var cat = string.IsNullOrWhiteSpace(b.Hotel?.Category) ? "Hotel" : b.Hotel.Category;
+            var days = Math.Max(1, (b.EndDate - b.StartDate).Days);
+            var rev = (b.Hotel?.PricePerNight ?? 0m) * days;
+            if (!categoryTotals.ContainsKey(cat)) categoryTotals[cat] = 0;
+            categoryTotals[cat] += rev;
+        }
+
+        foreach (var eb in eventList)
+        {
+            var cat = string.IsNullOrWhiteSpace(eb.EventType) ? "Events" : eb.EventType;
+            if (!categoryTotals.ContainsKey(cat)) categoryTotals[cat] = 0;
+            categoryTotals[cat] += eb.TotalAmount;
+        }
+
+        // Fill default baseline categories if empty
+        var defaults = new[] { "Hotels", "Resorts", "Weddings", "Conferences" };
+        foreach (var d in defaults)
+        {
+            if (!categoryTotals.ContainsKey(d))
+            {
+                categoryTotals[d] = 0;
+            }
+        }
+
+        var topCategories = categoryTotals
+            .OrderByDescending(kv => kv.Value)
+            .Take(5)
+            .ToList();
+
+        chartCategoryLabels = topCategories.Select(kv => kv.Key).ToArray();
+        chartCategoryData = topCategories.Select(kv => (int)kv.Value).ToArray();
+    }
+
+    private void ComputeTopPerformers()
+    {
+        var performers = new List<TopPerformer>();
+
+        var hotelGroups = cachedHotelBookings
+            .Where(b => b.HotelId > 0)
+            .GroupBy(b => b.HotelId);
+
+        foreach (var g in hotelGroups)
+        {
+            var hotel = g.FirstOrDefault()?.Hotel;
+            var name = hotel?.Name ?? $"Hotel #{g.Key}";
+            var count = g.Count();
+            var rev = g.Sum(b => {
+                var days = Math.Max(1, (b.EndDate - b.StartDate).Days);
+                return (b.Hotel?.PricePerNight ?? 0m) * days;
+            });
+            performers.Add(new TopPerformer
+            {
+                Name = name,
+                Subtitle = $"{count} verified booking{(count == 1 ? "" : "s")}",
+                Revenue = rev,
+                BookingCount = count
+            });
+        }
+
+        var packageGroups = cachedEventBookings
+            .Where(eb => eb.PackageId != null)
+            .GroupBy(eb => eb.PackageId);
+
+        foreach (var g in packageGroups)
+        {
+            var pkg = g.FirstOrDefault()?.Package;
+            var name = pkg?.Name ?? $"Package #{g.Key}";
+            var count = g.Count();
+            var rev = g.Sum(eb => eb.TotalAmount);
+            performers.Add(new TopPerformer
+            {
+                Name = name,
+                Subtitle = $"{count} verified booking{(count == 1 ? "" : "s")}",
+                Revenue = rev,
+                BookingCount = count
+            });
+        }
+
+        var sorted = performers
+            .OrderByDescending(p => p.Revenue)
+            .ThenByDescending(p => p.BookingCount)
+            .Take(4)
+            .ToList();
+
+        for (int i = 0; i < sorted.Count; i++)
+        {
+            sorted[i].Rank = i + 1;
+            if (i == 0) { sorted[i].BadgeBg = "#DD7A28"; sorted[i].BadgeColor = "#FFFFFF"; }
+            else if (i == 1) { sorted[i].BadgeBg = "#E5E7EB"; sorted[i].BadgeColor = "#374151"; }
+            else if (i == 2) { sorted[i].BadgeBg = "#FEF3C7"; sorted[i].BadgeColor = "#92400E"; }
+            else { sorted[i].BadgeBg = "#F3F4F6"; sorted[i].BadgeColor = "#4B5563"; }
+        }
+
+        topPerformers = sorted;
+    }
+
+    private void BuildRecentActivities()
+    {
+        var list = new List<RecentActivityItem>();
+
+        foreach (var b in cachedHotelBookings.OrderByDescending(b => b.CreatedAt).Take(8))
+        {
+            var hotelName = b.Hotel?.Name ?? $"Hotel Booking #{b.Id}";
+            var days = Math.Max(1, (b.EndDate - b.StartDate).Days);
+            var rev = (b.Hotel?.PricePerNight ?? 0m) * days;
+
+            list.Add(new RecentActivityItem
+            {
+                Title = hotelName,
+                Subtitle = $"{b.StartDate:MMM dd} - {b.EndDate:MMM dd, yyyy}",
+                Status = b.Status.ToString(),
+                StatusBg = b.Status == BookingStatus.Confirmed ? "#ECFDF5" : (b.Status == BookingStatus.Cancelled || b.Status == BookingStatus.Rejected ? "#FEF2F2" : "#FFF7ED"),
+                StatusColor = b.Status == BookingStatus.Confirmed ? "#065F46" : (b.Status == BookingStatus.Cancelled || b.Status == BookingStatus.Rejected ? "#991B1B" : "#C2410C"),
+                Amount = rev,
+                CreatedAt = b.CreatedAt
+            });
+        }
+
+        foreach (var eb in cachedEventBookings.OrderByDescending(eb => eb.CreatedAt).Take(8))
+        {
+            var eventTitle = !string.IsNullOrWhiteSpace(eb.EventName) ? eb.EventName : (eb.Package?.Name ?? $"Event Booking #{eb.Id}");
+
+            list.Add(new RecentActivityItem
+            {
+                Title = eventTitle,
+                Subtitle = $"{eb.EventDate:MMM dd, yyyy} â€¢ {eb.EventType}",
+                Status = eb.Status.ToString(),
+                StatusBg = eb.Status == EventBookingStatus.Confirmed || eb.Status == EventBookingStatus.Completed ? "#ECFDF5" : (eb.Status == EventBookingStatus.Cancelled || eb.Status == EventBookingStatus.Rejected ? "#FEF2F2" : "#FFF7ED"),
+                StatusColor = eb.Status == EventBookingStatus.Confirmed || eb.Status == EventBookingStatus.Completed ? "#065F46" : (eb.Status == EventBookingStatus.Cancelled || eb.Status == EventBookingStatus.Rejected ? "#991B1B" : "#C2410C"),
+                Amount = eb.TotalAmount,
+                CreatedAt = eb.CreatedAt
+            });
+        }
+
+        recentActivities = list.OrderByDescending(a => a.CreatedAt).Take(7).ToList();
     }
 
     private async Task RenderChartsAsync()
     {
         try
         {
-            // Revenue spline chart data matching screenshot curve
-            var revenueLabels = new[] { "Sep 11", "Sep 12", "Sep 13", "Sep 14", "Sep 15", "Sep 16" };
-            var revenueData = new[] { 0, 20000, 5000, 150000, 175000, 6540 };
-
-            // Booking mix breakdown (Hotel Stays, Event Packages, Equipment)
-            var paymentLabels = new[] { "Hotel Stays", "Event Packages", "Equipment Rentals" };
-            var paymentData = new[] { 185000, 107975, 45000 };
-
-            // Category revenue distribution
-            var categoryLabels = new[] { "Hotels & Lodges", "Event Packages", "Equipments", "Venues & Villas" };
-            var categoryData = new[] { 185000, 107975, 45000, 18565 };
-
             await JSRuntime.InvokeVoidAsync("renderDashboardCharts", 
-                revenueLabels, 
-                revenueData, 
-                paymentLabels, 
-                paymentData, 
-                categoryLabels, 
-                categoryData);
+                chartRevenueLabels, 
+                chartRevenueData, 
+                chartPaymentLabels, 
+                chartPaymentData, 
+                chartCategoryLabels, 
+                chartCategoryData);
         }
         catch
         {
@@ -443,5 +753,27 @@
         public int TotalEventEquipments { get; set; }
         public int TotalEventPackages { get; set; }
         public int TotalEventBookings { get; set; }
+    }
+
+    private class TopPerformer
+    {
+        public int Rank { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Subtitle { get; set; } = string.Empty;
+        public decimal Revenue { get; set; }
+        public int BookingCount { get; set; }
+        public string BadgeBg { get; set; } = "#DD7A28";
+        public string BadgeColor { get; set; } = "#FFFFFF";
+    }
+
+    private class RecentActivityItem
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Subtitle { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public string StatusBg { get; set; } = "#ECFDF5";
+        public string StatusColor { get; set; } = "#065F46";
+        public decimal Amount { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 }
