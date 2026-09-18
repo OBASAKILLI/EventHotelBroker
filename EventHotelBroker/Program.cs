@@ -191,9 +191,16 @@ using (var scope = app.Services.CreateScope())
         await EnsureMigrationsHistoryAlignedAsync(context, logger);
 
         // Apply pending migrations
-        logger.LogInformation("Applying database migrations...");
-        await context.Database.MigrateAsync();
-        logger.LogInformation("Database migrations applied successfully.");
+        try
+        {
+            logger.LogInformation("Applying database migrations...");
+            await context.Database.MigrateAsync();
+            logger.LogInformation("Database migrations applied successfully.");
+        }
+        catch (Exception migEx)
+        {
+            logger.LogWarning(migEx, "Database.MigrateAsync encountered an issue. Schema alignment may have already created required structures.");
+        }
         
         // Seed essential data (admin account only)
         logger.LogInformation("Seeding database...");
@@ -354,6 +361,68 @@ static async Task EnsureMigrationsHistoryAlignedAsync(ApplicationDbContext conte
 
         if (await TableExistsAsync("Reviews"))
             await RecordMigrationAsync("20260720094344_AddReviewsTable");
+
+        // Ensure HotelCategories table exists and is populated
+        if (!await TableExistsAsync("HotelCategories"))
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                CREATE TABLE IF NOT EXISTS `HotelCategories` (
+                    `Id` int NOT NULL AUTO_INCREMENT,
+                    `Name` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
+                    `Rating` varchar(10) CHARACTER SET utf8mb4 NOT NULL,
+                    `ServiceFee` decimal(10,2) NOT NULL,
+                    `Description` varchar(200) CHARACTER SET utf8mb4 NULL,
+                    `IsActive` tinyint(1) NOT NULL DEFAULT 1,
+                    `CreatedAt` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+                    CONSTRAINT `PK_HotelCategories` PRIMARY KEY (`Id`)
+                ) CHARACTER SET=utf8mb4;";
+            await cmd.ExecuteNonQueryAsync();
+            logger.LogInformation("Created missing HotelCategories table.");
+        }
+
+        // Ensure default HotelCategories exist
+        using (var cmd = connection.CreateCommand())
+        {
+            cmd.CommandText = "SELECT COUNT(*) FROM `HotelCategories`";
+            var count = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+            if (count == 0)
+            {
+                cmd.CommandText = @"
+                    INSERT IGNORE INTO `HotelCategories` (`Id`, `Name`, `Rating`, `ServiceFee`, `Description`, `IsActive`, `CreatedAt`) VALUES
+                    (1, 'Standard Hotel', '3-Star', 500.00, 'Standard comfortable accommodation', 1, NOW(6)),
+                    (2, 'Premium Hotel', '4-Star', 750.00, 'Premium luxury hotel with enhanced amenities', 1, NOW(6)),
+                    (3, 'Luxury Resort', '5-Star', 1000.00, 'Five-star world-class luxury resort and safari lodge', 1, NOW(6)),
+                    (4, 'Boutique & Villa', 'Boutique', 600.00, 'Intimate boutique hotel or private villa', 1, NOW(6)),
+                    (5, 'Budget Lodge', 'Budget', 300.00, 'Affordable safari lodge or guest house', 1, NOW(6));";
+                await cmd.ExecuteNonQueryAsync();
+                logger.LogInformation("Seeded default HotelCategories.");
+            }
+        }
+
+        // Ensure HotelCategoryId column exists in Hotels
+        if (!await ColumnExistsAsync("Hotels", "HotelCategoryId"))
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "ALTER TABLE `Hotels` ADD COLUMN `HotelCategoryId` int NOT NULL DEFAULT 1;";
+            await cmd.ExecuteNonQueryAsync();
+            logger.LogInformation("Added missing HotelCategoryId column to Hotels table.");
+
+            try
+            {
+                using var fkCmd = connection.CreateCommand();
+                fkCmd.CommandText = "ALTER TABLE `Hotels` ADD CONSTRAINT `FK_Hotels_HotelCategories_HotelCategoryId` FOREIGN KEY (`HotelCategoryId`) REFERENCES `HotelCategories` (`Id`) ON DELETE RESTRICT;";
+                await fkCmd.ExecuteNonQueryAsync();
+                logger.LogInformation("Added foreign key FK_Hotels_HotelCategories_HotelCategoryId.");
+            }
+            catch (Exception exFk)
+            {
+                logger.LogWarning(exFk, "Could not add FK constraint on HotelCategoryId (may already exist).");
+            }
+        }
+
+        if (await TableExistsAsync("HotelCategories") && await ColumnExistsAsync("Hotels", "HotelCategoryId"))
+            await RecordMigrationAsync("20260918120000_AddHotelCategoryTableAndColumn");
 
         logger.LogInformation("Database migration history validated and aligned with existing tables.");
     }

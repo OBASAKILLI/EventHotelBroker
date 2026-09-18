@@ -52,7 +52,7 @@ public class Hotel
 
     [Required(ErrorMessage = "Hotel Category is required")]
     [Range(1, int.MaxValue, ErrorMessage = "Please select a hotel category")]
-    public int HotelCategoryId { get; set; }
+    public int HotelCategoryId { get; set; } = 1;
 
     [ForeignKey("HotelCategoryId")]
     public virtual HotelCategory? HotelCategory { get; set; }
